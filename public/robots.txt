@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://freedomdebtsolutions.com/sitemap.xml
+
+# Block admin and API routes
+Disallow: /api/
