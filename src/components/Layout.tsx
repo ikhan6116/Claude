@@ -58,6 +58,9 @@ export default function Layout({
             </Link>
 
             <div className="hidden md:flex items-center space-x-8">
+              <Link href="/heloc" className="text-gray-600 hover:text-primary-600 font-medium">
+                HELOC
+              </Link>
               <Link href="/debt-consolidation" className="text-gray-600 hover:text-primary-600 font-medium">
                 Debt Consolidation
               </Link>
