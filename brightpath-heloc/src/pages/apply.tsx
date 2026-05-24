@@ -6,8 +6,8 @@ export default function ApplyPage() {
   return (
     <>
       <NextSeo
-        title="Apply for a HELOC – BrightPath Finance"
-        description="Complete your HELOC application in just 5 minutes. Get a personalized offer instantly with no impact to your credit score."
+        title="Apply for a Business HELOC – BrightPath Finance"
+        description="Complete your business HELOC application in 5 minutes. Get a personalized offer with no impact to your credit score. Rates from 6.75% APR. Up to $750K."
         canonical="https://heloc.brightpath-fin.com/apply"
         noindex={false}
       />
@@ -41,7 +41,7 @@ export default function ApplyPage() {
       {/* Footer note */}
       <div className="bg-brand-navy py-6 px-4 text-center">
         <p className="text-gray-500 text-xs max-w-3xl mx-auto">
-          © 2025 BrightPath Finance. NMLS #XXXXXXX. Equal Housing Lender. Powered by Figure. Submitting this form does not constitute a loan application and does not guarantee approval. Rates and terms subject to change.
+          © {new Date().getFullYear()} BrightPath Finance. NMLS #2670114. Equal Housing Lender. Powered by Figure. 898 S State St Ste 310 #714, Orem, UT 84058. Submitting this form does not constitute a loan application and does not guarantee approval. Rates from 6.75% APR subject to credit approval and may change without notice.
         </p>
       </div>
     </>

@@ -20,35 +20,25 @@ export default function Layout({ children }: LayoutProps) {
                 </svg>
               </div>
               <div>
-                <span className="text-white font-bold text-lg leading-none tracking-tight">
-                  BrightPath
-                </span>
-                <span className="text-brand-blue-accent font-medium text-lg leading-none ml-1 tracking-tight">
-                  Finance
-                </span>
+                <span className="text-white font-bold text-lg leading-none tracking-tight">BrightPath</span>
+                <span className="text-brand-blue-accent font-medium text-lg leading-none ml-1 tracking-tight">Finance</span>
               </div>
             </Link>
 
-            {/* Nav links - desktop */}
+            {/* Nav links */}
             <div className="hidden md:flex items-center gap-6">
-              <Link
-                href="/#how-it-works"
-                className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
-              >
+              <Link href="/#how-it-works" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">
                 How It Works
               </Link>
-              <Link
-                href="/#benefits"
-                className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
-              >
+              <Link href="/#benefits" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">
                 Benefits
               </Link>
-              <Link
-                href="/#faq"
-                className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
-              >
+              <Link href="/#faq" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">
                 FAQ
               </Link>
+              <a href="tel:8778672002" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">
+                (877) 867-2002
+              </a>
             </div>
 
             {/* CTA */}
@@ -62,14 +52,13 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </nav>
 
-      {/* Main content */}
       <main className="flex-1">{children}</main>
 
       {/* Footer */}
       <footer className="bg-brand-navy text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            {/* Brand column */}
+            {/* Brand */}
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-7 h-7 rounded-md bg-brand-blue flex items-center justify-center">
@@ -80,7 +69,8 @@ export default function Layout({ children }: LayoutProps) {
                 <span className="font-bold text-base">BrightPath Finance</span>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
-                Helping homeowners access their equity with fast, transparent, and competitive HELOC products.
+                Helping small business owners unlock their home equity with fast,
+                transparent financing powered by Figure.
               </p>
             </div>
 
@@ -90,31 +80,34 @@ export default function Layout({ children }: LayoutProps) {
                 Quick Links
               </h3>
               <ul className="space-y-2">
-                <li>
-                  <Link href="/apply" className="text-gray-300 hover:text-white text-sm transition-colors">
-                    Apply Now
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/#how-it-works" className="text-gray-300 hover:text-white text-sm transition-colors">
-                    How It Works
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/#faq" className="text-gray-300 hover:text-white text-sm transition-colors">
-                    FAQ
-                  </Link>
-                </li>
+                <li><Link href="/apply" className="text-gray-300 hover:text-white text-sm transition-colors">Apply Now</Link></li>
+                <li><Link href="/#how-it-works" className="text-gray-300 hover:text-white text-sm transition-colors">How It Works</Link></li>
+                <li><Link href="/#benefits" className="text-gray-300 hover:text-white text-sm transition-colors">Benefits</Link></li>
+                <li><Link href="/#faq" className="text-gray-300 hover:text-white text-sm transition-colors">FAQ</Link></li>
               </ul>
             </div>
 
             {/* Contact */}
             <div>
               <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-400 mb-4">
-                Contact
+                Contact Us
               </h3>
-              <p className="text-gray-300 text-sm mb-1">(800) XXX-XXXX</p>
-              <p className="text-gray-300 text-sm">info@brightpath-fin.com</p>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a href="tel:8778672002" className="text-gray-300 hover:text-white transition-colors">
+                    (877) 867-2002
+                  </a>
+                </li>
+                <li>
+                  <a href="mailto:team@brightpath-fin.com" className="text-gray-300 hover:text-white transition-colors">
+                    team@brightpath-fin.com
+                  </a>
+                </li>
+                <li className="text-gray-400 leading-relaxed pt-1">
+                  898 South State St Ste 310 #714<br />
+                  Orem, UT 84058
+                </li>
+              </ul>
             </div>
           </div>
 
@@ -122,18 +115,30 @@ export default function Layout({ children }: LayoutProps) {
           <div className="border-t border-gray-700 pt-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <p className="text-gray-400 text-xs">
-                © 2025 BrightPath Finance. NMLS #XXXXXXX. Equal Housing Lender. Powered by Figure.
+                © {new Date().getFullYear()} BrightPath Finance. NMLS #2670114. Equal Housing Lender. Powered by Figure.
               </p>
-              <div className="flex items-center gap-4">
-                <span className="text-gray-400 text-xs">Privacy Policy</span>
+              <div className="flex items-center gap-4 text-xs text-gray-400">
+                <span>Privacy Policy</span>
                 <span className="text-gray-600">|</span>
-                <span className="text-gray-400 text-xs">Terms of Service</span>
+                <span>Terms of Service</span>
                 <span className="text-gray-600">|</span>
-                <span className="text-gray-400 text-xs">NMLS Consumer Access</span>
+                <a
+                  href="https://www.nmlsconsumeraccess.org/EntityDetails.aspx/COMPANY/2670114"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  NMLS Consumer Access
+                </a>
               </div>
             </div>
             <p className="text-gray-500 text-xs mt-4 leading-relaxed">
-              APR = Annual Percentage Rate. Rates shown are illustrative and subject to change. Your actual rate will depend on your credit profile, property value, and other factors. HELOC is subject to credit approval. Not available in all states.
+              APR = Annual Percentage Rate. Rates shown are for illustrative purposes and subject to change without notice.
+              Actual rate depends on credit profile, property value, loan-to-value ratio, and other underwriting factors.
+              HELOC is subject to credit approval. Loan products not available in all states. BrightPath Finance is a
+              licensed mortgage broker, NMLS #2670114. This is not a commitment to lend.
+              Funding in 5 days available on most loans; actual timing may vary.
+              No appraisal required on most loans; exceptions may apply.
             </p>
           </div>
         </div>

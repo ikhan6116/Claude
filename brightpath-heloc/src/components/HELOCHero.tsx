@@ -3,19 +3,15 @@ import Link from 'next/link'
 export default function HELOCHero() {
   const handleLearnMore = () => {
     const el = document.getElementById('how-it-works')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
     <section
       className="relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 50%, #2b7cff 100%)',
-      }}
+      style={{ background: 'linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 50%, #2b7cff 100%)' }}
     >
-      {/* Background decorative elements */}
+      {/* Decorative blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
           className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-10"
@@ -32,21 +28,26 @@ export default function HELOCHero() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-sm text-blue-200 font-medium mb-6">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            Powered by Figure — Industry-Leading Fintech
+            Powered by Figure — Business HELOC Specialists
           </div>
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
-            Unlock Your Home&apos;s Equity
-            <span className="block text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #77b6e8, #30a2ff)' }}>
-              with BrightPath
+            Fund Your Business
+            <span
+              className="block text-transparent bg-clip-text"
+              style={{ backgroundImage: 'linear-gradient(90deg, #77b6e8, #30a2ff)' }}
+            >
+              with Your Home Equity
             </span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-xl md:text-2xl text-blue-100 mb-10 leading-relaxed max-w-2xl mx-auto">
-            Access up to <span className="font-bold text-white">$400,000</span> with competitive rates.
-            Fast approval. No closing costs on most loans.
+            Access up to{' '}
+            <span className="font-bold text-white">$750,000</span> for your business —
+            faster than an SBA loan and at a fraction of credit card rates.
+            No appraisal. No title fees. Funded in as few as 5 days.
           </p>
 
           {/* CTAs */}
@@ -55,7 +56,7 @@ export default function HELOCHero() {
               href="/apply"
               className="w-full sm:w-auto bg-white text-brand-navy font-bold px-8 py-4 rounded-xl text-lg shadow-xl hover:shadow-2xl hover:bg-blue-50 transition-all duration-200 transform hover:-translate-y-0.5"
             >
-              Check My Rate
+              Check My Rate — No Credit Impact
             </Link>
             <button
               onClick={handleLearnMore}
@@ -68,10 +69,10 @@ export default function HELOCHero() {
           {/* Stats row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
             {[
-              { value: 'Up to $400K', label: 'Credit Line' },
-              { value: '8.50% APR', label: 'Rates From' },
-              { value: '5 Minutes', label: 'Application' },
-              { value: '$0', label: 'Closing Costs*' },
+              { value: 'Up to $750K', label: 'Credit Line' },
+              { value: '6.75% APR', label: 'Rates From' },
+              { value: '5 Days', label: 'Funding (most loans)' },
+              { value: 'No Appraisal', label: 'Required on most loans' },
             ].map((stat) => (
               <div
                 key={stat.label}
