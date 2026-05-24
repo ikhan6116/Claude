@@ -9,6 +9,7 @@ import { FigureApiClient } from '@/lib/figure-api'
 interface SubmitLeadBody {
   firstName: string
   lastName: string
+  dateOfBirth?: string
   email: string
   phone: string
   street: string
@@ -17,11 +18,15 @@ interface SubmitLeadBody {
   zip: string
   estimatedHomeValue: number
   currentMortgageBalance: number
+  ownershipType?: string
+  occupancyType?: string
+  propertyForSale?: boolean
   requestedCreditLine: number
   loanPurpose: string
   creditScoreRange: string
   employmentStatus: string
   annualIncome: number
+  otherIncome?: number
   consentToTerms: boolean
   // Optional UTM fields
   utmSource?: string
@@ -81,8 +86,8 @@ function validateBody(body: Partial<SubmitLeadBody>): string[] {
   }
 
   if (body.requestedCreditLine !== undefined) {
-    if (body.requestedCreditLine < 10000 || body.requestedCreditLine > 400000) {
-      errors.push('requestedCreditLine must be between 10000 and 400000')
+    if (body.requestedCreditLine < 10000 || body.requestedCreditLine > 750000) {
+      errors.push('requestedCreditLine must be between 10000 and 750000')
     }
   }
 
@@ -213,9 +218,13 @@ export default async function handler(
     await saveLeadBackup({
       firstName: lead.firstName,
       lastName: lead.lastName,
+      dateOfBirth: lead.dateOfBirth,
       email: lead.email,
       phone: lead.phone,
       propertyAddress: `${lead.street}, ${lead.city}, ${lead.state} ${lead.zip}`,
+      ownershipType: lead.ownershipType,
+      occupancyType: lead.occupancyType,
+      propertyForSale: lead.propertyForSale,
       estimatedHomeValue: lead.estimatedHomeValue,
       currentMortgageBalance: lead.currentMortgageBalance,
       requestedCreditLine: lead.requestedCreditLine,
@@ -223,8 +232,10 @@ export default async function handler(
       creditScoreRange: lead.creditScoreRange,
       employmentStatus: lead.employmentStatus,
       annualIncome: lead.annualIncome,
+      otherIncome: lead.otherIncome,
       fubPersonId,
       figureInquiryId,
+      fubError,
     })
   } catch (err) {
     console.error('[submit-lead] Failed to save backup lead:', err)
@@ -232,12 +243,9 @@ export default async function handler(
   }
 
   // ── 4. Respond ─────────────────────────────────────────────────────────────
-  if (fubError && !fubPersonId) {
-    // FUB completely failed — return 500
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to submit application. Please try again or call us at (800) XXX-XXXX.',
-    })
+  // FUB failure is non-fatal — lead is preserved in backup file
+  if (fubError) {
+    console.warn('[submit-lead] FUB failed but lead saved to backup:', fubError)
   }
 
   return res.status(200).json({
