@@ -4,26 +4,31 @@ import { useRouter } from 'next/router'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface FormData {
-  // Step 1
+  // Step 1 – Personal Information
   firstName: string
   lastName: string
+  dateOfBirth: string
   email: string
   phone: string
-  // Step 2
+  // Step 2 – Property Details
   street: string
   city: string
   state: string
   zip: string
   estimatedHomeValue: string
   currentMortgageBalance: string
-  // Step 3
+  ownershipType: string
+  occupancyType: string
+  propertyForSale: string
+  // Step 3 – Loan Details
   requestedCreditLine: number
   loanPurpose: string
-  // Step 4
+  // Step 4 – Financial Profile
   creditScoreRange: string
   employmentStatus: string
   annualIncome: string
-  // Step 5
+  otherIncome: string
+  // Step 5 – Review
   consentToTerms: boolean
 }
 
@@ -61,20 +66,37 @@ const CREDIT_SCORE_RANGES = [
 ]
 
 const LOAN_PURPOSES = [
+  'Working Capital',
+  'Business Expansion',
+  'Equipment Purchase',
+  'Inventory',
+  'Hiring & Payroll',
+  'Real Estate Investment',
+  'Marketing & Advertising',
+  'Business Debt Refinancing',
   'Home Improvement',
-  'Debt Consolidation',
-  'Education',
-  'Emergency Expenses',
-  'Investment',
   'Other',
 ]
 
 const EMPLOYMENT_STATUSES = [
+  'Business Owner / Self-Employed',
   'Employed Full-Time',
   'Employed Part-Time',
-  'Self-Employed',
   'Retired',
   'Other',
+]
+
+const OWNERSHIP_TYPES = [
+  { value: 'sole_owner', label: 'Sole Owner' },
+  { value: 'joint_owner', label: 'Joint Owner' },
+  { value: 'trust', label: 'Trust' },
+  { value: 'llc', label: 'LLC' },
+]
+
+const OCCUPANCY_TYPES = [
+  { value: 'primary', label: 'Primary Residence' },
+  { value: 'secondary', label: 'Secondary / Vacation' },
+  { value: 'investment', label: 'Investment Property' },
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -101,11 +123,29 @@ function isValidZip(zip: string): boolean {
   return /^\d{5}(-\d{4})?$/.test(zip)
 }
 
+function formatDOB(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
+function isValidDOB(dob: string): boolean {
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dob)) return false
+  const [mm, dd, yyyy] = dob.split('/').map(Number)
+  const date = new Date(yyyy, mm - 1, dd)
+  if (date.getMonth() !== mm - 1 || date.getDate() !== dd) return false
+  const now = new Date()
+  const age = now.getFullYear() - yyyy - (now < new Date(now.getFullYear(), mm - 1, dd) ? 1 : 0)
+  return age >= 18 && age <= 110
+}
+
 // ─── Initial State ────────────────────────────────────────────────────────────
 
 const initialData: FormData = {
   firstName: '',
   lastName: '',
+  dateOfBirth: '',
   email: '',
   phone: '',
   street: '',
@@ -114,11 +154,15 @@ const initialData: FormData = {
   zip: '',
   estimatedHomeValue: '',
   currentMortgageBalance: '',
+  ownershipType: '',
+  occupancyType: '',
+  propertyForSale: '',
   requestedCreditLine: 100000,
   loanPurpose: '',
   creditScoreRange: '',
   employmentStatus: '',
   annualIncome: '',
+  otherIncome: '',
   consentToTerms: false,
 }
 
@@ -130,6 +174,11 @@ function validateStep(step: number, data: FormData): FieldErrors {
   if (step === 1) {
     if (!data.firstName.trim()) errors.firstName = 'First name is required'
     if (!data.lastName.trim()) errors.lastName = 'Last name is required'
+    if (!data.dateOfBirth.trim()) {
+      errors.dateOfBirth = 'Date of birth is required'
+    } else if (!isValidDOB(data.dateOfBirth)) {
+      errors.dateOfBirth = 'Please enter a valid date of birth (MM/DD/YYYY) — must be 18+'
+    }
     if (!data.email.trim()) {
       errors.email = 'Email is required'
     } else if (!isValidEmail(data.email)) {
@@ -159,6 +208,9 @@ function validateStep(step: number, data: FormData): FieldErrors {
     if (!data.currentMortgageBalance && data.currentMortgageBalance !== '0') {
       errors.currentMortgageBalance = 'Current mortgage balance is required'
     }
+    if (!data.ownershipType) errors.ownershipType = 'Ownership type is required'
+    if (!data.occupancyType) errors.occupancyType = 'Occupancy type is required'
+    if (!data.propertyForSale) errors.propertyForSale = 'Please indicate if the property is listed for sale'
   }
 
   if (step === 3) {
@@ -267,6 +319,37 @@ function Select({
   )
 }
 
+function RadioGroup({
+  options,
+  value,
+  onChange,
+  hasError,
+}: {
+  options: { value: string; label: string }[]
+  value: string
+  onChange: (v: string) => void
+  hasError?: boolean
+}) {
+  return (
+    <div className={`flex flex-wrap gap-3 ${hasError ? 'ring-1 ring-red-400 rounded-xl p-2' : ''}`}>
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={`border-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
+            value === opt.value
+              ? 'border-brand-blue bg-blue-50 text-brand-blue shadow-sm'
+              : 'border-brand-gray-light bg-white text-brand-gray hover:border-gray-300'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // ─── Step Components ──────────────────────────────────────────────────────────
 
 function Step1({
@@ -301,6 +384,18 @@ function Step1({
           />
           <FieldError message={errors.lastName} />
         </div>
+      </div>
+      <div>
+        <Label required>Date of Birth</Label>
+        <Input
+          value={data.dateOfBirth}
+          onChange={(v) => onChange('dateOfBirth', formatDOB(v))}
+          placeholder="MM/DD/YYYY"
+          inputMode="numeric"
+          maxLength={10}
+          hasError={!!errors.dateOfBirth}
+        />
+        <FieldError message={errors.dateOfBirth} />
       </div>
       <div>
         <Label required>Email Address</Label>
@@ -383,40 +478,84 @@ function Step2({
           <FieldError message={errors.zip} />
         </div>
       </div>
-      <div>
-        <Label required>Estimated Home Value</Label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray font-medium">$</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={data.estimatedHomeValue}
-            onChange={(e) => onChange('estimatedHomeValue', formatDollar(e.target.value))}
-            placeholder="450,000"
-            className={`w-full border rounded-xl pl-8 pr-4 py-3 text-brand-gray focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all ${
-              errors.estimatedHomeValue ? 'border-red-400 bg-red-50' : 'border-brand-gray-light bg-white hover:border-gray-300'
-            }`}
-          />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <Label required>Estimated Home Value</Label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray font-medium">$</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={data.estimatedHomeValue}
+              onChange={(e) => onChange('estimatedHomeValue', formatDollar(e.target.value))}
+              placeholder="450,000"
+              className={`w-full border rounded-xl pl-8 pr-4 py-3 text-brand-gray focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all ${
+                errors.estimatedHomeValue ? 'border-red-400 bg-red-50' : 'border-brand-gray-light bg-white hover:border-gray-300'
+              }`}
+            />
+          </div>
+          <FieldError message={errors.estimatedHomeValue} />
         </div>
-        <FieldError message={errors.estimatedHomeValue} />
+        <div>
+          <Label required>Current Mortgage Balance</Label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray font-medium">$</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={data.currentMortgageBalance}
+              onChange={(e) => onChange('currentMortgageBalance', formatDollar(e.target.value))}
+              placeholder="200,000"
+              className={`w-full border rounded-xl pl-8 pr-4 py-3 text-brand-gray focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all ${
+                errors.currentMortgageBalance ? 'border-red-400 bg-red-50' : 'border-brand-gray-light bg-white hover:border-gray-300'
+              }`}
+            />
+          </div>
+          <p className="mt-1 text-xs text-gray-400">Enter 0 if your home is paid off</p>
+          <FieldError message={errors.currentMortgageBalance} />
+        </div>
       </div>
+
       <div>
-        <Label required>Current Mortgage Balance</Label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray font-medium">$</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={data.currentMortgageBalance}
-            onChange={(e) => onChange('currentMortgageBalance', formatDollar(e.target.value))}
-            placeholder="200,000"
-            className={`w-full border rounded-xl pl-8 pr-4 py-3 text-brand-gray focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all ${
-              errors.currentMortgageBalance ? 'border-red-400 bg-red-50' : 'border-brand-gray-light bg-white hover:border-gray-300'
-            }`}
-          />
-        </div>
-        <p className="mt-1 text-xs text-gray-400">Enter 0 if your home is paid off</p>
-        <FieldError message={errors.currentMortgageBalance} />
+        <Label required>Ownership Type</Label>
+        <RadioGroup
+          options={OWNERSHIP_TYPES}
+          value={data.ownershipType}
+          onChange={(v) => onChange('ownershipType', v)}
+          hasError={!!errors.ownershipType}
+        />
+        <FieldError message={errors.ownershipType} />
+      </div>
+
+      <div>
+        <Label required>Property Occupancy</Label>
+        <RadioGroup
+          options={OCCUPANCY_TYPES}
+          value={data.occupancyType}
+          onChange={(v) => onChange('occupancyType', v)}
+          hasError={!!errors.occupancyType}
+        />
+        <FieldError message={errors.occupancyType} />
+      </div>
+
+      <div>
+        <Label required>Is the property currently listed for sale?</Label>
+        <RadioGroup
+          options={[
+            { value: 'no', label: 'No' },
+            { value: 'yes', label: 'Yes' },
+          ]}
+          value={data.propertyForSale}
+          onChange={(v) => onChange('propertyForSale', v)}
+          hasError={!!errors.propertyForSale}
+        />
+        {data.propertyForSale === 'yes' && (
+          <p className="mt-2 text-sm text-orange-600 bg-orange-50 rounded-lg px-3 py-2">
+            Note: Properties currently listed for sale may not qualify for a HELOC. Our team will follow up to discuss your options.
+          </p>
+        )}
+        <FieldError message={errors.propertyForSale} />
       </div>
     </div>
   )
@@ -432,7 +571,7 @@ function Step3({
   onChange: (field: keyof FormData, value: string | number) => void
 }) {
   const sliderValue = data.requestedCreditLine
-  const sliderPct = ((sliderValue - 10000) / (400000 - 10000)) * 100
+  const sliderPct = ((sliderValue - 10000) / (750000 - 10000)) * 100
 
   return (
     <div className="space-y-8">
@@ -448,7 +587,7 @@ function Step3({
           <input
             type="range"
             min={10000}
-            max={400000}
+            max={750000}
             step={5000}
             value={sliderValue}
             onChange={(e) => onChange('requestedCreditLine', parseInt(e.target.value, 10))}
@@ -459,7 +598,7 @@ function Step3({
           />
           <div className="flex justify-between text-xs text-brand-gray mt-2">
             <span>$10,000</span>
-            <span>$400,000</span>
+            <span>$750,000</span>
           </div>
         </div>
         <p className="text-sm text-gray-400 mt-3 text-center">
@@ -469,7 +608,7 @@ function Step3({
 
       {/* Loan Purpose */}
       <div>
-        <Label required>Loan Purpose</Label>
+        <Label required>Primary Use of Funds</Label>
         <Select
           value={data.loanPurpose}
           onChange={(v) => onChange('loanPurpose', v)}
@@ -521,7 +660,7 @@ function Step4({
 
       {/* Employment Status */}
       <div>
-        <Label required>Employment Status</Label>
+        <Label required>Employment / Business Status</Label>
         <Select
           value={data.employmentStatus}
           onChange={(v) => onChange('employmentStatus', v)}
@@ -534,7 +673,7 @@ function Step4({
 
       {/* Annual Income */}
       <div>
-        <Label required>Annual Household Income</Label>
+        <Label required>Total Annual Income</Label>
         <div className="relative">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray font-medium">$</span>
           <input
@@ -548,7 +687,26 @@ function Step4({
             }`}
           />
         </div>
+        <p className="mt-1 text-xs text-gray-400">Include W-2 wages, business income, and all other sources</p>
         <FieldError message={errors.annualIncome} />
+      </div>
+
+      {/* Other Income */}
+      <div>
+        <Label>Other Annual Income <span className="text-gray-400 font-normal">(optional)</span></Label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray font-medium">$</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={data.otherIncome}
+            onChange={(e) => onChange('otherIncome', formatDollar(e.target.value))}
+            placeholder="0"
+            className="w-full border rounded-xl pl-8 pr-4 py-3 text-brand-gray focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all border-brand-gray-light bg-white hover:border-gray-300"
+          />
+        </div>
+        <p className="mt-1 text-xs text-gray-400">Investments, rental income, stock dividends, etc.</p>
+        <FieldError message={errors.otherIncome} />
       </div>
     </div>
   )
@@ -572,6 +730,9 @@ function Step5({
   errors: FieldErrors
   onConsentChange: (checked: boolean) => void
 }) {
+  const ownershipLabel = OWNERSHIP_TYPES.find((o) => o.value === data.ownershipType)?.label ?? data.ownershipType
+  const occupancyLabel = OCCUPANCY_TYPES.find((o) => o.value === data.occupancyType)?.label ?? data.occupancyType
+
   return (
     <div className="space-y-6">
       <p className="text-brand-gray text-sm">
@@ -584,6 +745,7 @@ function Step5({
 
         <div className="space-y-0">
           <SummaryRow label="Name" value={`${data.firstName} ${data.lastName}`} />
+          <SummaryRow label="Date of Birth" value={data.dateOfBirth} />
           <SummaryRow label="Email" value={data.email} />
           <SummaryRow label="Phone" value={data.phone} />
           <SummaryRow
@@ -598,17 +760,26 @@ function Step5({
             label="Current Mortgage Balance"
             value={data.currentMortgageBalance ? `$${data.currentMortgageBalance}` : '$0'}
           />
+          <SummaryRow label="Ownership Type" value={ownershipLabel || '—'} />
+          <SummaryRow label="Occupancy" value={occupancyLabel || '—'} />
+          <SummaryRow label="Property Listed for Sale" value={data.propertyForSale === 'yes' ? 'Yes' : 'No'} />
           <SummaryRow
             label="Requested Credit Line"
             value={`$${data.requestedCreditLine.toLocaleString()}`}
           />
-          <SummaryRow label="Loan Purpose" value={data.loanPurpose} />
+          <SummaryRow label="Use of Funds" value={data.loanPurpose} />
           <SummaryRow label="Credit Score Range" value={data.creditScoreRange} />
           <SummaryRow label="Employment Status" value={data.employmentStatus} />
           <SummaryRow
             label="Annual Income"
             value={data.annualIncome ? `$${data.annualIncome}` : '—'}
           />
+          {data.otherIncome && (
+            <SummaryRow
+              label="Other Income"
+              value={`$${data.otherIncome}`}
+            />
+          )}
         </div>
       </div>
 
@@ -677,7 +848,6 @@ export default function MultiStepForm() {
     const errs = validateStep(step, data)
     if (Object.keys(errs).length > 0) {
       setErrors(errs)
-      // Scroll to first error
       const firstErrEl = document.querySelector('[data-error-field]')
       if (firstErrEl) firstErrEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
@@ -707,6 +877,7 @@ export default function MultiStepForm() {
       const payload = {
         firstName: data.firstName,
         lastName: data.lastName,
+        dateOfBirth: data.dateOfBirth,
         email: data.email,
         phone: data.phone,
         street: data.street,
@@ -715,11 +886,15 @@ export default function MultiStepForm() {
         zip: data.zip,
         estimatedHomeValue: parseDollar(data.estimatedHomeValue),
         currentMortgageBalance: parseDollar(data.currentMortgageBalance),
+        ownershipType: data.ownershipType,
+        occupancyType: data.occupancyType,
+        propertyForSale: data.propertyForSale === 'yes',
         requestedCreditLine: data.requestedCreditLine,
         loanPurpose: data.loanPurpose,
         creditScoreRange: data.creditScoreRange,
         employmentStatus: data.employmentStatus,
         annualIncome: parseDollar(data.annualIncome),
+        otherIncome: parseDollar(data.otherIncome),
         consentToTerms: data.consentToTerms,
       }
 
@@ -735,7 +910,6 @@ export default function MultiStepForm() {
         throw new Error(json.message || 'Submission failed. Please try again.')
       }
 
-      // Redirect to thank you page
       const params = new URLSearchParams({
         firstName: data.firstName,
         ...(json.leadId ? { leadId: String(json.leadId) } : {}),
@@ -757,7 +931,7 @@ export default function MultiStepForm() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-brand-navy">
-            HELOC Application
+            Business HELOC Application
           </h1>
           <p className="text-brand-gray mt-2">
             Step {step} of {totalSteps} — {STEP_TITLES[step - 1]}
