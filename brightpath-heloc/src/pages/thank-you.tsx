@@ -114,13 +114,13 @@ export default function ThankYouPage() {
 
             {/* Call CTA */}
             <a
-              href="tel:8000000000"
+              href="tel:8778672002"
               className="inline-flex items-center gap-2 bg-brand-navy text-white font-semibold px-6 py-3 rounded-xl hover:bg-opacity-90 transition-colors text-sm"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              Have questions? Call us: (800) XXX-XXXX
+              Have questions? Call us: (877) 867-2002
             </a>
           </div>
 
@@ -165,7 +165,7 @@ export default function ThankYouPage() {
       {/* Footer */}
       <div className="bg-brand-navy py-6 px-4 text-center">
         <p className="text-gray-500 text-xs max-w-3xl mx-auto">
-          © 2025 BrightPath Finance. NMLS #XXXXXXX. Equal Housing Lender. Powered by Figure.
+          © {new Date().getFullYear()} BrightPath Finance. NMLS #2670114. Equal Housing Lender. Powered by Figure.
         </p>
       </div>
     </>

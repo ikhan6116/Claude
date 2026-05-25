@@ -109,32 +109,14 @@ export class FollowUpBossClient {
     )
   }
 
-  /**
-   * Create a new lead/person in Follow Up Boss.
-   * POST /people
-   */
-  async createLead(payload: FUBLeadPayload): Promise<FUBPerson> {
-    const url = `${this.baseUrl}/people`
-    const body = {
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      emails: [{ value: payload.email, type: 'home' }],
-      phones: [{ value: payload.phone, type: 'mobile' }],
-      source: 'BrightPath HELOC Campaign',
-      tags: ['HELOC', 'BrightPath'],
-      note: this.buildNote(payload),
-    }
-
-    this.log('REQ', 'POST', '/people', {
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      source: body.source,
-    })
+  private async fetchJson<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const url = `${this.baseUrl}${path}`
+    this.log('REQ', method, path, body)
 
     const response = await fetch(url, {
-      method: 'POST',
+      method,
       headers: this.buildHeaders(),
-      body: JSON.stringify(body),
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     })
 
     let responseBody: unknown
@@ -145,10 +127,10 @@ export class FollowUpBossClient {
       responseBody = await response.text()
     }
 
-    this.log('RES', 'POST', '/people', { status: response.status })
+    this.log('RES', method, path, { status: response.status })
 
     if (!response.ok) {
-      console.error('[FollowUpBoss] createLead failed:', response.status, responseBody)
+      console.error(`[FollowUpBoss] ${method} ${path} failed:`, response.status, responseBody)
       throw new FUBApiError(
         `Follow Up Boss API error: ${response.status} ${response.statusText}`,
         response.status,
@@ -156,7 +138,40 @@ export class FollowUpBossClient {
       )
     }
 
-    const data = responseBody as FUBApiResponse
+    return responseBody as T
+  }
+
+  /**
+   * Create a new lead/person in Follow Up Boss, then attach an application note.
+   * FUB does not support inline notes on POST /people — notes require POST /notes.
+   */
+  async createLead(payload: FUBLeadPayload): Promise<FUBPerson> {
+    const personBody = {
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      emails: [{ value: payload.email, type: 'home' }],
+      phones: [{ value: payload.phone, type: 'mobile' }],
+      source: 'BrightPath HELOC Campaign',
+      tags: ['HELOC', 'BrightPath'],
+    }
+
+    const data = await this.fetchJson<FUBApiResponse>('POST', '/people', personBody)
+
+    // Attach note separately — FUB ignores note fields on the person body
+    const noteBody = {
+      personId: data.id,
+      subject: 'HELOC Application — BrightPath Finance',
+      body: this.buildNote(payload),
+      isHtml: false,
+    }
+    try {
+      await this.fetchJson('POST', '/notes', noteBody)
+      console.log(`[FollowUpBoss] Note attached to person id=${data.id}`)
+    } catch (err) {
+      // Non-fatal — person was created, note is bonus
+      console.warn('[FollowUpBoss] Failed to attach note (non-fatal):', err)
+    }
+
     return {
       id: data.id,
       name: data.name || `${payload.firstName} ${payload.lastName}`,
