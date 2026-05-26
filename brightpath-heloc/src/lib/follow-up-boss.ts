@@ -172,6 +172,14 @@ export class FollowUpBossClient {
       console.warn('[FollowUpBoss] Failed to attach note (non-fatal):', err)
     }
 
+    // Send welcome text via FUB's texting API (requires FUB texting to be enabled)
+    try {
+      await this.sendWelcomeText(data.id, payload.firstName, payload.phone)
+      console.log(`[FollowUpBoss] Welcome text sent to person id=${data.id}`)
+    } catch (err) {
+      console.warn('[FollowUpBoss] Welcome text failed (non-fatal):', err instanceof Error ? err.message : err)
+    }
+
     return {
       id: data.id,
       name: data.name || `${payload.firstName} ${payload.lastName}`,
@@ -179,6 +187,24 @@ export class FollowUpBossClient {
       phone: payload.phone,
       source: 'BrightPath HELOC Campaign',
     }
+  }
+
+  /**
+   * Send an outbound text via FUB's texting system.
+   * Requires FUB texting to be enabled on the account.
+   * POST /texting/outbox
+   */
+  private async sendWelcomeText(personId: number, firstName: string, phone: string): Promise<void> {
+    const message =
+      `Hi ${firstName}, this is BrightPath Finance. We received your HELOC request ` +
+      `and one of our agents will begin working on your file shortly. ` +
+      `Questions? Call us at (877) 867-2002.`
+
+    await this.fetchJson('POST', '/texting/outbox', {
+      personId,
+      to: phone,
+      message,
+    })
   }
 }
 

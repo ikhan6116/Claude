@@ -3,7 +3,6 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import { FollowUpBossClient } from '@/lib/follow-up-boss'
 import { FigureApiClient } from '@/lib/figure-api'
-import { TwilioSmsClient } from '@/lib/twilio-sms'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -171,21 +170,7 @@ export default async function handler(
     console.error('[submit-lead] FUB createLead failed:', fubError)
   }
 
-  // ── 2. SMS via Twilio (fires immediately after FUB, non-fatal) ────────────
-  try {
-    const sms = new TwilioSmsClient()
-    if (sms.configured) {
-      const message = sms.buildLeadMessage(lead.firstName)
-      const { sid } = await sms.sendSms(lead.phone, message)
-      console.log(`[submit-lead] SMS sent: sid=${sid}`)
-    } else {
-      console.log('[submit-lead] Twilio not configured — skipping SMS')
-    }
-  } catch (err) {
-    console.error('[submit-lead] SMS failed (non-fatal):', err instanceof Error ? err.message : err)
-  }
-
-  // ── 3. Figure API (only if key is configured) ───────────────────────────────
+  // ── 2. Figure API (only if key is configured) ───────────────────────────────
   const figureApiKey = process.env.FIGURE_API_KEY
   const figureConfigured =
     figureApiKey &&
@@ -228,7 +213,7 @@ export default async function handler(
     console.log('[submit-lead] Figure API key not configured — skipping Figure inquiry')
   }
 
-  // ── 4. Save backup ─────────────────────────────────────────────────────────
+  // ── 3. Save backup ─────────────────────────────────────────────────────────
   try {
     await saveLeadBackup({
       firstName: lead.firstName,
@@ -257,7 +242,7 @@ export default async function handler(
     // Non-fatal
   }
 
-  // ── 5. Respond ─────────────────────────────────────────────────────────────
+  // ── 4. Respond ─────────────────────────────────────────────────────────────
   // FUB failure is non-fatal — lead is preserved in backup file
   if (fubError) {
     console.warn('[submit-lead] FUB failed but lead saved to backup:', fubError)
