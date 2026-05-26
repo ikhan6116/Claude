@@ -27,13 +27,12 @@ export default async function handler(
     const result = await client.launchHELOCCampaign(
       {
         name: 'BrightPath — Business HELOC — Leads',
-        dailyBudgetCents: 5000,  // $50/day — adjust as needed
+        dailyBudgetCents: 2000,  // $20/day
       },
       {
         name: 'BrightPath HELOC — Homeowner Business Owners — US',
         ageMin: 30,
         ageMax: 65,
-        geoLocations: ['US'],
       },
       {
         name: 'BrightPath HELOC — Check My Rate',

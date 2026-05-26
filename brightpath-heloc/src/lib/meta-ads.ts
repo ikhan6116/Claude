@@ -1,16 +1,36 @@
 /**
  * Meta Marketing API v20 client for BrightPath HELOC campaigns.
- * Special Ad Category: CREDIT — targeting restrictions apply.
+ * Special Ad Category: CREDIT — targeting restrictions apply (age + geo only).
  * Docs: https://developers.facebook.com/docs/marketing-apis
  */
 
 const META_API_BASE = 'https://graph.facebook.com/v20.0'
 
+// States where Figure HELOC is not available — excluded from ad targeting.
+// Meta requires numeric region keys for US states.
+const EXCLUDED_STATE_KEYS: string[] = [
+  '3847', // California
+  '3861', // Georgia
+  '3863', // Hawaii
+  '3865', // Idaho
+  '3876', // Michigan
+  '3877', // Minnesota
+  '3889', // Nevada
+  '3888', // New Jersey
+  '3893', // North Dakota
+  '3896', // Oregon
+  '3899', // South Dakota
+  '3901', // Utah
+  '3902', // Vermont
+  '3903', // Virginia
+  '3908', // West Virginia
+]
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface CampaignConfig {
   name: string
-  dailyBudgetCents: number   // e.g. 5000 = $50.00/day
+  dailyBudgetCents: number   // e.g. 2000 = $20.00/day
   startTime?: string         // ISO 8601 — defaults to now
   endTime?: string           // ISO 8601 — optional
 }
@@ -18,9 +38,8 @@ export interface CampaignConfig {
 export interface AdSetConfig {
   campaignId: string
   name: string
-  ageMin?: number            // default 25
+  ageMin?: number            // default 30
   ageMax?: number            // default 65
-  geoLocations?: string[]    // country codes, default ['US']
 }
 
 export interface AdCreativeConfig {
@@ -31,7 +50,7 @@ export interface AdCreativeConfig {
   description: string
   callToAction: string       // e.g. 'APPLY_NOW', 'LEARN_MORE', 'GET_QUOTE'
   linkUrl: string
-  imageUrl?: string          // optional image; if omitted uses link preview
+  imageUrl?: string
 }
 
 export interface LaunchResult {
@@ -64,7 +83,7 @@ export class MetaAdsClient {
   constructor() {
     this.accessToken = process.env.META_ACCESS_TOKEN || ''
     this.adAccountId = process.env.META_AD_ACCOUNT_ID || 'act_1983182402558788'
-    this.pageId = process.env.META_PAGE_ID || '102255392793329'
+    this.pageId      = process.env.META_PAGE_ID       || '102255392793329'
 
     if (!this.accessToken) {
       throw new Error('META_ACCESS_TOKEN is not set')
@@ -113,16 +132,17 @@ export class MetaAdsClient {
       name: config.name,
       objective: 'OUTCOME_LEADS',
       special_ad_categories: ['CREDIT'],
-      status: 'PAUSED',          // start paused; activate manually or via activateCampaign()
+      status: 'PAUSED',
       daily_budget: config.dailyBudgetCents,
       ...(config.startTime ? { start_time: config.startTime } : {}),
-      ...(config.endTime ? { end_time: config.endTime } : {}),
+      ...(config.endTime   ? { end_time:   config.endTime   } : {}),
     })
     return data.id
   }
 
   /**
-   * Step 2 — Create ad set. CREDIT category restricts age/gender/zip targeting.
+   * Step 2 — Create ad set targeting US minus ineligible states.
+   * CREDIT category restricts targeting to age + geo only.
    */
   async createAdSet(config: AdSetConfig): Promise<string> {
     const data = await this.call<{ id: string }>('POST', `/${this.adAccountId}/adsets`, {
@@ -133,19 +153,21 @@ export class MetaAdsClient {
       bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
       status: 'PAUSED',
       targeting: {
-        age_min: config.ageMin ?? 25,
+        age_min: config.ageMin ?? 30,
         age_max: config.ageMax ?? 65,
         geo_locations: {
-          countries: config.geoLocations ?? ['US'],
+          countries: ['US'],
         },
-        // CREDIT category prohibits interest/behavioral targeting
+        excluded_geo_locations: {
+          regions: EXCLUDED_STATE_KEYS.map((key) => ({ key })),
+        },
       },
     })
     return data.id
   }
 
   /**
-   * Step 3 — Create ad creative.
+   * Step 3 — Create ad creative (link ad format).
    */
   async createAdCreative(config: AdCreativeConfig): Promise<string> {
     const data = await this.call<{ id: string }>('POST', `/${this.adAccountId}/adcreatives`, {
@@ -189,18 +211,17 @@ export class MetaAdsClient {
   }
 
   /**
-   * Full launch: campaign → ad set → creative → ad, all in PAUSED state.
-   * Activate separately once reviewed.
+   * Full launch: campaign → ad set → creative → ad, all PAUSED for review.
    */
   async launchHELOCCampaign(
     campaign: CampaignConfig,
     adSet: Omit<AdSetConfig, 'campaignId'>,
     creative: Omit<AdCreativeConfig, 'pageId'>
   ): Promise<LaunchResult> {
-    const campaignId = await this.createCampaign(campaign)
-    const adSetId = await this.createAdSet({ ...adSet, campaignId })
+    const campaignId   = await this.createCampaign(campaign)
+    const adSetId      = await this.createAdSet({ ...adSet, campaignId })
     const adCreativeId = await this.createAdCreative({ ...creative, pageId: this.pageId })
-    const adId = await this.createAd(adSetId, adCreativeId, `${campaign.name} — Ad`)
+    const adId         = await this.createAd(adSetId, adCreativeId, `${campaign.name} — Ad`)
 
     return { campaignId, adSetId, adCreativeId, adId }
   }
