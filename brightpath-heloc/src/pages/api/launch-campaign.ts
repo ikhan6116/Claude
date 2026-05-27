@@ -15,7 +15,6 @@ export default async function handler(
     return res.status(405).json({ success: false, message: 'Method not allowed' })
   }
 
-  // Protect with admin secret so this can't be called publicly
   const secret = req.headers['x-admin-secret']
   if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
     return res.status(401).json({ success: false, message: 'Unauthorized' })
@@ -26,11 +25,11 @@ export default async function handler(
 
     const result = await client.launchHELOCCampaign(
       {
-        name: 'BrightPath — Business HELOC — Leads',
-        dailyBudgetCents: 2000,  // $20/day
+        name: 'BrightPath — Business HELOC — Traffic',
       },
       {
         name: 'BrightPath HELOC — Homeowner Business Owners — US',
+        dailyBudgetCents: 2000,  // $20/day — lives on ad set, not campaign
         ageMin: 30,
         ageMax: 65,
       },
@@ -39,7 +38,7 @@ export default async function handler(
         headline: 'Fund Your Business with Home Equity',
         body: 'Access up to $750K for your business at rates from 6.75% APR. No appraisal. No title fees. Funds in as few as 5 days. Check your rate with no credit impact.',
         description: 'Business HELOC powered by Figure. NMLS #2670114.',
-        callToAction: 'APPLY_NOW',
+        callToAction: 'LEARN_MORE',
         linkUrl: 'https://heloc.brightpath-fin.com/apply',
       }
     )

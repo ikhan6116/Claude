@@ -30,7 +30,6 @@ const EXCLUDED_STATE_KEYS: string[] = [
 
 export interface CampaignConfig {
   name: string
-  dailyBudgetCents: number   // e.g. 2000 = $20.00/day
   startTime?: string         // ISO 8601 — defaults to now
   endTime?: string           // ISO 8601 — optional
 }
@@ -38,6 +37,7 @@ export interface CampaignConfig {
 export interface AdSetConfig {
   campaignId: string
   name: string
+  dailyBudgetCents: number
   ageMin?: number            // default 30
   ageMax?: number            // default 65
 }
@@ -114,11 +114,10 @@ export class MetaAdsClient {
 
     if (!res.ok || json.error) {
       const err = json.error as Record<string, unknown> | undefined
-      throw new MetaAdsError(
-        String(err?.message ?? `Meta API error ${res.status}`),
-        res.status,
-        json
-      )
+      const detail = err
+        ? `[code ${err.code ?? '?'} / subcode ${err.error_subcode ?? '?'}] ${err.message} — ${err.error_user_msg ?? ''}`
+        : `Meta API error ${res.status}`
+      throw new MetaAdsError(detail, res.status, json)
     }
 
     return json as T
@@ -126,14 +125,14 @@ export class MetaAdsClient {
 
   /**
    * Step 1 — Create campaign with CREDIT special ad category.
+   * Budget lives on the ad set (no CBO) to keep setup simple.
    */
   async createCampaign(config: CampaignConfig): Promise<string> {
     const data = await this.call<{ id: string }>('POST', `/${this.adAccountId}/campaigns`, {
       name: config.name,
-      objective: 'OUTCOME_LEADS',
+      objective: 'OUTCOME_TRAFFIC',
       special_ad_categories: ['CREDIT'],
       status: 'PAUSED',
-      daily_budget: config.dailyBudgetCents,
       ...(config.startTime ? { start_time: config.startTime } : {}),
       ...(config.endTime   ? { end_time:   config.endTime   } : {}),
     })
@@ -143,14 +142,17 @@ export class MetaAdsClient {
   /**
    * Step 2 — Create ad set targeting US minus ineligible states.
    * CREDIT category restricts targeting to age + geo only.
+   * Budget is set here (ad set level) rather than campaign level.
    */
   async createAdSet(config: AdSetConfig): Promise<string> {
     const data = await this.call<{ id: string }>('POST', `/${this.adAccountId}/adsets`, {
       name: config.name,
       campaign_id: config.campaignId,
+      daily_budget: config.dailyBudgetCents,
       billing_event: 'IMPRESSIONS',
-      optimization_goal: 'LEAD_GENERATION',
+      optimization_goal: 'LINK_CLICKS',
       bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
+      destination_type: 'WEBSITE',
       status: 'PAUSED',
       targeting: {
         age_min: config.ageMin ?? 30,
@@ -218,6 +220,7 @@ export class MetaAdsClient {
     adSet: Omit<AdSetConfig, 'campaignId'>,
     creative: Omit<AdCreativeConfig, 'pageId'>
   ): Promise<LaunchResult> {
+
     const campaignId   = await this.createCampaign(campaign)
     const adSetId      = await this.createAdSet({ ...adSet, campaignId })
     const adCreativeId = await this.createAdCreative({ ...creative, pageId: this.pageId })
