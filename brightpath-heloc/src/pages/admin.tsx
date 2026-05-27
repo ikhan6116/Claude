@@ -40,7 +40,8 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/launch-campaign', {
         method: 'POST',
-        headers: { 'x-admin-secret': secret },
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminSecret: secret }),
       })
       const json = await res.json() as { success: boolean; result?: CampaignResult; message?: string }
 

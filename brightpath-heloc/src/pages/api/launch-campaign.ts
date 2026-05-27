@@ -15,8 +15,8 @@ export default async function handler(
     return res.status(405).json({ success: false, message: 'Method not allowed' })
   }
 
-  const secret = req.headers['x-admin-secret']
-  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
+  const { adminSecret } = req.body as { adminSecret?: string }
+  if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
     return res.status(401).json({ success: false, message: 'Unauthorized' })
   }
 
