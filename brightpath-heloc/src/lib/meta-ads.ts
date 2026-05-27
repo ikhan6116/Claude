@@ -131,7 +131,7 @@ export class MetaAdsClient {
     const data = await this.call<{ id: string }>('POST', `/${this.adAccountId}/campaigns`, {
       name: config.name,
       objective: 'OUTCOME_TRAFFIC',
-      special_ad_categories: ['CREDIT'],
+      special_ad_categories: ['FINANCIAL_PRODUCTS_SERVICES'],
       status: 'PAUSED',
       is_adset_budget_sharing_enabled: false,
       ...(config.startTime ? { start_time: config.startTime } : {}),
