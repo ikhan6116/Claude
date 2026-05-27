@@ -28,10 +28,8 @@ export default async function handler(
         name: 'BrightPath — Business HELOC — Traffic',
       },
       {
-        name: 'BrightPath HELOC — Homeowner Business Owners — US',
-        dailyBudgetCents: 2000,  // $20/day — lives on ad set, not campaign
-        ageMin: 30,
-        ageMax: 65,
+        name: 'BrightPath HELOC — US',
+        dailyBudgetCents: 2000,  // $20/day
       },
       {
         name: 'BrightPath HELOC — Check My Rate',

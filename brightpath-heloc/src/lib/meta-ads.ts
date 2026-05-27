@@ -6,26 +6,6 @@
 
 const META_API_BASE = 'https://graph.facebook.com/v20.0'
 
-// States where Figure HELOC is not available — excluded from ad targeting.
-// Meta requires numeric region keys for US states.
-const EXCLUDED_STATE_KEYS: string[] = [
-  '3847', // California
-  '3861', // Georgia
-  '3863', // Hawaii
-  '3865', // Idaho
-  '3876', // Michigan
-  '3877', // Minnesota
-  '3889', // Nevada
-  '3888', // New Jersey
-  '3893', // North Dakota
-  '3896', // Oregon
-  '3899', // South Dakota
-  '3901', // Utah
-  '3902', // Vermont
-  '3903', // Virginia
-  '3908', // West Virginia
-]
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface CampaignConfig {
@@ -38,8 +18,7 @@ export interface AdSetConfig {
   campaignId: string
   name: string
   dailyBudgetCents: number
-  ageMin?: number            // default 30
-  ageMax?: number            // default 65
+  // Age and location exclusions are not permitted under FINANCIAL_PRODUCTS_SERVICES
 }
 
 export interface AdCreativeConfig {
@@ -155,14 +134,10 @@ export class MetaAdsClient {
       bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
       destination_type: 'WEBSITE',
       status: 'PAUSED',
+      // FINANCIAL_PRODUCTS_SERVICES mandates age 18-65+ and no location exclusions
       targeting: {
-        age_min: config.ageMin ?? 30,
-        age_max: config.ageMax ?? 65,
         geo_locations: {
           countries: ['US'],
-        },
-        excluded_geo_locations: {
-          regions: EXCLUDED_STATE_KEYS.map((key) => ({ key })),
         },
       },
     })
