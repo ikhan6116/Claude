@@ -133,6 +133,7 @@ export class MetaAdsClient {
       objective: 'OUTCOME_TRAFFIC',
       special_ad_categories: ['CREDIT'],
       status: 'PAUSED',
+      is_adset_budget_sharing_enabled: false,
       ...(config.startTime ? { start_time: config.startTime } : {}),
       ...(config.endTime   ? { end_time:   config.endTime   } : {}),
     })
