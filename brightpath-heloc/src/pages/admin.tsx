@@ -13,6 +13,17 @@ type CampaignResult = {
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
+const AD_IMAGES = [
+  { name: 'Man — Home Office',    file: 'man-home-office.jpg' },
+  { name: 'Branded — Woman CTA',  file: 'brightpath-branded.jpg' },
+  { name: 'Team Celebrating',     file: 'team-celebrating.jpg' },
+  { name: 'Storefront',           file: 'storefront.jpg' },
+]
+
+const SITE = 'https://heloc.brightpath-fin.com'
+
+type CreativeResult = { name: string; adId: string; status: 'success' | 'error'; message?: string }
+
 export default function AdminPage() {
   const [secret, setSecret] = useState('')
   const [unlocked, setUnlocked] = useState(false)
@@ -21,6 +32,10 @@ export default function AdminPage() {
   const [campaignStatus, setCampaignStatus] = useState<Status>('idle')
   const [campaignResult, setCampaignResult] = useState<CampaignResult | null>(null)
   const [campaignError, setCampaignError] = useState('')
+
+  const [adSetId, setAdSetId] = useState('')
+  const [creativeResults, setCreativeResults] = useState<CreativeResult[]>([])
+  const [creativesLoading, setCreativesLoading] = useState(false)
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +70,32 @@ export default function AdminPage() {
       setCampaignError(err instanceof Error ? err.message : 'Unknown error')
       setCampaignStatus('error')
     }
+  }
+
+  const handleAddCreatives = async () => {
+    const targetAdSetId = adSetId || campaignResult?.adSetId
+    if (!targetAdSetId) return
+    setCreativesLoading(true)
+    setCreativeResults([])
+
+    const results: CreativeResult[] = []
+    for (const img of AD_IMAGES) {
+      const imageUrl = `${SITE}/ads/${img.file}`
+      try {
+        const res = await fetch('/api/add-creative', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adminSecret: secret, adSetId: targetAdSetId, imageUrl, adName: img.name }),
+        })
+        const json = await res.json() as { success: boolean; adId?: string; message?: string }
+        if (!res.ok || !json.success) throw new Error(json.message || 'Failed')
+        results.push({ name: img.name, adId: json.adId ?? '', status: 'success' })
+      } catch (err) {
+        results.push({ name: img.name, adId: '', status: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
+      }
+    }
+    setCreativeResults(results)
+    setCreativesLoading(false)
   }
 
   if (!unlocked) {
@@ -235,6 +276,71 @@ export default function AdminPage() {
                 <strong>Error:</strong> {campaignError}
               </div>
             )}
+          </div>
+
+          {/* Ad Creatives */}
+          <div className="bg-white rounded-2xl border border-brand-gray-light p-6 md:p-8 shadow-sm">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-bold text-brand-navy">Ad Creatives</h2>
+                <p className="text-sm text-brand-gray mt-1">
+                  Uploads your 4 images from <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">/public/ads/</code> and creates a separate ad for each.
+                  Requires the Ad Set ID from the campaign launch above.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+              {AD_IMAGES.map((img) => {
+                const result = creativeResults.find((r) => r.name === img.name)
+                return (
+                  <div key={img.name} className={`rounded-xl border p-3 text-xs ${result?.status === 'success' ? 'border-green-200 bg-green-50' : result?.status === 'error' ? 'border-red-200 bg-red-50' : 'border-brand-gray-light bg-gray-50'}`}>
+                    <p className="font-medium text-brand-navy truncate">{img.name}</p>
+                    <p className="text-gray-400 truncate mt-0.5">{img.file}</p>
+                    {result?.status === 'success' && <p className="text-green-700 mt-1">✓ Ad created</p>}
+                    {result?.status === 'error'   && <p className="text-red-600 mt-1 break-words">{result.message}</p>}
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="flex gap-3 items-end mb-5">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-brand-navy mb-1">
+                  Ad Set ID <span className="text-gray-400 font-normal">(auto-filled if you launched above)</span>
+                </label>
+                <input
+                  type="text"
+                  value={adSetId || campaignResult?.adSetId || ''}
+                  onChange={(e) => setAdSetId(e.target.value)}
+                  placeholder="120xxxxxxxxxx"
+                  className="w-full border border-brand-gray-light rounded-xl px-4 py-2.5 text-sm text-brand-gray focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleAddCreatives}
+              disabled={creativesLoading || (!adSetId && !campaignResult?.adSetId)}
+              className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-light disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-colors shadow-md text-sm"
+            >
+              {creativesLoading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Uploading creatives…
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Upload 4 Creatives & Create Ads
+                </>
+              )}
+            </button>
           </div>
 
           {/* Quick links */}

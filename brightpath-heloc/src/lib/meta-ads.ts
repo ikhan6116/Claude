@@ -182,8 +182,62 @@ export class MetaAdsClient {
   }
 
   /**
-   * Activate a campaign (set status to ACTIVE).
+   * Upload an image from a public URL into the ad account image library.
+   * Returns the image hash used when building creatives.
    */
+  async uploadImageFromUrl(imageUrl: string, name: string): Promise<string> {
+    const data = await this.call<{ images: Record<string, { hash: string }> }>(
+      'POST',
+      `/${this.adAccountId}/adimages`,
+      { url: imageUrl, name }
+    )
+    const first = Object.values(data.images)[0]
+    if (!first?.hash) throw new MetaAdsError('No image hash returned', 200, data)
+    return first.hash
+  }
+
+  /**
+   * Create an ad creative using a pre-uploaded image hash.
+   */
+  async createAdCreativeWithHash(config: AdCreativeConfig & { imageHash: string }): Promise<string> {
+    const data = await this.call<{ id: string }>('POST', `/${this.adAccountId}/adcreatives`, {
+      name: config.name,
+      object_story_spec: {
+        page_id: config.pageId,
+        link_data: {
+          message: config.body,
+          link: config.linkUrl,
+          name: config.headline,
+          description: config.description,
+          image_hash: config.imageHash,
+          call_to_action: {
+            type: config.callToAction,
+            value: { link: config.linkUrl },
+          },
+        },
+      },
+    })
+    return data.id
+  }
+
+  /**
+   * Add a new ad to an existing ad set using an image hosted at a public URL.
+   */
+  async addCreativeToAdSet(
+    adSetId: string,
+    imageUrl: string,
+    adName: string,
+    creative: Omit<AdCreativeConfig, 'pageId' | 'imageUrl'>
+  ): Promise<{ adCreativeId: string; adId: string }> {
+    const imageHash  = await this.uploadImageFromUrl(imageUrl, adName)
+    const adCreativeId = await this.createAdCreativeWithHash({
+      ...creative,
+      pageId: this.pageId,
+      imageHash,
+    })
+    const adId = await this.createAd(adSetId, adCreativeId, adName)
+    return { adCreativeId, adId }
+  }
   async activateCampaign(campaignId: string): Promise<void> {
     await this.call('POST', `/${campaignId}`, { status: 'ACTIVE' })
   }
