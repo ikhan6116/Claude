@@ -190,8 +190,19 @@ export class FollowUpBossClient {
   }
 
   /**
+   * Normalize any US phone number to E.164 format (+1XXXXXXXXXX).
+   * FUB's texting API requires this format.
+   */
+  private normalizePhone(phone: string): string {
+    const digits = phone.replace(/\D/g, '')
+    if (digits.length === 10) return `+1${digits}`
+    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`
+    return phone // return as-is if we can't normalize
+  }
+
+  /**
    * Send an outbound text via FUB's texting system.
-   * Requires FUB texting to be enabled on the account.
+   * Requires FUB texting to be enabled on the account (Grow plan+).
    * POST /texting/outbox
    */
   private async sendWelcomeText(personId: number, firstName: string, phone: string): Promise<void> {
@@ -200,11 +211,16 @@ export class FollowUpBossClient {
       `and one of our agents will begin working on your file shortly. ` +
       `Questions? Call us at (877) 867-2002.`
 
-    await this.fetchJson('POST', '/texting/outbox', {
+    const normalizedPhone = this.normalizePhone(phone)
+    console.log(`[FollowUpBoss] Sending text to personId=${personId} phone=${normalizedPhone}`)
+
+    const result = await this.fetchJson<Record<string, unknown>>('POST', '/texting/outbox', {
       personId,
-      to: phone,
+      to: normalizedPhone,
       message,
     })
+
+    console.log(`[FollowUpBoss] Texting API response:`, JSON.stringify(result).slice(0, 300))
   }
 }
 
