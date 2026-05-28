@@ -80,12 +80,11 @@ export default function AdminPage() {
 
     const results: CreativeResult[] = []
     for (const img of AD_IMAGES) {
-      const imageUrl = `${SITE}/ads/${img.file}`
       try {
         const res = await fetch('/api/add-creative', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ adminSecret: secret, adSetId: targetAdSetId, imageUrl, adName: img.name }),
+          body: JSON.stringify({ adminSecret: secret, adSetId: targetAdSetId, filename: img.file, adName: img.name }),
         })
         const json = await res.json() as { success: boolean; adId?: string; message?: string }
         if (!res.ok || !json.success) throw new Error(json.message || 'Failed')

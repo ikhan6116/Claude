@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { promises as fs } from 'fs'
+import path from 'path'
 import { MetaAdsClient } from '@/lib/meta-ads'
 
 interface AddCreativeBody {
   adminSecret: string
   adSetId: string
-  imageUrl: string
+  filename: string
   adName: string
 }
 
@@ -23,14 +25,26 @@ export default async function handler(
     return res.status(405).json({ success: false, message: 'Method not allowed' })
   }
 
-  const { adminSecret, adSetId, imageUrl, adName } = req.body as AddCreativeBody
+  const { adminSecret, adSetId, filename, adName } = req.body as AddCreativeBody
 
   if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
     return res.status(401).json({ success: false, message: 'Unauthorized' })
   }
 
-  if (!adSetId || !imageUrl || !adName) {
-    return res.status(400).json({ success: false, message: 'adSetId, imageUrl, and adName are required' })
+  if (!adSetId || !filename || !adName) {
+    return res.status(400).json({ success: false, message: 'adSetId, filename, and adName are required' })
+  }
+
+  // Prevent path traversal
+  const safeName = path.basename(filename)
+  const imagePath = path.join(process.cwd(), 'public', 'ads', safeName)
+
+  let imageBase64: string
+  try {
+    const imageBuffer = await fs.readFile(imagePath)
+    imageBase64 = imageBuffer.toString('base64')
+  } catch {
+    return res.status(404).json({ success: false, message: `Image not found: ${safeName}` })
   }
 
   try {
@@ -38,7 +52,7 @@ export default async function handler(
 
     const { adCreativeId, adId } = await client.addCreativeToAdSet(
       adSetId,
-      imageUrl,
+      imageBase64,
       adName,
       {
         name: `Creative — ${adName}`,

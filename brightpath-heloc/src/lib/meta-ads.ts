@@ -197,6 +197,21 @@ export class MetaAdsClient {
   }
 
   /**
+   * Upload an image from raw bytes (base64) into the ad account image library.
+   * Returns the image hash used when building creatives.
+   */
+  async uploadImageFromBytes(base64Bytes: string, name: string): Promise<string> {
+    const data = await this.call<{ images: Record<string, { hash: string }> }>(
+      'POST',
+      `/${this.adAccountId}/adimages`,
+      { bytes: base64Bytes, name }
+    )
+    const first = Object.values(data.images)[0]
+    if (!first?.hash) throw new MetaAdsError('No image hash returned', 200, data)
+    return first.hash
+  }
+
+  /**
    * Create an ad creative using a pre-uploaded image hash.
    */
   async createAdCreativeWithHash(config: AdCreativeConfig & { imageHash: string }): Promise<string> {
@@ -221,15 +236,15 @@ export class MetaAdsClient {
   }
 
   /**
-   * Add a new ad to an existing ad set using an image hosted at a public URL.
+   * Add a new ad to an existing ad set using raw image bytes (base64).
    */
   async addCreativeToAdSet(
     adSetId: string,
-    imageUrl: string,
+    imageBase64: string,
     adName: string,
     creative: Omit<AdCreativeConfig, 'pageId' | 'imageUrl'>
   ): Promise<{ adCreativeId: string; adId: string }> {
-    const imageHash  = await this.uploadImageFromUrl(imageUrl, adName)
+    const imageHash  = await this.uploadImageFromBytes(imageBase64, adName)
     const adCreativeId = await this.createAdCreativeWithHash({
       ...creative,
       pageId: this.pageId,
