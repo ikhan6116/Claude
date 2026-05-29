@@ -153,6 +153,11 @@ export class FollowUpBossClient {
       phones: [{ value: payload.phone, type: 'mobile' }],
       source: 'BrightPath HELOC Campaign',
       tags: ['HELOC', 'BrightPath'],
+      initialText:
+        `Hi ${payload.firstName},\n\n` +
+        `It's Jake from BrightPath Finance, we've received your application, ` +
+        `one of our agents will be working on it shortly and reach out with details.\n\n` +
+        `Talk soon`,
     }
 
     const data = await this.fetchJson<FUBApiResponse>('POST', '/people', personBody)
@@ -172,14 +177,6 @@ export class FollowUpBossClient {
       console.warn('[FollowUpBoss] Failed to attach note (non-fatal):', err)
     }
 
-    // Send welcome text via FUB's texting API (requires FUB texting to be enabled)
-    try {
-      await this.sendWelcomeText(data.id, payload.firstName, payload.phone)
-      console.log(`[FollowUpBoss] Welcome text sent to person id=${data.id}`)
-    } catch (err) {
-      console.warn('[FollowUpBoss] Welcome text failed (non-fatal):', err instanceof Error ? err.message : err)
-    }
-
     return {
       id: data.id,
       name: data.name || `${payload.firstName} ${payload.lastName}`,
@@ -189,39 +186,6 @@ export class FollowUpBossClient {
     }
   }
 
-  /**
-   * Normalize any US phone number to E.164 format (+1XXXXXXXXXX).
-   * FUB's texting API requires this format.
-   */
-  private normalizePhone(phone: string): string {
-    const digits = phone.replace(/\D/g, '')
-    if (digits.length === 10) return `+1${digits}`
-    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`
-    return phone // return as-is if we can't normalize
-  }
-
-  /**
-   * Send an outbound text via FUB's texting system.
-   * Requires FUB texting to be enabled on the account (Grow plan+).
-   * POST /texting/outbox
-   */
-  private async sendWelcomeText(personId: number, firstName: string, phone: string): Promise<void> {
-    const message =
-      `Hi ${firstName}, this is BrightPath Finance. We received your HELOC request ` +
-      `and one of our agents will begin working on your file shortly. ` +
-      `Questions? Call us at (877) 867-2002.`
-
-    const normalizedPhone = this.normalizePhone(phone)
-    console.log(`[FollowUpBoss] Sending text to personId=${personId} phone=${normalizedPhone}`)
-
-    const result = await this.fetchJson<Record<string, unknown>>('POST', '/texting/outbox', {
-      personId,
-      to: normalizedPhone,
-      message,
-    })
-
-    console.log(`[FollowUpBoss] Texting API response:`, JSON.stringify(result).slice(0, 300))
-  }
 }
 
 // Singleton export
