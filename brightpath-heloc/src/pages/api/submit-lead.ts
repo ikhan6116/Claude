@@ -3,6 +3,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import { FollowUpBossClient } from '@/lib/follow-up-boss'
 import { FigureApiClient } from '@/lib/figure-api'
+import { sendLeadNotification } from '@/lib/email'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -242,8 +243,32 @@ export default async function handler(
     // Non-fatal
   }
 
-  // ── 4. Respond ─────────────────────────────────────────────────────────────
-  // FUB failure is non-fatal — lead is preserved in backup file
+  // ── 4. Email notification ───────────────────────────────────────────────────
+  try {
+    await sendLeadNotification({
+      firstName: lead.firstName,
+      lastName: lead.lastName,
+      email: lead.email,
+      phone: lead.phone,
+      propertyAddress: `${lead.street}, ${lead.city}, ${lead.state} ${lead.zip}`,
+      estimatedHomeValue: lead.estimatedHomeValue,
+      currentMortgageBalance: lead.currentMortgageBalance,
+      requestedCreditLine: lead.requestedCreditLine,
+      loanPurpose: lead.loanPurpose,
+      creditScoreRange: lead.creditScoreRange,
+      employmentStatus: lead.employmentStatus,
+      annualIncome: lead.annualIncome,
+      otherIncome: lead.otherIncome,
+      ownershipType: lead.ownershipType,
+      occupancyType: lead.occupancyType,
+      fubPersonId,
+      figureInquiryId,
+    })
+  } catch (err) {
+    console.error('[submit-lead] Email notification failed (non-fatal):', err instanceof Error ? err.message : err)
+  }
+
+  // ── 5. Respond ─────────────────────────────────────────────────────────────
   if (fubError) {
     console.warn('[submit-lead] FUB failed but lead saved to backup:', fubError)
   }
