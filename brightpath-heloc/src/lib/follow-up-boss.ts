@@ -153,11 +153,6 @@ export class FollowUpBossClient {
       phones: [{ value: payload.phone, type: 'mobile' }],
       source: 'BrightPath HELOC Campaign',
       tags: ['HELOC', 'BrightPath'],
-      initialText:
-        `Hi ${payload.firstName},\n\n` +
-        `It's Jake from BrightPath Finance, we've received your application, ` +
-        `one of our agents will be working on it shortly and reach out with details.\n\n` +
-        `Talk soon`,
     }
 
     const data = await this.fetchJson<FUBApiResponse>('POST', '/people', personBody)
@@ -177,6 +172,14 @@ export class FollowUpBossClient {
       console.warn('[FollowUpBoss] Failed to attach note (non-fatal):', err)
     }
 
+    // Send welcome text after person + note are created (non-fatal)
+    try {
+      await this.sendWelcomeText(data.id, payload.firstName, payload.phone)
+      console.log(`[FollowUpBoss] Welcome text queued for person id=${data.id}`)
+    } catch (err) {
+      console.warn('[FollowUpBoss] Welcome text failed (non-fatal):', err instanceof Error ? err.message : err)
+    }
+
     return {
       id: data.id,
       name: data.name || `${payload.firstName} ${payload.lastName}`,
@@ -186,6 +189,28 @@ export class FollowUpBossClient {
     }
   }
 
+  private normalizePhone(phone: string): string {
+    const digits = phone.replace(/\D/g, '')
+    if (digits.length === 10) return `+1${digits}`
+    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`
+    return phone
+  }
+
+  private async sendWelcomeText(personId: number, firstName: string, phone: string): Promise<void> {
+    const message =
+      `Hi ${firstName},\n\n` +
+      `It's Jake from BrightPath Finance, we've received your application, ` +
+      `one of our agents will be working on it shortly and reach out with details.\n\n` +
+      `Talk soon`
+
+    const to = this.normalizePhone(phone)
+    const result = await this.fetchJson<Record<string, unknown>>('POST', '/texting/outbox', {
+      personId,
+      to,
+      message,
+    })
+    console.log(`[FollowUpBoss] Texting response:`, JSON.stringify(result).slice(0, 200))
+  }
 }
 
 // Singleton export
