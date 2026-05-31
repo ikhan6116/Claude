@@ -172,26 +172,6 @@ function validateStep(step: number, data: FormData): FieldErrors {
   const errors: FieldErrors = {}
 
   if (step === 1) {
-    if (!data.firstName.trim()) errors.firstName = 'First name is required'
-    if (!data.lastName.trim()) errors.lastName = 'Last name is required'
-    if (!data.dateOfBirth.trim()) {
-      errors.dateOfBirth = 'Date of birth is required'
-    } else if (!isValidDOB(data.dateOfBirth)) {
-      errors.dateOfBirth = 'Please enter a valid date of birth (MM/DD/YYYY) — must be 18+'
-    }
-    if (!data.email.trim()) {
-      errors.email = 'Email is required'
-    } else if (!isValidEmail(data.email)) {
-      errors.email = 'Please enter a valid email address'
-    }
-    if (!data.phone.trim()) {
-      errors.phone = 'Phone number is required'
-    } else if (!isValidPhone(data.phone)) {
-      errors.phone = 'Please enter a valid phone number (10+ digits)'
-    }
-  }
-
-  if (step === 2) {
     if (!data.street.trim()) errors.street = 'Street address is required'
     if (!data.city.trim()) errors.city = 'City is required'
     if (!data.state) errors.state = 'State is required'
@@ -213,17 +193,37 @@ function validateStep(step: number, data: FormData): FieldErrors {
     if (!data.propertyForSale) errors.propertyForSale = 'Please indicate if the property is listed for sale'
   }
 
-  if (step === 3) {
+  if (step === 2) {
     if (!data.loanPurpose) errors.loanPurpose = 'Please select a loan purpose'
   }
 
-  if (step === 4) {
+  if (step === 3) {
     if (!data.creditScoreRange) errors.creditScoreRange = 'Please select your credit score range'
     if (!data.employmentStatus) errors.employmentStatus = 'Please select your employment status'
     if (!data.annualIncome) {
       errors.annualIncome = 'Annual income is required'
     } else if (parseDollar(data.annualIncome) < 12000) {
       errors.annualIncome = 'Annual income must be at least $12,000'
+    }
+  }
+
+  if (step === 4) {
+    if (!data.firstName.trim()) errors.firstName = 'First name is required'
+    if (!data.lastName.trim()) errors.lastName = 'Last name is required'
+    if (!data.dateOfBirth.trim()) {
+      errors.dateOfBirth = 'Date of birth is required'
+    } else if (!isValidDOB(data.dateOfBirth)) {
+      errors.dateOfBirth = 'Please enter a valid date of birth (MM/DD/YYYY) — must be 18+'
+    }
+    if (!data.email.trim()) {
+      errors.email = 'Email is required'
+    } else if (!isValidEmail(data.email)) {
+      errors.email = 'Please enter a valid email address'
+    }
+    if (!data.phone.trim()) {
+      errors.phone = 'Phone number is required'
+    } else if (!isValidPhone(data.phone)) {
+      errors.phone = 'Please enter a valid phone number (10+ digits)'
     }
   }
 
@@ -352,78 +352,7 @@ function RadioGroup({
 
 // ─── Step Components ──────────────────────────────────────────────────────────
 
-function Step1({
-  data,
-  errors,
-  onChange,
-}: {
-  data: FormData
-  errors: FieldErrors
-  onChange: (field: keyof FormData, value: string) => void
-}) {
-  return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <Label required>First Name</Label>
-          <Input
-            value={data.firstName}
-            onChange={(v) => onChange('firstName', v)}
-            placeholder="John"
-            hasError={!!errors.firstName}
-          />
-          <FieldError message={errors.firstName} />
-        </div>
-        <div>
-          <Label required>Last Name</Label>
-          <Input
-            value={data.lastName}
-            onChange={(v) => onChange('lastName', v)}
-            placeholder="Smith"
-            hasError={!!errors.lastName}
-          />
-          <FieldError message={errors.lastName} />
-        </div>
-      </div>
-      <div>
-        <Label required>Date of Birth</Label>
-        <Input
-          value={data.dateOfBirth}
-          onChange={(v) => onChange('dateOfBirth', formatDOB(v))}
-          placeholder="MM/DD/YYYY"
-          inputMode="numeric"
-          maxLength={10}
-          hasError={!!errors.dateOfBirth}
-        />
-        <FieldError message={errors.dateOfBirth} />
-      </div>
-      <div>
-        <Label required>Email Address</Label>
-        <Input
-          type="email"
-          value={data.email}
-          onChange={(v) => onChange('email', v)}
-          placeholder="john.smith@example.com"
-          hasError={!!errors.email}
-        />
-        <FieldError message={errors.email} />
-      </div>
-      <div>
-        <Label required>Phone Number</Label>
-        <Input
-          type="tel"
-          value={data.phone}
-          onChange={(v) => onChange('phone', v)}
-          placeholder="(555) 123-4567"
-          hasError={!!errors.phone}
-        />
-        <FieldError message={errors.phone} />
-      </div>
-    </div>
-  )
-}
-
-function Step2({
+function StepProperty({
   data,
   errors,
   onChange,
@@ -561,7 +490,7 @@ function Step2({
   )
 }
 
-function Step3({
+function StepLoan({
   data,
   errors,
   onChange,
@@ -575,7 +504,6 @@ function Step3({
 
   return (
     <div className="space-y-8">
-      {/* Credit Line Slider */}
       <div>
         <Label required>Requested Credit Line</Label>
         <div className="mt-4">
@@ -606,7 +534,6 @@ function Step3({
         </p>
       </div>
 
-      {/* Loan Purpose */}
       <div>
         <Label required>Primary Use of Funds</Label>
         <Select
@@ -622,7 +549,7 @@ function Step3({
   )
 }
 
-function Step4({
+function StepFinancial({
   data,
   errors,
   onChange,
@@ -633,7 +560,6 @@ function Step4({
 }) {
   return (
     <div className="space-y-6">
-      {/* Credit Score Range */}
       <div>
         <Label required>Credit Score Range</Label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
@@ -658,7 +584,6 @@ function Step4({
         <FieldError message={errors.creditScoreRange} />
       </div>
 
-      {/* Employment Status */}
       <div>
         <Label required>Employment / Business Status</Label>
         <Select
@@ -671,7 +596,6 @@ function Step4({
         <FieldError message={errors.employmentStatus} />
       </div>
 
-      {/* Annual Income */}
       <div>
         <Label required>Total Annual Income</Label>
         <div className="relative">
@@ -691,7 +615,6 @@ function Step4({
         <FieldError message={errors.annualIncome} />
       </div>
 
-      {/* Other Income */}
       <div>
         <Label>Other Annual Income <span className="text-gray-400 font-normal">(optional)</span></Label>
         <div className="relative">
@@ -707,6 +630,77 @@ function Step4({
         </div>
         <p className="mt-1 text-xs text-gray-400">Investments, rental income, stock dividends, etc.</p>
         <FieldError message={errors.otherIncome} />
+      </div>
+    </div>
+  )
+}
+
+function StepPersonal({
+  data,
+  errors,
+  onChange,
+}: {
+  data: FormData
+  errors: FieldErrors
+  onChange: (field: keyof FormData, value: string) => void
+}) {
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <Label required>First Name</Label>
+          <Input
+            value={data.firstName}
+            onChange={(v) => onChange('firstName', v)}
+            placeholder="John"
+            hasError={!!errors.firstName}
+          />
+          <FieldError message={errors.firstName} />
+        </div>
+        <div>
+          <Label required>Last Name</Label>
+          <Input
+            value={data.lastName}
+            onChange={(v) => onChange('lastName', v)}
+            placeholder="Smith"
+            hasError={!!errors.lastName}
+          />
+          <FieldError message={errors.lastName} />
+        </div>
+      </div>
+      <div>
+        <Label required>Date of Birth</Label>
+        <Input
+          value={data.dateOfBirth}
+          onChange={(v) => onChange('dateOfBirth', formatDOB(v))}
+          placeholder="MM/DD/YYYY"
+          inputMode="numeric"
+          maxLength={10}
+          hasError={!!errors.dateOfBirth}
+        />
+        <FieldError message={errors.dateOfBirth} />
+      </div>
+      <div>
+        <Label required>Email Address</Label>
+        <Input
+          type="email"
+          value={data.email}
+          onChange={(v) => onChange('email', v)}
+          placeholder="john.smith@example.com"
+          hasError={!!errors.email}
+        />
+        <FieldError message={errors.email} />
+      </div>
+      <div>
+        <Label required>Phone Number</Label>
+        <Input
+          type="tel"
+          value={data.phone}
+          onChange={(v) => onChange('phone', v)}
+          placeholder="(555) 123-4567"
+          hasError={!!errors.phone}
+        />
+        <FieldError message={errors.phone} />
       </div>
     </div>
   )
@@ -815,10 +809,10 @@ function Step5({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const STEP_TITLES = [
-  'Personal Information',
   'Property Details',
   'Loan Details',
   'Financial Profile',
+  'Personal Information',
   'Review & Submit',
 ]
 
@@ -973,28 +967,28 @@ export default function MultiStepForm() {
         {/* Form card */}
         <div className="bg-white rounded-2xl shadow-sm border border-brand-gray-light p-6 md:p-8">
           {step === 1 && (
-            <Step1
+            <StepProperty
               data={data}
               errors={errors}
               onChange={(f, v) => handleChange(f, v)}
             />
           )}
           {step === 2 && (
-            <Step2
-              data={data}
-              errors={errors}
-              onChange={(f, v) => handleChange(f, v)}
-            />
-          )}
-          {step === 3 && (
-            <Step3
+            <StepLoan
               data={data}
               errors={errors}
               onChange={(f, v) => handleChange(f, v as string | number)}
             />
           )}
+          {step === 3 && (
+            <StepFinancial
+              data={data}
+              errors={errors}
+              onChange={(f, v) => handleChange(f, v)}
+            />
+          )}
           {step === 4 && (
-            <Step4
+            <StepPersonal
               data={data}
               errors={errors}
               onChange={(f, v) => handleChange(f, v)}
