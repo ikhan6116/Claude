@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -253,6 +253,7 @@ function Label({ children, required }: { children: React.ReactNode; required?: b
 function Input({
   value,
   onChange,
+  onBlur,
   placeholder,
   type = 'text',
   hasError,
@@ -263,6 +264,7 @@ function Input({
 }: {
   value: string
   onChange: (v: string) => void
+  onBlur?: () => void
   placeholder?: string
   type?: string
   hasError?: boolean
@@ -276,6 +278,7 @@ function Input({
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
       placeholder={placeholder}
       maxLength={maxLength}
       inputMode={inputMode}
@@ -639,10 +642,12 @@ function StepPersonal({
   data,
   errors,
   onChange,
+  onEmailBlur,
 }: {
   data: FormData
   errors: FieldErrors
   onChange: (field: keyof FormData, value: string) => void
+  onEmailBlur?: () => void
 }) {
   return (
     <div className="space-y-5">
@@ -686,6 +691,7 @@ function StepPersonal({
           type="email"
           value={data.email}
           onChange={(v) => onChange('email', v)}
+          onBlur={onEmailBlur}
           placeholder="john.smith@example.com"
           hasError={!!errors.email}
         />
@@ -823,8 +829,49 @@ export default function MultiStepForm() {
   const [errors, setErrors] = useState<FieldErrors>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const partialLeadSentRef = useRef(false)
 
   const totalSteps = 5
+
+  // Fire Meta Pixel event each time a step becomes visible
+  useEffect(() => {
+    window.fbq?.('trackCustom', 'FormStep', {
+      step,
+      step_name: STEP_TITLES[step - 1],
+    })
+  }, [step])
+
+  const handleEmailBlur = useCallback(async () => {
+    if (partialLeadSentRef.current) return
+    if (!data.email || !isValidEmail(data.email)) return
+    partialLeadSentRef.current = true
+    try {
+      await fetch('/api/partial-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.email,
+          firstName: data.firstName || undefined,
+          lastName: data.lastName || undefined,
+          phone: data.phone || undefined,
+          street: data.street || undefined,
+          city: data.city || undefined,
+          state: data.state || undefined,
+          zip: data.zip || undefined,
+          estimatedHomeValue: data.estimatedHomeValue || undefined,
+          currentMortgageBalance: data.currentMortgageBalance || undefined,
+          requestedCreditLine: data.requestedCreditLine,
+          loanPurpose: data.loanPurpose || undefined,
+          creditScoreRange: data.creditScoreRange || undefined,
+          employmentStatus: data.employmentStatus || undefined,
+          annualIncome: data.annualIncome || undefined,
+          stepReached: 4,
+        }),
+      })
+    } catch {
+      // silent — never block the user
+    }
+  }, [data])
 
   const handleChange = useCallback((field: keyof FormData, value: string | number | boolean) => {
     setData((prev) => ({ ...prev, [field]: value }))
@@ -866,6 +913,7 @@ export default function MultiStepForm() {
 
     setSubmitting(true)
     setSubmitError(null)
+    partialLeadSentRef.current = true // prevent abandoned-lead email after full submit
 
     try {
       const payload = {
@@ -992,6 +1040,7 @@ export default function MultiStepForm() {
               data={data}
               errors={errors}
               onChange={(f, v) => handleChange(f, v)}
+              onEmailBlur={handleEmailBlur}
             />
           )}
           {step === 5 && (
