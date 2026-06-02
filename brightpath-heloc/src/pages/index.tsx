@@ -6,6 +6,7 @@ import HELOCHero from '@/components/HELOCHero'
 import HowItWorks from '@/components/HowItWorks'
 import BenefitsSection from '@/components/BenefitsSection'
 import FAQSection from '@/components/FAQSection'
+import LeadChatBot from '@/components/LeadChatBot'
 
 export default function HomePage() {
   return (
@@ -60,6 +61,7 @@ export default function HomePage() {
           </div>
         </section>
       </Layout>
+      <LeadChatBot />
     </>
   )
 }
