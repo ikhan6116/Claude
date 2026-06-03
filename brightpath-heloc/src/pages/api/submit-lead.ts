@@ -28,6 +28,10 @@ interface SubmitLeadBody {
   employmentStatus: string
   annualIncome: number
   otherIncome?: number
+  businessName?: string
+  entityType?: string
+  ownershipPercentage?: number
+  monthlyRevenue?: number
   consentToTerms: boolean
   // Optional UTM fields
   utmSource?: string
@@ -160,6 +164,10 @@ export default async function handler(
       creditScoreRange: lead.creditScoreRange,
       employmentStatus: lead.employmentStatus,
       annualIncome: lead.annualIncome,
+      businessName: lead.businessName,
+      entityType: lead.entityType,
+      ownershipPercentage: lead.ownershipPercentage,
+      monthlyRevenue: lead.monthlyRevenue,
       utmSource: lead.utmSource,
       utmMedium: lead.utmMedium,
       utmCampaign: lead.utmCampaign,
@@ -234,6 +242,10 @@ export default async function handler(
       employmentStatus: lead.employmentStatus,
       annualIncome: lead.annualIncome,
       otherIncome: lead.otherIncome,
+      businessName: lead.businessName,
+      entityType: lead.entityType,
+      ownershipPercentage: lead.ownershipPercentage,
+      monthlyRevenue: lead.monthlyRevenue,
       fubPersonId,
       figureInquiryId,
       fubError,
@@ -261,6 +273,10 @@ export default async function handler(
       otherIncome: lead.otherIncome,
       ownershipType: lead.ownershipType,
       occupancyType: lead.occupancyType,
+      businessName: lead.businessName,
+      entityType: lead.entityType,
+      ownershipPercentage: lead.ownershipPercentage,
+      monthlyRevenue: lead.monthlyRevenue,
       fubPersonId,
       figureInquiryId,
     })

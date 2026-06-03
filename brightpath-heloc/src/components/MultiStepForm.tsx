@@ -28,7 +28,12 @@ interface FormData {
   employmentStatus: string
   annualIncome: string
   otherIncome: string
-  // Step 5 – Review
+  // Step 5 – Business Information
+  businessName: string
+  entityType: string
+  ownershipPercentage: string
+  monthlyRevenue: string
+  // Step 6 – Review
   consentToTerms: boolean
 }
 
@@ -99,6 +104,15 @@ const OCCUPANCY_TYPES = [
   { value: 'investment', label: 'Investment Property' },
 ]
 
+const ENTITY_TYPES = [
+  { value: 'llc', label: 'LLC' },
+  { value: 'sole_proprietor', label: 'Sole Proprietor / DBA' },
+  { value: 's_corp', label: 'S-Corp' },
+  { value: 'c_corp', label: 'C-Corp' },
+  { value: 'partnership', label: 'Partnership' },
+  { value: 'other', label: 'Other' },
+]
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDollar(raw: string): string {
@@ -163,6 +177,10 @@ const initialData: FormData = {
   employmentStatus: '',
   annualIncome: '',
   otherIncome: '',
+  businessName: '',
+  entityType: '',
+  ownershipPercentage: '',
+  monthlyRevenue: '',
   consentToTerms: false,
 }
 
@@ -208,6 +226,22 @@ function validateStep(step: number, data: FormData): FieldErrors {
   }
 
   if (step === 4) {
+    if (!data.businessName.trim()) errors.businessName = 'Business name is required'
+    if (!data.entityType) errors.entityType = 'Please select your entity type'
+    if (!data.ownershipPercentage) {
+      errors.ownershipPercentage = 'Ownership percentage is required'
+    } else {
+      const pct = parseFloat(data.ownershipPercentage)
+      if (isNaN(pct) || pct < 1 || pct > 100) errors.ownershipPercentage = 'Please enter a valid percentage (1–100)'
+    }
+    if (!data.monthlyRevenue) {
+      errors.monthlyRevenue = 'Monthly revenue is required'
+    } else if (parseDollar(data.monthlyRevenue) < 0) {
+      errors.monthlyRevenue = 'Please enter a valid monthly revenue'
+    }
+  }
+
+  if (step === 5) {
     if (!data.firstName.trim()) errors.firstName = 'First name is required'
     if (!data.lastName.trim()) errors.lastName = 'Last name is required'
     if (!data.dateOfBirth.trim()) {
@@ -227,7 +261,7 @@ function validateStep(step: number, data: FormData): FieldErrors {
     }
   }
 
-  if (step === 5) {
+  if (step === 6) {
     if (!data.consentToTerms) errors.consentToTerms = 'You must agree to the terms to continue'
   }
 
@@ -712,6 +746,81 @@ function StepPersonal({
   )
 }
 
+function StepBusiness({
+  data,
+  errors,
+  onChange,
+}: {
+  data: FormData
+  errors: FieldErrors
+  onChange: (field: keyof FormData, value: string) => void
+}) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <Label required>Business Name</Label>
+        <Input
+          value={data.businessName}
+          onChange={(v) => onChange('businessName', v)}
+          placeholder="Acme LLC"
+          hasError={!!errors.businessName}
+        />
+        <FieldError message={errors.businessName} />
+      </div>
+
+      <div>
+        <Label required>Entity Type</Label>
+        <RadioGroup
+          options={ENTITY_TYPES}
+          value={data.entityType}
+          onChange={(v) => onChange('entityType', v)}
+          hasError={!!errors.entityType}
+        />
+        <FieldError message={errors.entityType} />
+      </div>
+
+      <div>
+        <Label required>Your Business Ownership %</Label>
+        <div className="relative">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={data.ownershipPercentage}
+            onChange={(e) => {
+              const v = e.target.value.replace(/[^\d.]/g, '')
+              onChange('ownershipPercentage', v)
+            }}
+            placeholder="100"
+            className={`w-full border rounded-xl px-4 pr-10 py-3 text-brand-gray focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all ${
+              errors.ownershipPercentage ? 'border-red-400 bg-red-50' : 'border-brand-gray-light bg-white hover:border-gray-300'
+            }`}
+          />
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-gray font-medium">%</span>
+        </div>
+        <FieldError message={errors.ownershipPercentage} />
+      </div>
+
+      <div>
+        <Label required>Total Monthly Business Revenue</Label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray font-medium">$</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={data.monthlyRevenue}
+            onChange={(e) => onChange('monthlyRevenue', formatDollar(e.target.value))}
+            placeholder="25,000"
+            className={`w-full border rounded-xl pl-8 pr-4 py-3 text-brand-gray focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all ${
+              errors.monthlyRevenue ? 'border-red-400 bg-red-50' : 'border-brand-gray-light bg-white hover:border-gray-300'
+            }`}
+          />
+        </div>
+        <FieldError message={errors.monthlyRevenue} />
+      </div>
+    </div>
+  )
+}
+
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between py-3 border-b border-brand-gray-light last:border-0">
@@ -775,10 +884,19 @@ function Step5({
             value={data.annualIncome ? `$${data.annualIncome}` : '—'}
           />
           {data.otherIncome && (
-            <SummaryRow
-              label="Other Income"
-              value={`$${data.otherIncome}`}
-            />
+            <SummaryRow label="Other Income" value={`$${data.otherIncome}`} />
+          )}
+          {data.businessName && (
+            <SummaryRow label="Business Name" value={data.businessName} />
+          )}
+          {data.entityType && (
+            <SummaryRow label="Entity Type" value={ENTITY_TYPES.find(e => e.value === data.entityType)?.label ?? data.entityType} />
+          )}
+          {data.ownershipPercentage && (
+            <SummaryRow label="Ownership %" value={`${data.ownershipPercentage}%`} />
+          )}
+          {data.monthlyRevenue && (
+            <SummaryRow label="Monthly Revenue" value={`$${data.monthlyRevenue}`} />
           )}
         </div>
       </div>
@@ -818,6 +936,7 @@ const STEP_TITLES = [
   'Property Details',
   'Loan Details',
   'Financial Profile',
+  'Business Information',
   'Personal Information',
   'Review & Submit',
 ]
@@ -831,7 +950,7 @@ export default function MultiStepForm() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const partialLeadSentRef = useRef(false)
 
-  const totalSteps = 5
+  const totalSteps = 6
 
   // Fire Meta Pixel event each time a step becomes visible
   useEffect(() => {
@@ -905,7 +1024,7 @@ export default function MultiStepForm() {
   }
 
   const handleSubmit = async () => {
-    const errs = validateStep(5, data)
+    const errs = validateStep(6, data)
     if (Object.keys(errs).length > 0) {
       setErrors(errs)
       return
@@ -937,6 +1056,10 @@ export default function MultiStepForm() {
         employmentStatus: data.employmentStatus,
         annualIncome: parseDollar(data.annualIncome),
         otherIncome: parseDollar(data.otherIncome),
+        businessName: data.businessName,
+        entityType: data.entityType,
+        ownershipPercentage: parseFloat(data.ownershipPercentage) || undefined,
+        monthlyRevenue: parseDollar(data.monthlyRevenue) || undefined,
         consentToTerms: data.consentToTerms,
       }
 
@@ -1036,6 +1159,13 @@ export default function MultiStepForm() {
             />
           )}
           {step === 4 && (
+            <StepBusiness
+              data={data}
+              errors={errors}
+              onChange={(f, v) => handleChange(f, v)}
+            />
+          )}
+          {step === 5 && (
             <StepPersonal
               data={data}
               errors={errors}
@@ -1043,7 +1173,7 @@ export default function MultiStepForm() {
               onEmailBlur={handleEmailBlur}
             />
           )}
-          {step === 5 && (
+          {step === 6 && (
             <Step5
               data={data}
               errors={errors}

@@ -28,6 +28,8 @@ const EMPLOYMENT_STATUSES = [
   'Employed Part-Time','Retired','Other',
 ]
 
+const ENTITY_TYPES = ['LLC', 'Sole Proprietor / DBA', 'S-Corp', 'C-Corp', 'Partnership', 'Other']
+
 const CREDIT_LINE_OPTIONS = [
   { label: '$25,000',   value: 25000  },
   { label: '$50,000',   value: 50000  },
@@ -47,7 +49,8 @@ interface ChatData {
   estimatedHomeValue: string; currentMortgageBalance: string
   requestedCreditLine: number; loanPurpose: string
   creditScoreRange: string; employmentStatus: string; annualIncome: string
-  firstName: string; lastName: string; email: string; phone: string
+  businessName: string; entityType: string; ownershipPercentage: string; monthlyRevenue: string
+  firstName: string; lastName: string; dateOfBirth: string; email: string; phone: string
 }
 
 type FieldKey = keyof ChatData
@@ -55,7 +58,7 @@ type FieldKey = keyof ChatData
 interface Step {
   field: FieldKey
   botMessage: string | ((d: Partial<ChatData>) => string)
-  inputType: 'text' | 'dollar' | 'email' | 'tel' | 'options' | 'creditLine'
+  inputType: 'text' | 'dollar' | 'email' | 'tel' | 'options' | 'creditLine' | 'percent'
   options?: string[]
   placeholder?: string
   validate: (v: string) => string | null
@@ -139,8 +142,35 @@ const STEPS: Step[] = [
     validate: v => { const n = parseDollar(v); return !n ? 'Please enter your income' : n < 12000 ? 'Income must be at least $12,000' : null },
   },
   {
+    field: 'businessName',
+    botMessage: "Great progress! Now a few quick questions about your business. What's the name of your business?",
+    inputType: 'text', placeholder: 'Acme LLC',
+    validate: v => v.trim() ? null : 'Please enter your business name',
+  },
+  {
+    field: 'entityType',
+    botMessage: "What type of business entity is it?",
+    inputType: 'options', options: ENTITY_TYPES,
+    validate: v => v ? null : 'Please select your entity type',
+  },
+  {
+    field: 'ownershipPercentage',
+    botMessage: "What percentage of the business do you own?",
+    inputType: 'percent', placeholder: '100',
+    validate: v => {
+      const n = parseFloat(v)
+      return !v.trim() ? 'Please enter your ownership percentage' : isNaN(n) || n < 1 || n > 100 ? 'Please enter a valid percentage (1–100)' : null
+    },
+  },
+  {
+    field: 'monthlyRevenue',
+    botMessage: "And what's the average total monthly revenue for the business?",
+    inputType: 'dollar', placeholder: '25,000',
+    validate: v => v.trim() ? null : 'Please enter your monthly revenue',
+  },
+  {
     field: 'firstName',
-    botMessage: "You're doing great! I just need a couple quick contact details. What's your first name?",
+    botMessage: "Fantastic! Almost done — I just need a few contact details. What's your first name?",
     inputType: 'text', placeholder: 'John',
     validate: v => v.trim() ? null : 'Please enter your first name',
   },
@@ -151,8 +181,23 @@ const STEPS: Step[] = [
     validate: v => v.trim() ? null : 'Please enter your last name',
   },
   {
+    field: 'dateOfBirth',
+    botMessage: "What's your date of birth?",
+    inputType: 'text', placeholder: 'MM/DD/YYYY',
+    validate: v => {
+      if (!v.trim()) return 'Date of birth is required'
+      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(v)) return 'Please enter as MM/DD/YYYY'
+      const [mm, dd, yyyy] = v.split('/').map(Number)
+      const date = new Date(yyyy, mm - 1, dd)
+      if (date.getMonth() !== mm - 1 || date.getDate() !== dd) return 'Please enter a valid date'
+      const now = new Date()
+      const age = now.getFullYear() - yyyy - (now < new Date(now.getFullYear(), mm - 1, dd) ? 1 : 0)
+      return age >= 18 && age <= 110 ? null : 'Must be 18 or older'
+    },
+  },
+  {
     field: 'email',
-    botMessage: d => `Love it, ${d.firstName} ${d.lastName}! What's the best email address to reach you?`,
+    botMessage: d => `Love it, ${d.firstName}! What's the best email address to reach you?`,
     inputType: 'email', placeholder: 'john@example.com',
     validate: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'Please enter a valid email address',
   },
@@ -287,6 +332,11 @@ export default function LeadChatBot() {
           creditScoreRange:       CREDIT_SCORE_MAP[d.creditScoreRange] ?? d.creditScoreRange,
           employmentStatus:       d.employmentStatus,
           annualIncome:           parseDollar(d.annualIncome),
+          businessName:           d.businessName,
+          entityType:             d.entityType,
+          ownershipPercentage:    parseFloat(d.ownershipPercentage) || undefined,
+          monthlyRevenue:         parseDollar(d.monthlyRevenue) || undefined,
+          dateOfBirth:            d.dateOfBirth,
           consentToTerms:         true,
         }),
       })
@@ -303,9 +353,10 @@ export default function LeadChatBot() {
 
   const step        = STEPS[stepIndex]
   const isDollar    = step?.inputType === 'dollar'
+  const isPercent   = step?.inputType === 'percent'
   const isOptions   = step?.inputType === 'options'
   const isCredit    = step?.inputType === 'creditLine'
-  const showInput   = step && !isOptions && !isCredit   // covers text, dollar, email, tel
+  const showInput   = step && !isOptions && !isCredit   // covers text, dollar, percent, email, tel
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
@@ -495,7 +546,7 @@ export default function LeadChatBot() {
                 </div>
               )}
 
-              {/* Free text / dollar / email / tel input */}
+              {/* Free text / dollar / percent / email / tel input */}
               {showInput && (
                 <div className="space-y-1">
                   <div className="flex gap-2">
@@ -513,14 +564,41 @@ export default function LeadChatBot() {
                           className={`w-full border rounded-xl pl-8 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue ${inputError ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                         />
                       </div>
+                    ) : isPercent ? (
+                      <div className="relative flex-1">
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          inputMode="decimal"
+                          value={inputValue}
+                          onChange={e => { setInputValue(e.target.value.replace(/[^\d.]/g, '')); setInputError('') }}
+                          onKeyDown={e => e.key === 'Enter' && submit()}
+                          placeholder={step.placeholder}
+                          className={`w-full border rounded-xl px-4 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue ${inputError ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-gray text-sm font-medium">%</span>
+                      </div>
                     ) : (
                       <input
                         ref={inputRef}
                         type={step.inputType === 'email' ? 'email' : step.inputType === 'tel' ? 'tel' : 'text'}
                         value={inputValue}
-                        onChange={e => { setInputValue(e.target.value); setInputError('') }}
+                        onChange={e => {
+                          // Auto-format DOB as MM/DD/YYYY
+                          if (step.field === 'dateOfBirth') {
+                            const digits = e.target.value.replace(/\D/g, '').slice(0, 8)
+                            let formatted = digits
+                            if (digits.length > 2) formatted = `${digits.slice(0,2)}/${digits.slice(2)}`
+                            if (digits.length > 4) formatted = `${digits.slice(0,2)}/${digits.slice(2,4)}/${digits.slice(4)}`
+                            setInputValue(formatted)
+                          } else {
+                            setInputValue(e.target.value)
+                          }
+                          setInputError('')
+                        }}
                         onKeyDown={e => e.key === 'Enter' && submit()}
                         placeholder={step.placeholder}
+                        maxLength={step.field === 'dateOfBirth' ? 10 : undefined}
                         className={`flex-1 border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue ${inputError ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                       />
                     )}

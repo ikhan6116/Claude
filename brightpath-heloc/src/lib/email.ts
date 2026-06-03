@@ -25,6 +25,10 @@ interface LeadEmailData {
   employmentStatus: string
   annualIncome: number
   otherIncome?: number
+  businessName?: string
+  entityType?: string
+  ownershipPercentage?: number
+  monthlyRevenue?: number
   ownershipType?: string
   occupancyType?: string
   fubPersonId?: number
@@ -51,6 +55,10 @@ function buildHtml(lead: LeadEmailData): string {
     ['Employment Status', lead.employmentStatus],
     ['Annual Income', fmt(lead.annualIncome)],
     ...(lead.otherIncome ? [['Other Income', fmt(lead.otherIncome)] as [string, string]] : []),
+    ...(lead.businessName ? [['Business Name', lead.businessName] as [string, string]] : []),
+    ...(lead.entityType ? [['Entity Type', lead.entityType] as [string, string]] : []),
+    ...(lead.ownershipPercentage != null ? [['Ownership %', `${lead.ownershipPercentage}%`] as [string, string]] : []),
+    ...(lead.monthlyRevenue != null ? [['Monthly Revenue', fmt(lead.monthlyRevenue)] as [string, string]] : []),
     ...(lead.ownershipType ? [['Ownership Type', lead.ownershipType] as [string, string]] : []),
     ...(lead.occupancyType ? [['Occupancy Type', lead.occupancyType] as [string, string]] : []),
     ...(lead.fubPersonId ? [['FUB Person ID', String(lead.fubPersonId)] as [string, string]] : []),

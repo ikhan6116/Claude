@@ -20,6 +20,10 @@ export interface FUBLeadPayload {
   creditScoreRange?: string
   employmentStatus?: string
   annualIncome?: number
+  businessName?: string
+  entityType?: string
+  ownershipPercentage?: number
+  monthlyRevenue?: number
   utmSource?: string
   utmMedium?: string
   utmCampaign?: string
@@ -95,6 +99,12 @@ export class FollowUpBossClient {
     if (payload.employmentStatus) lines.push(`Employment Status: ${payload.employmentStatus}`)
     if (payload.annualIncome != null)
       lines.push(`Annual Income: $${payload.annualIncome.toLocaleString()}`)
+    if (payload.businessName) lines.push(`Business Name: ${payload.businessName}`)
+    if (payload.entityType) lines.push(`Entity Type: ${payload.entityType}`)
+    if (payload.ownershipPercentage != null)
+      lines.push(`Ownership %: ${payload.ownershipPercentage}%`)
+    if (payload.monthlyRevenue != null)
+      lines.push(`Monthly Business Revenue: $${payload.monthlyRevenue.toLocaleString()}`)
     if (payload.utmSource) lines.push(`UTM Source: ${payload.utmSource}`)
     if (payload.utmMedium) lines.push(`UTM Medium: ${payload.utmMedium}`)
     if (payload.utmCampaign) lines.push(`UTM Campaign: ${payload.utmCampaign}`)
