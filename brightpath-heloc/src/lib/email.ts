@@ -14,6 +14,7 @@ const NOTIFY_ADDRESSES = [
 interface LeadEmailData {
   firstName: string
   lastName: string
+  dateOfBirth?: string
   email: string
   phone: string
   propertyAddress: string
@@ -43,6 +44,7 @@ function buildHtml(lead: LeadEmailData): string {
   const equity = lead.estimatedHomeValue - lead.currentMortgageBalance
   const rows: [string, string][] = [
     ['Name', `${lead.firstName} ${lead.lastName}`],
+    ...(lead.dateOfBirth ? [['Date of Birth', lead.dateOfBirth] as [string, string]] : []),
     ['Email', lead.email],
     ['Phone', lead.phone],
     ['Property Address', lead.propertyAddress],

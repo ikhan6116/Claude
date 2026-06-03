@@ -105,12 +105,12 @@ const OCCUPANCY_TYPES = [
 ]
 
 const ENTITY_TYPES = [
-  { value: 'llc', label: 'LLC' },
-  { value: 'sole_proprietor', label: 'Sole Proprietor / DBA' },
-  { value: 's_corp', label: 'S-Corp' },
-  { value: 'c_corp', label: 'C-Corp' },
-  { value: 'partnership', label: 'Partnership' },
-  { value: 'other', label: 'Other' },
+  { value: 'LLC', label: 'LLC' },
+  { value: 'Sole Proprietor / DBA', label: 'Sole Proprietor / DBA' },
+  { value: 'S-Corp', label: 'S-Corp' },
+  { value: 'C-Corp', label: 'C-Corp' },
+  { value: 'Partnership', label: 'Partnership' },
+  { value: 'Other', label: 'Other' },
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -890,7 +890,7 @@ function Step5({
             <SummaryRow label="Business Name" value={data.businessName} />
           )}
           {data.entityType && (
-            <SummaryRow label="Entity Type" value={ENTITY_TYPES.find(e => e.value === data.entityType)?.label ?? data.entityType} />
+            <SummaryRow label="Entity Type" value={data.entityType} />
           )}
           {data.ownershipPercentage && (
             <SummaryRow label="Ownership %" value={`${data.ownershipPercentage}%`} />

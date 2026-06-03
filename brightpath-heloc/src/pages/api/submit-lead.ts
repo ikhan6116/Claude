@@ -260,6 +260,7 @@ export default async function handler(
     await sendLeadNotification({
       firstName: lead.firstName,
       lastName: lead.lastName,
+      dateOfBirth: lead.dateOfBirth,
       email: lead.email,
       phone: lead.phone,
       propertyAddress: `${lead.street}, ${lead.city}, ${lead.state} ${lead.zip}`,
