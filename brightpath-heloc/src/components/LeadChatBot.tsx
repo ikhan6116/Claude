@@ -74,91 +74,91 @@ function parseDollar(v: string) { return parseInt(v.replace(/,/g, ''), 10) || 0 
 const STEPS: Step[] = [
   {
     field: 'street',
-    botMessage: "Hi! 👋 I'm the BrightPath Finance assistant. I can check your HELOC eligibility in about 2 minutes — no credit impact. Let's start: what's the street address of your property?",
+    botMessage: "Hey there! 👋 I'm Jake with BrightPath Finance. I can check if you qualify for a HELOC in about 2 minutes — and it won't affect your credit score at all. Let's get started! What's the street address of the property?",
     inputType: 'text', placeholder: '123 Main Street',
     validate: v => v.trim() ? null : 'Please enter your street address',
   },
   {
     field: 'city',
-    botMessage: 'What city is the property in?',
+    botMessage: "Great! What city is that in?",
     inputType: 'text', placeholder: 'Los Angeles',
     validate: v => v.trim() ? null : 'Please enter the city',
   },
   {
     field: 'state',
-    botMessage: 'Which state? (2-letter abbreviation)',
+    botMessage: "And which state? (Just the 2-letter abbreviation — like CA or TX)",
     inputType: 'text', placeholder: 'CA',
     validate: v => US_STATES.includes(v.trim().toUpperCase()) ? null : 'Please enter a valid 2-letter state (e.g. CA, TX, NY)',
   },
   {
     field: 'zip',
-    botMessage: 'And the ZIP code?',
+    botMessage: "Almost have the full address — what's the ZIP code?",
     inputType: 'text', placeholder: '90001',
     validate: v => /^\d{5}(-\d{4})?$/.test(v.trim()) ? null : 'Please enter a valid 5-digit ZIP code',
   },
   {
     field: 'estimatedHomeValue',
-    botMessage: "What's the estimated current value of your home?",
+    botMessage: "Nice! Now let's talk numbers. What would you estimate your home is worth today?",
     inputType: 'dollar', placeholder: '450,000',
     validate: v => { const n = parseDollar(v); return !n ? 'Please enter your home value' : n < 50000 ? 'Value must be at least $50,000' : null },
   },
   {
     field: 'currentMortgageBalance',
-    botMessage: "What's your current mortgage balance? Enter 0 if your home is paid off.",
+    botMessage: "Got it! And roughly how much do you still owe on your mortgage? Put 0 if it's fully paid off.",
     inputType: 'dollar', placeholder: '200,000',
     validate: v => parseDollar(v) >= 0 ? null : 'Please enter your mortgage balance',
   },
   {
     field: 'requestedCreditLine',
-    botMessage: 'How much of a credit line are you looking for?',
+    botMessage: "Perfect! How much of a credit line are you hoping to access?",
     inputType: 'creditLine',
     validate: v => v ? null : 'Please select an amount',
   },
   {
     field: 'loanPurpose',
-    botMessage: 'What would you primarily use the funds for?',
+    botMessage: "What would you mainly use these funds for?",
     inputType: 'options', options: LOAN_PURPOSES,
     validate: v => v ? null : 'Please select a purpose',
   },
   {
     field: 'creditScoreRange',
-    botMessage: "What's your current credit score range?",
+    botMessage: "What's your current credit score range? No worries — this just helps us match you with the right options.",
     inputType: 'options', options: Object.keys(CREDIT_SCORE_MAP),
     validate: v => v ? null : 'Please select your credit score range',
   },
   {
     field: 'employmentStatus',
-    botMessage: "What's your employment or business status?",
+    botMessage: "What best describes your work or business situation?",
     inputType: 'options', options: EMPLOYMENT_STATUSES,
     validate: v => v ? null : 'Please select your status',
   },
   {
     field: 'annualIncome',
-    botMessage: "What's your total annual income from all sources?",
+    botMessage: "Almost there! What's your total annual income from all sources — wages, business income, investments, etc.?",
     inputType: 'dollar', placeholder: '75,000',
     validate: v => { const n = parseDollar(v); return !n ? 'Please enter your income' : n < 12000 ? 'Income must be at least $12,000' : null },
   },
   {
     field: 'firstName',
-    botMessage: "Great! Almost done. What's your first name?",
+    botMessage: "You're doing great! I just need a couple quick contact details. What's your first name?",
     inputType: 'text', placeholder: 'John',
     validate: v => v.trim() ? null : 'Please enter your first name',
   },
   {
     field: 'lastName',
-    botMessage: d => `Thanks ${d.firstName}! What's your last name?`,
+    botMessage: d => `Nice to meet you, ${d.firstName}! What's your last name?`,
     inputType: 'text', placeholder: 'Smith',
     validate: v => v.trim() ? null : 'Please enter your last name',
   },
   {
     field: 'email',
-    botMessage: d => `What's the best email to reach you, ${d.firstName}?`,
+    botMessage: d => `Love it, ${d.firstName} ${d.lastName}! What's the best email address to reach you?`,
     inputType: 'email', placeholder: 'john@example.com',
     validate: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'Please enter a valid email address',
   },
   {
     field: 'phone',
-    botMessage: 'And your phone number?',
+    botMessage: "Last one — what's a good phone number for you?",
     inputType: 'tel', placeholder: '(555) 123-4567',
     validate: v => /^[\d\s\-().+]{10,}$/.test(v) ? null : 'Please enter a valid phone number (10+ digits)',
   },
@@ -245,7 +245,7 @@ export default function LeadChatBot() {
       // All questions answered — show wrap-up then consent
       setStepIndex(next)
       showBotMessage(
-        `Perfect, ${newData.firstName}! I have everything I need. Here's one last step to submit your application.`,
+        `Awesome, ${newData.firstName}! You're all set — I've got everything I need. Just review the consent below and hit submit to lock in your application! 🎉`,
         700
       )
       setTimeout(() => setShowConsent(true), 1600)
@@ -301,11 +301,11 @@ export default function LeadChatBot() {
     }
   }
 
-  const step       = STEPS[stepIndex]
-  const isDollar   = step?.inputType === 'dollar'
-  const isOptions  = step?.inputType === 'options'
-  const isCredit   = step?.inputType === 'creditLine'
-  const isText     = step && !isDollar && !isOptions && !isCredit
+  const step        = STEPS[stepIndex]
+  const isDollar    = step?.inputType === 'dollar'
+  const isOptions   = step?.inputType === 'options'
+  const isCredit    = step?.inputType === 'creditLine'
+  const showInput   = step && !isOptions && !isCredit   // covers text, dollar, email, tel
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
@@ -496,7 +496,7 @@ export default function LeadChatBot() {
               )}
 
               {/* Free text / dollar / email / tel input */}
-              {isText && (
+              {showInput && (
                 <div className="space-y-1">
                   <div className="flex gap-2">
                     {isDollar ? (
