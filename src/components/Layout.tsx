@@ -171,7 +171,8 @@ export default function Layout({
               <h4 className="text-xs font-semibold uppercase tracking-wider text-white mb-4">Company</h4>
               <ul className="space-y-3 text-sm">
                 <li><Link href="/about" className="transition-colors hover:text-white" style={{ color: 'rgba(255,255,255,0.55)' }}>About Us</Link></li>
-                <li><Link href="/blog" className="transition-colors hover:text-white" style={{ color: 'rgba(255,255,255,0.55)' }}>Blog</Link></li>
+                <li><Link href="/privacy-policy" className="transition-colors hover:text-white" style={{ color: 'rgba(255,255,255,0.55)' }}>Privacy Policy</Link></li>
+                <li><Link href="/terms-conditions" className="transition-colors hover:text-white" style={{ color: 'rgba(255,255,255,0.55)' }}>Terms &amp; Conditions</Link></li>
               </ul>
             </div>
 
