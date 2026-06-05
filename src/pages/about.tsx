@@ -1,19 +1,18 @@
 import Layout from '@/components/Layout';
-import LeadForm from '@/components/LeadForm';
 import Link from 'next/link';
 
 export default function About() {
   return (
     <Layout
-      title="About Freedom Debt Solutions | Trusted Debt Relief Experts"
-      description="Learn about Freedom Debt Solutions and our mission to help Americans find relief from overwhelming debt. Certified specialists, proven results, no upfront fees."
+      title="About BrightPath Finance | Personal Loans & Debt Consolidation"
+      description="Learn about BrightPath Finance and our mission to help Americans access affordable personal loans and debt consolidation solutions."
       canonical="/about"
     >
       <section className="bg-gradient-to-br from-primary-800 to-primary-900 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold mb-4">About Freedom Debt Solutions</h1>
+          <h1 className="text-4xl font-extrabold mb-4">About BrightPath Finance</h1>
           <p className="text-xl text-primary-200">
-            Helping Americans find a path to financial freedom through expert debt relief services.
+            Making personal loans and debt consolidation simple, transparent, and accessible.
           </p>
         </div>
       </section>
@@ -22,25 +21,38 @@ export default function About() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
           <p className="text-gray-600 mb-4 leading-relaxed">
-            At Freedom Debt Solutions, we believe that everyone deserves a second chance
-            at financial health. Debt can happen to anyone — a medical emergency,
-            job loss, divorce, or simply years of accumulating high-interest credit
-            card balances. We&apos;re here to help you find the best path forward.
+            At BrightPath Finance, we believe managing your finances shouldn&apos;t be
+            complicated. Too many Americans are stuck juggling multiple high-interest
+            payments, paying more than they should, and feeling overwhelmed by debt.
+            We&apos;re here to change that.
           </p>
           <p className="text-gray-600 mb-8 leading-relaxed">
-            Our team of certified debt specialists works with you to understand your
-            unique situation and connect you with the right debt relief program. We
-            don&apos;t believe in one-size-fits-all solutions — your plan should be
-            as unique as your circumstances.
+            Our platform connects borrowers with competitive loan offers tailored to
+            their unique financial situation. Whether you need to consolidate existing
+            debt into one simple payment or secure a personal loan for a major expense,
+            we make it easy to check your rate, compare offers, and get funded — all
+            without impacting your credit score.
           </p>
 
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Choose Us?</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Choose BrightPath?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             {[
-              { title: 'No Upfront Fees', desc: 'You never pay until we deliver results. Our fees are only charged after successfully resolving your debt.' },
-              { title: 'Certified Specialists', desc: 'Our debt counselors are trained and certified to provide expert guidance on all debt relief options.' },
-              { title: 'Transparent Process', desc: 'We keep you informed every step of the way. No hidden fees, no surprises — just honest debt relief.' },
-              { title: 'Proven Track Record', desc: 'We\'ve helped thousands of clients reduce their debt and regain financial confidence.' },
+              {
+                title: 'No Credit Impact',
+                desc: 'Check your rate with a soft inquiry that won\'t affect your credit score. Only a hard pull occurs if you accept an offer.',
+              },
+              {
+                title: 'Transparent Terms',
+                desc: 'No hidden fees, no surprises. Every offer clearly shows your rate, monthly payment, and total cost before you commit.',
+              },
+              {
+                title: 'Fast Funding',
+                desc: 'Apply in minutes, get a decision the same day, and receive funds in as few as 2 business days.',
+              },
+              {
+                title: 'Expert Support',
+                desc: 'Our loan specialists are available to guide you through the process and answer any questions.',
+              },
             ].map((item) => (
               <div key={item.title} className="border border-gray-100 rounded-lg p-5">
                 <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
@@ -49,22 +61,34 @@ export default function About() {
             ))}
           </div>
 
-          <div className="text-center">
-            <Link href="/get-started" className="btn-primary text-lg px-10 py-4 inline-block">
-              Get Your Free Consultation
-            </Link>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Loan Products</h2>
+          <div className="space-y-4 mb-12">
+            <div className="bg-primary-50 border border-primary-100 rounded-lg p-6">
+              <h3 className="font-bold text-primary-800 mb-2">Debt Consolidation Loans</h3>
+              <p className="text-gray-600 text-sm">
+                Combine credit cards, medical bills, and other unsecured debts into one
+                monthly payment at a lower rate. Loans from $5,000 to $100,000+ with
+                rates starting at 5.99% APR.
+              </p>
+            </div>
+            <div className="bg-accent-50 border border-accent-100 rounded-lg p-6">
+              <h3 className="font-bold text-accent-800 mb-2">Personal Loans</h3>
+              <p className="text-gray-600 text-sm">
+                Flexible funding from $2,000 to $50,000 for home improvement, major
+                purchases, medical expenses, and more. No collateral required, fixed
+                monthly payments.
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <section className="bg-gray-50 section-padding">
-        <div className="max-w-xl mx-auto">
-          <LeadForm
-            variant="full"
-            source="about-page"
-            heading="Ready to Start Your Journey?"
-            subheading="Get a free, no-obligation debt analysis from our team."
-          />
+          <div className="text-center">
+            <Link href="/loans" className="btn-primary text-lg px-10 py-4 inline-block">
+              Check My Rate
+            </Link>
+            <p className="text-gray-500 text-sm mt-3">
+              Or call us at <a href="tel:877-867-2002" className="text-primary-600 font-semibold">877-867-2002</a>
+            </p>
+          </div>
         </div>
       </section>
     </Layout>

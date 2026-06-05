@@ -11,11 +11,11 @@ interface LayoutProps {
 
 export default function Layout({
   children,
-  title = 'Freedom Debt Solutions | Expert Debt Relief & Consolidation Help',
-  description = 'Get free debt relief consultation. We help Americans reduce credit card debt, medical bills, and unsecured debt by up to 50%. No upfront fees. Get your free quote today.',
+  title = 'BrightPath Finance | Personal Loans & Debt Consolidation',
+  description = 'Consolidate your debt into one simple monthly payment with lower rates. Personal loans from $5,000 to $100,000+. Check your rate — no impact to your credit score.',
   canonical,
 }: LayoutProps) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://freedomdebtsolutions.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://loans.brightpath-fin.com';
 
   return (
     <>
@@ -38,10 +38,10 @@ export default function Layout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'FinancialService',
-              name: 'Freedom Debt Solutions',
-              description: 'Professional debt relief and consolidation services',
+              name: 'BrightPath Finance',
+              description: 'Personal loans and debt consolidation loans',
               areaServed: 'US',
-              serviceType: ['Debt Consolidation', 'Debt Relief', 'Debt Settlement', 'Credit Counseling'],
+              serviceType: ['Personal Loans', 'Debt Consolidation Loans'],
             }),
           }}
         />
@@ -52,35 +52,29 @@ export default function Layout({
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">F</span>
+                <span className="text-white font-bold text-lg">B</span>
               </div>
-              <span className="text-xl font-bold text-primary-800">Freedom Debt Solutions</span>
+              <span className="text-xl font-bold text-primary-800">BrightPath Finance</span>
             </Link>
 
             <div className="hidden md:flex items-center space-x-8">
               <Link href="/loans" className="text-gray-600 hover:text-primary-600 font-medium">
-                Consolidation Loans
-              </Link>
-              <Link href="/debt-consolidation" className="text-gray-600 hover:text-primary-600 font-medium">
                 Debt Consolidation
               </Link>
-              <Link href="/debt-relief" className="text-gray-600 hover:text-primary-600 font-medium">
-                Debt Relief
-              </Link>
-              <Link href="/blog" className="text-gray-600 hover:text-primary-600 font-medium">
-                Resources
+              <Link href="/personal-loans" className="text-gray-600 hover:text-primary-600 font-medium">
+                Personal Loans
               </Link>
               <Link href="/about" className="text-gray-600 hover:text-primary-600 font-medium">
                 About Us
               </Link>
-              <Link href="/get-started" className="btn-primary text-sm">
-                Free Consultation
+              <Link href="/loans" className="btn-primary text-sm">
+                Check My Rate
               </Link>
             </div>
 
             <div className="md:hidden">
-              <Link href="/get-started" className="btn-primary text-sm">
-                Get Help Now
+              <Link href="/loans" className="btn-primary text-sm">
+                Check My Rate
               </Link>
             </div>
           </div>
@@ -93,43 +87,43 @@ export default function Layout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-white font-bold text-lg mb-4">Freedom Debt Solutions</h3>
+              <h3 className="text-white font-bold text-lg mb-4">BrightPath Finance</h3>
               <p className="text-sm leading-relaxed">
-                Helping Americans find relief from overwhelming debt since 2024.
-                Licensed and accredited debt relief specialists.
+                Helping Americans simplify their finances with personal loans
+                and debt consolidation solutions.
               </p>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-4">Services</h4>
+              <h4 className="text-white font-semibold mb-4">Loan Products</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/loans" className="hover:text-white">Consolidation Loans</Link></li>
-                <li><Link href="/debt-consolidation" className="hover:text-white">Debt Consolidation</Link></li>
-                <li><Link href="/debt-relief" className="hover:text-white">Debt Relief Programs</Link></li>
-                <li><Link href="/credit-card-debt-help" className="hover:text-white">Credit Card Debt Help</Link></li>
-                <li><Link href="/medical-debt-relief" className="hover:text-white">Medical Debt Relief</Link></li>
+                <li><Link href="/loans" className="hover:text-white">Debt Consolidation Loans</Link></li>
+                <li><Link href="/personal-loans" className="hover:text-white">Personal Loans</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-4">Resources</h4>
+              <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/blog" className="hover:text-white">Blog & Guides</Link></li>
-                <li><Link href="/debt-calculator" className="hover:text-white">Debt Calculator</Link></li>
-                <li><Link href="/faq" className="hover:text-white">FAQ</Link></li>
+                <li><Link href="/about" className="hover:text-white">About Us</Link></li>
+                <li><Link href="/blog" className="hover:text-white">Blog</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4">Get Started</h4>
-              <p className="text-sm mb-4">Ready to become debt-free? Get your free, no-obligation consultation today.</p>
-              <Link href="/get-started" className="btn-accent text-sm inline-block">
-                Free Consultation
+              <p className="text-sm mb-4">Ready to simplify your finances? Check your rate with no impact to your credit score.</p>
+              <Link href="/loans" className="btn-accent text-sm inline-block">
+                Check My Rate
               </Link>
+              <p className="text-sm mt-4">
+                <a href="tel:877-867-2002" className="hover:text-white">877-867-2002</a>
+              </p>
             </div>
           </div>
           <div className="border-t border-gray-700 mt-8 pt-8 text-sm text-center">
-            <p>&copy; {new Date().getFullYear()} Freedom Debt Solutions. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} BrightPath Finance. All rights reserved.</p>
             <p className="mt-2 text-xs text-gray-500">
-              Disclaimer: Results may vary. Not all debts are eligible for relief programs.
-              We are not a loan provider. Free consultation does not guarantee enrollment.
+              BrightPath Finance is a lending marketplace. All loan offers are subject to
+              credit approval. Rates, terms, and conditions vary by applicant. A soft credit
+              inquiry does not affect your credit score. Not all applicants will qualify.
             </p>
           </div>
         </div>

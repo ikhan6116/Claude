@@ -1,11 +1,11 @@
 import Layout from '@/components/Layout';
-import LeadForm from '@/components/LeadForm';
+import LoanApplicationForm from '@/components/LoanApplicationForm';
 
 export default function GetStarted() {
   return (
     <Layout
-      title="Get Your Free Debt Consultation | Freedom Debt Solutions"
-      description="Start your journey to financial freedom. Get a free, no-obligation debt analysis from our certified specialists. No credit check required. Reduce your debt by up to 50%."
+      title="Check Your Rate | BrightPath Finance"
+      description="Check your personalized loan rate in minutes. No impact to your credit score. Debt consolidation and personal loans from BrightPath Finance."
       canonical="/get-started"
     >
       <section className="bg-gradient-to-br from-primary-800 to-primary-900 text-white py-12">
@@ -13,21 +13,20 @@ export default function GetStarted() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             <div className="lg:sticky lg:top-24">
               <h1 className="text-4xl font-extrabold mb-6">
-                Get Your Free Debt Relief Consultation
+                Check Your Personalized Loan Rate
               </h1>
               <p className="text-xl text-primary-100 mb-8">
-                Take the first step toward becoming debt-free. Our certified specialists
-                will analyze your situation and present you with the best options — at
-                absolutely no cost or obligation.
+                See what you qualify for in just a few minutes. No hard credit check,
+                no obligation — just a clear picture of your options.
               </p>
 
               <div className="space-y-6 mb-8">
                 {[
-                  { title: 'No Upfront Fees', desc: 'You only pay when we successfully resolve your debt.' },
-                  { title: 'No Credit Check', desc: 'Your consultation won\'t affect your credit score.' },
-                  { title: 'Reduce Debt Up to 50%', desc: 'Our average client saves thousands on what they owe.' },
-                  { title: 'One Low Payment', desc: 'Replace multiple bills with one affordable monthly payment.' },
-                  { title: 'Fast Results', desc: 'Most clients complete the program in 24-48 months.' },
+                  { title: 'No Credit Impact', desc: 'Soft inquiry only — your score stays the same.' },
+                  { title: 'Rates From 5.99% APR', desc: 'Competitive rates based on your credit profile.' },
+                  { title: 'Up to $100,000+', desc: 'Loan amounts tailored to your needs.' },
+                  { title: 'Fast Funding', desc: 'Approved applicants get funds in as few as 2 days.' },
+                  { title: 'One Simple Payment', desc: 'Replace multiple bills with one monthly payment.' },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start space-x-3">
                     <span className="text-accent-500 text-xl mt-0.5">&#10003;</span>
@@ -41,21 +40,15 @@ export default function GetStarted() {
 
               <div className="bg-primary-700/50 rounded-xl p-6">
                 <p className="text-sm text-primary-200">
-                  &ldquo;I was drowning in $42,000 of credit card debt. Freedom Debt Solutions
-                  helped me settle for less than half. The process was straightforward
-                  and the team was incredible.&rdquo;
+                  &ldquo;I consolidated $32,000 in credit card debt and dropped my monthly
+                  payment by $400. The process was seamless.&rdquo;
                 </p>
-                <p className="text-sm font-semibold mt-2">— Michael T., Ohio</p>
+                <p className="text-sm font-semibold mt-2">— Sarah M., Dallas, TX</p>
               </div>
             </div>
 
             <div>
-              <LeadForm
-                variant="full"
-                source="get-started-page"
-                heading="Start Your Free Debt Analysis"
-                subheading="Complete the form below. A specialist will contact you within 24 hours."
-              />
+              <LoanApplicationForm source="get-started-page" />
             </div>
           </div>
         </div>
