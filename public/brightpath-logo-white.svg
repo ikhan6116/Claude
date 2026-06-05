@@ -17,10 +17,10 @@
     <line x1="0" y1="-22" x2="0" y2="-31" stroke="#ddf1fe" stroke-width="2.8" stroke-linecap="round" transform="rotate(74)"/>
     <line x1="0" y1="-22" x2="0" y2="-32" stroke="#e5f4ff" stroke-width="2.8" stroke-linecap="round" transform="rotate(86)"/>
   </g>
-  <!-- "bright" in white -->
-  <text x="10" y="62" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="38" font-weight="700" fill="#ffffff" letter-spacing="-0.5">bright</text>
-  <!-- "path" in light blue -->
-  <text x="136" y="62" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="38" font-weight="700" fill="#77b6e8" letter-spacing="-0.5">path</text>
+  <!-- "brightpath" as one word, two-tone -->
+  <text x="10" y="62" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="38" font-weight="700" letter-spacing="-0.5">
+    <tspan fill="#ffffff">bright</tspan><tspan fill="#77b6e8">path</tspan>
+  </text>
   <!-- divider lines + Finance -->
   <line x1="60" y1="73" x2="112" y2="73" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
   <text x="117" y="77" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="13" font-weight="400" fill="rgba(255,255,255,0.5)" letter-spacing="2">Finance</text>
