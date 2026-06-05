@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { softPullClient } from '@/lib/soft-pull';
 import { hubspotClient } from '@/lib/hubspot';
 import { smsClient, isBusinessHours } from '@/lib/sms';
+import { sendLeadNotificationEmail } from '@/lib/email';
 
 interface LoanSubmission {
   firstName: string;
@@ -105,7 +106,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ? smsClient.sendLeadConfirmationSMS(data.phone, data.firstName, isBusinessHours())
       : Promise.resolve({ success: false });
 
-    const [hubspotResult] = await Promise.all([hubspotPromise, crmPromise, smsPromise]);
+    const emailPromise = sendLeadNotificationEmail({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      streetAddress: data.streetAddress,
+      city: data.city,
+      state: data.state,
+      zipCode: data.zipCode,
+      unsecuredDebtBalance: data.unsecuredDebtBalance,
+      loanRequestAmount: data.loanRequestAmount,
+      estimatedFico: data.estimatedFico,
+      loanPurpose: data.loanPurpose,
+      source: data.source,
+      creditScore: softPullResult.ficoScore,
+      totalDebtBalance: softPullResult.totalDebtBalance,
+      routing,
+      submittedAt: data.submittedAt,
+      phoneVerified: data.phoneVerified,
+    }).catch(err => { console.error('[Loans] Email notification failed:', err); return false; });
+
+    const [hubspotResult] = await Promise.all([hubspotPromise, crmPromise, smsPromise, emailPromise]);
 
     let responseMessage: string;
     let approved: boolean;

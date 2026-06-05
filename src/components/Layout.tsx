@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ReactNode, useState, useEffect } from 'react';
+import ChatWidget from './ChatWidget';
 
 interface LayoutProps {
   children: ReactNode;
@@ -132,6 +133,8 @@ export default function Layout({
       </header>
 
       <main>{children}</main>
+
+      <ChatWidget />
 
       {/* ── Sticky bottom CTA (mobile) ── */}
       {!hideStickyCTA && (

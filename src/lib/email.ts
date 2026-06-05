@@ -1,0 +1,147 @@
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const FROM = 'BrightPath Finance <team@brightpath-fin.com>';
+
+function getRecipients(): string[] {
+  const env = process.env.LEAD_NOTIFICATION_EMAILS || '';
+  return env.split(',').map(e => e.trim()).filter(Boolean);
+}
+
+export interface LeadEmailPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  unsecuredDebtBalance: string;
+  loanRequestAmount: string;
+  estimatedFico: string;
+  loanPurpose: string;
+  source: string;
+  creditScore: number | null;
+  totalDebtBalance: number | null;
+  routing: 'qualified' | 'review' | 'alternative';
+  submittedAt: string;
+  phoneVerified: boolean;
+}
+
+function routingBadge(routing: string) {
+  if (routing === 'qualified') return { label: 'QUALIFIED', bg: '#e8f5e9', color: '#2e7d32', border: '#a5d6a7' };
+  if (routing === 'review')    return { label: 'REVIEW',    bg: '#fff8e1', color: '#f57f17', border: '#ffe082' };
+  return                              { label: 'ALTERNATIVE', bg: '#fce4ec', color: '#c62828', border: '#f48fb1' };
+}
+
+function formatCurrency(n: number | null): string {
+  if (n === null) return 'N/A';
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+}
+
+function buildHtml(data: LeadEmailPayload): string {
+  const badge = routingBadge(data.routing);
+  const submittedDate = new Date(data.submittedAt).toLocaleString('en-US', {
+    timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short',
+  });
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f0f4f8;font-family:'Helvetica Neue',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:32px 16px">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
+
+        <!-- Header -->
+        <tr><td style="background:#0d1b2a;border-radius:12px 12px 0 0;padding:28px 32px;text-align:center">
+          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.3px">BrightPath Finance</p>
+          <p style="margin:6px 0 0;color:rgba(255,255,255,0.6);font-size:13px">New Loan Application Received</p>
+        </td></tr>
+
+        <!-- Routing badge -->
+        <tr><td style="background:#fff;padding:24px 32px 16px;text-align:center">
+          <span style="display:inline-block;padding:6px 20px;border-radius:999px;font-size:13px;font-weight:700;
+            background:${badge.bg};color:${badge.color};border:1px solid ${badge.border};letter-spacing:0.5px">
+            ${badge.label}
+          </span>
+          <p style="margin:10px 0 0;color:#494949;font-size:13px">Submitted ${submittedDate} ET</p>
+        </td></tr>
+
+        <!-- Contact info -->
+        <tr><td style="background:#fff;padding:8px 32px 24px">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e9ecef;border-radius:10px;overflow:hidden">
+            <tr style="background:#f8f9fa">
+              <td colspan="2" style="padding:12px 16px;font-size:11px;font-weight:700;color:#0d1b2a;letter-spacing:1px;text-transform:uppercase">Contact Information</td>
+            </tr>
+            ${row('Name', `${data.firstName} ${data.lastName}`)}
+            ${row('Email', `<a href="mailto:${data.email}" style="color:#2b7cff">${data.email}</a>`)}
+            ${row('Phone', `<a href="tel:${data.phone}" style="color:#2b7cff">${data.phone}</a>${data.phoneVerified ? ' ✓ verified' : ''}`)}
+            ${row('Address', `${data.streetAddress}, ${data.city}, ${data.state} ${data.zipCode}`)}
+          </table>
+        </td></tr>
+
+        <!-- Loan details -->
+        <tr><td style="background:#fff;padding:0 32px 24px">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e9ecef;border-radius:10px;overflow:hidden">
+            <tr style="background:#f8f9fa">
+              <td colspan="2" style="padding:12px 16px;font-size:11px;font-weight:700;color:#0d1b2a;letter-spacing:1px;text-transform:uppercase">Loan Details</td>
+            </tr>
+            ${row('Loan Purpose', data.loanPurpose)}
+            ${row('Unsecured Debt Balance', data.unsecuredDebtBalance)}
+            ${row('Loan Amount Requested', data.loanRequestAmount)}
+            ${row('Estimated FICO (self-reported)', data.estimatedFico)}
+            ${row('Soft Pull Credit Score', data.creditScore !== null ? `<strong>${data.creditScore}</strong>` : 'Not available')}
+            ${row('Total Debt (soft pull)', formatCurrency(data.totalDebtBalance))}
+            ${row('Lead Source', data.source)}
+          </table>
+        </td></tr>
+
+        <!-- CTA -->
+        <tr><td style="background:#fff;padding:0 32px 32px;text-align:center;border-radius:0 0 12px 12px">
+          <a href="tel:877-867-2002" style="display:inline-block;background:linear-gradient(135deg,#2b7cff,#30a2ff);
+            color:#fff;font-size:14px;font-weight:700;padding:14px 36px;border-radius:10px;text-decoration:none;
+            box-shadow:0 4px 14px rgba(43,124,255,0.35)">
+            Call Lead Now &rarr; 877-867-2002
+          </a>
+          <p style="margin:16px 0 0;font-size:12px;color:#aaa">BrightPath Finance &middot; NMLS #2670114 &middot; Orem, UT 84058</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function row(label: string, value: string): string {
+  return `<tr style="border-top:1px solid #f0f0f0">
+    <td style="padding:11px 16px;font-size:13px;color:#494949;width:42%;vertical-align:top">${label}</td>
+    <td style="padding:11px 16px;font-size:13px;color:#0d1b2a;font-weight:500;vertical-align:top">${value}</td>
+  </tr>`;
+}
+
+export async function sendLeadNotificationEmail(data: LeadEmailPayload): Promise<boolean> {
+  const to = getRecipients();
+  if (!to.length || !process.env.RESEND_API_KEY) {
+    console.warn('[Email] RESEND_API_KEY or LEAD_NOTIFICATION_EMAILS not configured — skipping');
+    return false;
+  }
+
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to,
+      subject: `🔔 New Lead [${data.routing.toUpperCase()}] — ${data.firstName} ${data.lastName} | ${data.loanRequestAmount}`,
+      html: buildHtml(data),
+    });
+
+    if (error) { console.error('[Email] Resend error:', error); return false; }
+    return true;
+  } catch (err) {
+    console.error('[Email] Failed to send lead notification:', err);
+    return false;
+  }
+}
