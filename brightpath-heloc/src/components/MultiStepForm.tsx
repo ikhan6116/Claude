@@ -20,6 +20,11 @@ interface FormData {
   ownershipType: string
   occupancyType: string
   propertyForSale: string
+  // Primary home address (shown when occupancyType === 'investment')
+  primaryStreet: string
+  primaryCity: string
+  primaryState: string
+  primaryZip: string
   // Step 3 – Loan Details
   requestedCreditLine: number
   loanPurpose: string
@@ -171,6 +176,10 @@ const initialData: FormData = {
   ownershipType: '',
   occupancyType: '',
   propertyForSale: '',
+  primaryStreet: '',
+  primaryCity: '',
+  primaryState: '',
+  primaryZip: '',
   requestedCreditLine: 100000,
   loanPurpose: '',
   creditScoreRange: '',
@@ -209,6 +218,16 @@ function validateStep(step: number, data: FormData): FieldErrors {
     if (!data.ownershipType) errors.ownershipType = 'Ownership type is required'
     if (!data.occupancyType) errors.occupancyType = 'Occupancy type is required'
     if (!data.propertyForSale) errors.propertyForSale = 'Please indicate if the property is listed for sale'
+    if (data.occupancyType === 'investment') {
+      if (!data.primaryStreet.trim()) errors.primaryStreet = 'Primary home street address is required'
+      if (!data.primaryCity.trim()) errors.primaryCity = 'City is required'
+      if (!data.primaryState) errors.primaryState = 'State is required'
+      if (!data.primaryZip.trim()) {
+        errors.primaryZip = 'ZIP code is required'
+      } else if (!isValidZip(data.primaryZip)) {
+        errors.primaryZip = 'Please enter a valid 5-digit ZIP code'
+      }
+    }
   }
 
   if (step === 2) {
@@ -504,6 +523,58 @@ function StepProperty({
         />
         <FieldError message={errors.occupancyType} />
       </div>
+
+      {data.occupancyType === 'investment' && (
+        <div className="rounded-xl border-2 border-brand-blue-accent bg-blue-50 p-5 space-y-4">
+          <p className="text-sm font-semibold text-brand-navy">
+            Since this is an investment property, please provide your primary home address:
+          </p>
+          <div>
+            <Label required>Primary Home Street Address</Label>
+            <Input
+              value={data.primaryStreet}
+              onChange={(v) => onChange('primaryStreet', v)}
+              placeholder="456 Oak Avenue"
+              hasError={!!errors.primaryStreet}
+            />
+            <FieldError message={errors.primaryStreet} />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="col-span-2 sm:col-span-1">
+              <Label required>City</Label>
+              <Input
+                value={data.primaryCity}
+                onChange={(v) => onChange('primaryCity', v)}
+                placeholder="Denver"
+                hasError={!!errors.primaryCity}
+              />
+              <FieldError message={errors.primaryCity} />
+            </div>
+            <div>
+              <Label required>State</Label>
+              <Select
+                value={data.primaryState}
+                onChange={(v) => onChange('primaryState', v)}
+                options={US_STATES.map((s) => ({ value: s, label: `${s} — ${STATE_NAMES[s]}` }))}
+                placeholder="Select..."
+                hasError={!!errors.primaryState}
+              />
+              <FieldError message={errors.primaryState} />
+            </div>
+            <div>
+              <Label required>ZIP Code</Label>
+              <Input
+                value={data.primaryZip}
+                onChange={(v) => onChange('primaryZip', v)}
+                placeholder="80201"
+                maxLength={10}
+                hasError={!!errors.primaryZip}
+              />
+              <FieldError message={errors.primaryZip} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         <Label required>Is the property currently listed for sale?</Label>
@@ -871,6 +942,12 @@ function Step5({
           />
           <SummaryRow label="Ownership Type" value={ownershipLabel || '—'} />
           <SummaryRow label="Occupancy" value={occupancyLabel || '—'} />
+          {data.occupancyType === 'investment' && data.primaryStreet && (
+            <SummaryRow
+              label="Primary Home Address"
+              value={`${data.primaryStreet}, ${data.primaryCity}, ${data.primaryState} ${data.primaryZip}`}
+            />
+          )}
           <SummaryRow label="Property Listed for Sale" value={data.propertyForSale === 'yes' ? 'Yes' : 'No'} />
           <SummaryRow
             label="Requested Credit Line"
@@ -1056,6 +1133,10 @@ export default function MultiStepForm() {
         employmentStatus: data.employmentStatus,
         annualIncome: parseDollar(data.annualIncome),
         otherIncome: parseDollar(data.otherIncome),
+        primaryStreet: data.occupancyType === 'investment' ? data.primaryStreet : undefined,
+        primaryCity: data.occupancyType === 'investment' ? data.primaryCity : undefined,
+        primaryState: data.occupancyType === 'investment' ? data.primaryState : undefined,
+        primaryZip: data.occupancyType === 'investment' ? data.primaryZip : undefined,
         businessName: data.businessName,
         entityType: data.entityType,
         ownershipPercentage: parseFloat(data.ownershipPercentage) || undefined,

@@ -22,6 +22,10 @@ interface SubmitLeadBody {
   ownershipType?: string
   occupancyType?: string
   propertyForSale?: boolean
+  primaryStreet?: string
+  primaryCity?: string
+  primaryState?: string
+  primaryZip?: string
   requestedCreditLine: number
   loanPurpose: string
   creditScoreRange: string
@@ -234,6 +238,9 @@ export default async function handler(
       ownershipType: lead.ownershipType,
       occupancyType: lead.occupancyType,
       propertyForSale: lead.propertyForSale,
+      primaryHomeAddress: lead.primaryStreet
+        ? `${lead.primaryStreet}, ${lead.primaryCity}, ${lead.primaryState} ${lead.primaryZip}`
+        : undefined,
       estimatedHomeValue: lead.estimatedHomeValue,
       currentMortgageBalance: lead.currentMortgageBalance,
       requestedCreditLine: lead.requestedCreditLine,
@@ -274,6 +281,9 @@ export default async function handler(
       otherIncome: lead.otherIncome,
       ownershipType: lead.ownershipType,
       occupancyType: lead.occupancyType,
+      primaryHomeAddress: lead.primaryStreet
+        ? `${lead.primaryStreet}, ${lead.primaryCity}, ${lead.primaryState} ${lead.primaryZip}`
+        : undefined,
       businessName: lead.businessName,
       entityType: lead.entityType,
       ownershipPercentage: lead.ownershipPercentage,

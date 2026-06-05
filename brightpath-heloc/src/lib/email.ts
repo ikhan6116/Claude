@@ -32,6 +32,7 @@ interface LeadEmailData {
   monthlyRevenue?: number
   ownershipType?: string
   occupancyType?: string
+  primaryHomeAddress?: string
   fubPersonId?: number
   figureInquiryId?: string
 }
@@ -63,6 +64,7 @@ function buildHtml(lead: LeadEmailData): string {
     ...(lead.monthlyRevenue != null ? [['Monthly Revenue', fmt(lead.monthlyRevenue)] as [string, string]] : []),
     ...(lead.ownershipType ? [['Ownership Type', lead.ownershipType] as [string, string]] : []),
     ...(lead.occupancyType ? [['Occupancy Type', lead.occupancyType] as [string, string]] : []),
+    ...(lead.primaryHomeAddress ? [['Primary Home Address', lead.primaryHomeAddress] as [string, string]] : []),
     ...(lead.fubPersonId ? [['FUB Person ID', String(lead.fubPersonId)] as [string, string]] : []),
     ...(lead.figureInquiryId ? [['Figure Inquiry ID', lead.figureInquiryId] as [string, string]] : []),
   ]
