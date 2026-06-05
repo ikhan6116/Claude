@@ -46,6 +46,8 @@ interface Message { id: string; role: 'bot' | 'user'; text: string }
 
 interface ChatData {
   street: string; city: string; state: string; zip: string
+  ownershipType: string; occupancyType: string
+  primaryStreet: string; primaryCity: string; primaryState: string; primaryZip: string
   estimatedHomeValue: string; currentMortgageBalance: string
   requestedCreditLine: number; loanPurpose: string
   creditScoreRange: string; employmentStatus: string; annualIncome: string
@@ -62,6 +64,7 @@ interface Step {
   options?: string[]
   placeholder?: string
   validate: (v: string) => string | null
+  skipIf?: (d: Partial<ChatData>) => boolean
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -98,6 +101,46 @@ const STEPS: Step[] = [
     botMessage: "Almost have the full address — what's the ZIP code?",
     inputType: 'text', placeholder: '90001',
     validate: v => /^\d{5}(-\d{4})?$/.test(v.trim()) ? null : 'Please enter a valid 5-digit ZIP code',
+  },
+  {
+    field: 'ownershipType',
+    botMessage: "Got it! How do you own this property?",
+    inputType: 'options', options: ['Sole Owner', 'Joint Owner', 'Trust', 'LLC'],
+    validate: v => v ? null : 'Please select an ownership type',
+  },
+  {
+    field: 'occupancyType',
+    botMessage: "And how do you use this property?",
+    inputType: 'options', options: ['Primary Residence', 'Secondary / Vacation', 'Investment Property'],
+    validate: v => v ? null : 'Please select an occupancy type',
+  },
+  {
+    field: 'primaryStreet',
+    botMessage: "Since this is an investment property, I'll need your primary home address too. What's the street address where you actually live?",
+    inputType: 'text', placeholder: '456 Oak Avenue',
+    validate: v => v.trim() ? null : 'Please enter your primary home street address',
+    skipIf: d => d.occupancyType !== 'Investment Property',
+  },
+  {
+    field: 'primaryCity',
+    botMessage: "What city is your primary home in?",
+    inputType: 'text', placeholder: 'Denver',
+    validate: v => v.trim() ? null : 'Please enter the city',
+    skipIf: d => d.occupancyType !== 'Investment Property',
+  },
+  {
+    field: 'primaryState',
+    botMessage: "And the state? (2-letter abbreviation)",
+    inputType: 'text', placeholder: 'CO',
+    validate: v => US_STATES.includes(v.trim().toUpperCase()) ? null : 'Please enter a valid 2-letter state (e.g. CO, CA, TX)',
+    skipIf: d => d.occupancyType !== 'Investment Property',
+  },
+  {
+    field: 'primaryZip',
+    botMessage: "Last bit — ZIP code for your primary home?",
+    inputType: 'text', placeholder: '80201',
+    validate: v => /^\d{5}(-\d{4})?$/.test(v.trim()) ? null : 'Please enter a valid 5-digit ZIP code',
+    skipIf: d => d.occupancyType !== 'Investment Property',
   },
   {
     field: 'estimatedHomeValue',
@@ -275,6 +318,12 @@ export default function LeadChatBot() {
     }, delay)
   }, [])
 
+  function findNextStep(fromIndex: number, data: Partial<ChatData>): number {
+    let next = fromIndex + 1
+    while (next < STEPS.length && STEPS[next].skipIf?.(data)) next++
+    return next
+  }
+
   function advance(value: string | number, display?: string) {
     const step = STEPS[stepIndex]
     const newData: Partial<ChatData> = { ...collectedData, [step.field]: value }
@@ -285,7 +334,7 @@ export default function LeadChatBot() {
     setCustomCredit('')
     setShowCustom(false)
 
-    const next = stepIndex + 1
+    const next = findNextStep(stepIndex, newData)
     if (next >= STEPS.length) {
       // All questions answered — show wrap-up then consent
       setStepIndex(next)
@@ -325,6 +374,14 @@ export default function LeadChatBot() {
           city:                   d.city,
           state:                  d.state.toUpperCase(),
           zip:                    d.zip,
+          ownershipType:          d.ownershipType,
+          occupancyType:          d.occupancyType === 'Investment Property' ? 'investment'
+                                    : d.occupancyType === 'Secondary / Vacation' ? 'secondary'
+                                    : 'primary',
+          primaryStreet:          d.occupancyType === 'Investment Property' ? d.primaryStreet : undefined,
+          primaryCity:            d.occupancyType === 'Investment Property' ? d.primaryCity : undefined,
+          primaryState:           d.occupancyType === 'Investment Property' ? d.primaryState?.toUpperCase() : undefined,
+          primaryZip:             d.occupancyType === 'Investment Property' ? d.primaryZip : undefined,
           estimatedHomeValue:     parseDollar(d.estimatedHomeValue),
           currentMortgageBalance: parseDollar(d.currentMortgageBalance),
           requestedCreditLine:    d.requestedCreditLine,
