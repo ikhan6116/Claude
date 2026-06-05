@@ -1,202 +1,170 @@
+import { useRef } from 'react';
 import Layout from '@/components/Layout';
 import LoanApplicationForm from '@/components/LoanApplicationForm';
 
-export default function LoansLandingPage() {
+export default function LoansPage() {
+  const formRef = useRef<HTMLDivElement>(null);
+  const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
   return (
     <Layout
       title="Debt Consolidation Loans | BrightPath Finance"
-      description="Consolidate your debt into one simple monthly payment. Check your rate with no impact to your credit score. Apply online in minutes."
+      description="Consolidate your debt into one simple monthly payment. Check your rate with no impact to your credit score."
       canonical="/loans"
+      hideStickyCTA
     >
       {/* ── Hero ── */}
-      <section className="hero-gradient text-white py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section style={{ background: 'linear-gradient(160deg, #f0f7ff 0%, #ffffff 50%, #eef5ff 100%)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight mb-6" style={{ color: '#0d1b2a' }}>
+              Consolidate your debt.<br />
+              <span style={{ color: '#2b7cff' }}>Save every month.</span>
+            </h1>
+            <p className="text-lg sm:text-xl leading-relaxed mb-8" style={{ color: '#494949' }}>
+              Combine credit cards, medical bills, and other high-interest debt into one
+              fixed-rate loan with a lower monthly payment. Check your rate with no credit score impact.
+            </p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
+              <button onClick={scrollToForm} className="btn-primary text-base py-4 px-10">View Your Rate</button>
+              <span className="text-sm" style={{ color: '#494949' }}>Takes about 2 minutes</span>
+            </div>
+            <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm" style={{ color: '#494949' }}>
+              <span><strong style={{ color: '#0d1b2a' }}>5.99%</strong> low fixed APR</span>
+              <span><strong style={{ color: '#0d1b2a' }}>$100K+</strong> loan amounts</span>
+              <span><strong style={{ color: '#0d1b2a' }}>$0</strong> application fees</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Why consolidate ── */}
+      <section className="section-padding bg-white">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-center mb-4" style={{ color: '#0d1b2a' }}>
+            Why consolidate with BrightPath?
+          </h2>
+          <p className="text-center mb-14 max-w-xl mx-auto" style={{ color: '#494949' }}>
+            Simplify your finances and save money every month.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { title: 'Lower interest rates',    desc: 'Go from 20%+ credit card APR to a fixed rate as low as 5.99%. More of each payment goes to principal.' },
+              { title: 'One monthly payment',     desc: 'Replace multiple due dates with one fixed payment — same amount, same day, every month.' },
+              { title: 'No hidden fees',           desc: 'No application fees. No prepayment penalties. Transparent terms before you commit.' },
+              { title: 'Fast funding',             desc: 'Get funds deposited in as few as 2 business days after accepting your offer.' },
+              { title: 'No credit score impact',   desc: 'Checking your rate is a soft inquiry — it won\'t affect your credit score.' },
+              { title: 'Clear payoff date',        desc: 'Know exactly when you\'ll be debt-free with a fixed loan term of 24–84 months.' },
+            ].map(f => (
+              <div key={f.title} className="p-6 rounded-2xl transition-all hover:-translate-y-1 duration-200"
+                style={{ border: '1px solid #e9ecef' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
+                  style={{ background: 'rgba(43,124,255,0.08)' }}>
+                  <span className="text-lg" style={{ color: '#2b7cff' }}>&#10003;</span>
+                </div>
+                <h3 className="font-bold mb-2" style={{ color: '#0d1b2a' }}>{f.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#494949' }}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── How it works ── */}
+      <section className="section-padding" style={{ background: '#f8f9fa' }}>
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-center mb-14" style={{ color: '#0d1b2a' }}>
+            How it works
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { n: '1', title: 'Check your rate',  desc: 'Answer a few questions. We\'ll do a soft credit check — no impact to your score.' },
+              { n: '2', title: 'Review your offer', desc: 'See your personalized rate, payment, and term. Compare options with no obligation.' },
+              { n: '3', title: 'Get funded',        desc: 'Accept and receive funds in your bank account in as few as 2 business days.' },
+            ].map(s => (
+              <div key={s.n} className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5 text-white text-lg font-bold"
+                  style={{ background: 'linear-gradient(135deg, #2b7cff, #30a2ff)' }}>
+                  {s.n}
+                </div>
+                <h3 className="text-lg font-bold mb-3" style={{ color: '#0d1b2a' }}>{s.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#494949' }}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Application form ── */}
+      <section ref={formRef} id="apply" className="section-padding bg-white scroll-mt-20">
+        <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
-
-            <div className="pt-2">
-              <span className="inline-block text-sm font-semibold px-4 py-1.5 rounded-full mb-6"
-                style={{ background: 'rgba(119,182,232,0.15)', color: '#77b6e8' }}>
-                No Impact to Your Credit Score
-              </span>
-              <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight text-white mb-6">
-                Debt Consolidation Loans.<br />
-                <span style={{ color: '#77b6e8' }}>One Payment. Lower Rate.</span>
-              </h1>
-              <p className="text-lg mb-8 leading-relaxed" style={{ color: 'rgba(217,217,217,0.85)' }}>
-                Stop juggling multiple payments and high interest rates. Combine your
-                debts into one affordable monthly payment and save hundreds per month.
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: '#0d1b2a' }}>
+                Check your rate
+              </h2>
+              <p className="text-base mb-8 leading-relaxed" style={{ color: '#494949' }}>
+                See your personalized loan offer in minutes. Checking your rate is free
+                and won&apos;t affect your credit score.
               </p>
-
-              <div className="space-y-3 mb-10">
+              <div className="space-y-5">
                 {[
-                  'Rates starting as low as 5.99% APR',
-                  'Loan amounts from $5,000 to $100,000+',
-                  'No hard credit check to see your rate',
-                  'Funding in as few as 2 business days',
-                  'One simple monthly payment',
-                ].map((item) => (
-                  <div key={item} className="check-item">
-                    <span className="check-icon">&#10003;</span>
-                    <span className="text-sm" style={{ color: 'rgba(217,217,217,0.9)' }}>{item}</span>
+                  { title: 'No credit impact',    desc: 'Soft inquiry only — your score stays the same.' },
+                  { title: 'Rates from 5.99% APR', desc: 'Competitive fixed rates based on your profile.' },
+                  { title: 'Up to $100,000+',      desc: 'Loan amounts tailored to your debt.' },
+                  { title: 'Fixed payments',        desc: 'Same amount every month — no surprises.' },
+                ].map(item => (
+                  <div key={item.title} className="flex items-start space-x-3">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs mt-0.5"
+                      style={{ background: 'linear-gradient(135deg, #2b7cff, #30a2ff)' }}>&#10003;</span>
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: '#0d1b2a' }}>{item.title}</p>
+                      <p className="text-sm" style={{ color: '#494949' }}>{item.desc}</p>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center space-x-6 text-sm" style={{ color: 'rgba(119,182,232,0.9)' }}>
-                <div className="flex items-center space-x-1">
-                  <span style={{ color: '#f0b429' }}>&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-                  <span>4.9/5 Rating</span>
+              <div className="mt-10 p-5 rounded-xl" style={{ background: '#f8f9fa', border: '1px solid #e9ecef' }}>
+                <div className="flex items-center space-x-0.5 mb-2">
+                  {[1,2,3,4,5].map(i => (
+                    <svg key={i} className="w-4 h-4" fill="#f0b429" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                  ))}
                 </div>
-                <div style={{ borderLeft: '1px solid rgba(119,182,232,0.3)', paddingLeft: '1.5rem' }}>
-                  10,000+ Loans Funded
-                </div>
+                <p className="text-sm italic" style={{ color: '#494949' }}>
+                  &ldquo;I consolidated $32,000 in credit card debt and dropped my monthly payment by $400. The process was seamless.&rdquo;
+                </p>
+                <p className="text-xs mt-2 font-semibold" style={{ color: '#0d1b2a' }}>Sarah M., Dallas TX</p>
               </div>
             </div>
 
-            <div className="lg:sticky lg:top-24">
-              <LoanApplicationForm source="loans-landing-meta-ads" />
+            <div>
+              <LoanApplicationForm source="loans-landing" />
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Trust bar ── */}
-      <section className="bg-white py-8" style={{ borderBottom: '1px solid #d9d9d9' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {[
-              { label: 'Average Rate Reduction', value: '8.5%' },
-              { label: 'Average Monthly Savings', value: '$312' },
-              { label: 'Application Time',        value: '< 5 Min' },
-              { label: 'Customer Satisfaction',   value: '98%' },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <div className="text-2xl font-bold" style={{ color: '#2b7cff' }}>{stat.value}</div>
-                <div className="text-sm mt-1" style={{ color: '#494949' }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── How It Works ── */}
-      <section className="section-padding" style={{ background: '#f8f9fa' }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3" style={{ color: '#0d1b2a' }}>How It Works</h2>
-            <p style={{ color: '#494949' }}>Get your personalized offer in just three steps.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { step: '1', title: 'Check Your Rate',   desc: 'Fill out our application in under 5 minutes. Soft inquiry — no credit score impact.' },
-              { step: '2', title: 'Review Your Offer', desc: 'Get a personalized rate, monthly payment, and total savings. No obligation.' },
-              { step: '3', title: 'Get Funded',        desc: 'Accept your offer and receive funds in as few as 2 business days.' },
-            ].map((item) => (
-              <div key={item.step} className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: '0 2px 12px rgba(13,27,42,0.06)' }}>
-                <div className="step-circle mx-auto">{item.step}</div>
-                <h3 className="text-xl font-bold mb-3" style={{ color: '#0d1b2a' }}>{item.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: '#494949' }}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Why BrightPath ── */}
-      <section className="section-padding bg-white">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12" style={{ color: '#0d1b2a' }}>
-            Why Choose BrightPath Finance?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { title: 'Lower Interest Rates',    desc: 'Reduce your average interest rate from 20%+ down to as low as 5.99% APR.' },
-              { title: 'One Monthly Payment',     desc: 'Replace multiple confusing bills with a single, predictable payment each month.' },
-              { title: 'No Hidden Fees',          desc: 'Transparent terms with no prepayment penalties on select offers.' },
-              { title: 'Fast Funding',            desc: 'Approved applicants can receive funds in as few as 2 business days.' },
-              { title: 'Credit Score Protection', desc: 'Soft inquiry pre-qualification doesn\'t affect your credit score.' },
-              { title: 'Expert Support',          desc: 'Dedicated loan specialists guide you through every step of the process.' },
-            ].map((item) => (
-              <div key={item.title} className="card-hover p-6">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
-                  style={{ background: 'rgba(43,124,255,0.08)' }}>
-                  <span style={{ color: '#2b7cff', fontSize: '18px' }}>&#10003;</span>
-                </div>
-                <h3 className="font-bold mb-2" style={{ color: '#0d1b2a' }}>{item.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: '#494949' }}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ── */}
-      <section className="section-padding" style={{ background: '#eef5ff' }}>
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12" style={{ color: '#0d1b2a' }}>
-            What Our Customers Say
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: 'Sarah M.', location: 'Dallas, TX',  text: 'I consolidated $32,000 in credit card debt into one loan at half the interest rate. My monthly payment dropped by $400!', badge: '$400/mo saved' },
-              { name: 'James R.', location: 'Atlanta, GA', text: 'The application took 3 minutes and I had my offer the same day. Funded in 2 days.', badge: 'Funded in 2 days' },
-              { name: 'Maria L.', location: 'Phoenix, AZ', text: 'Was drowning in 6 different payments. Now I have one payment and I\'m on track to be debt-free in 3 years.', badge: 'Debt-free in 3 yrs' },
-            ].map((t) => (
-              <div key={t.name} className="card p-6">
-                <div className="mb-3" style={{ color: '#f0b429' }}>&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                <p className="italic text-sm leading-relaxed mb-5" style={{ color: '#494949' }}>&ldquo;{t.text}&rdquo;</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-sm" style={{ color: '#0d1b2a' }}>{t.name}</p>
-                    <p className="text-xs" style={{ color: '#aaaaaa' }}>{t.location}</p>
-                  </div>
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full"
-                    style={{ background: 'rgba(43,124,255,0.10)', color: '#2b7cff' }}>{t.badge}</span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
 
       {/* ── FAQ ── */}
-      <section className="section-padding bg-white">
+      <section className="section-padding" style={{ background: '#f8f9fa' }}>
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12" style={{ color: '#0d1b2a' }}>
-            Frequently Asked Questions
+          <h2 className="text-3xl font-extrabold text-center mb-12" style={{ color: '#0d1b2a' }}>
+            Frequently asked questions
           </h2>
           <div className="space-y-4">
             {[
-              { q: 'Will checking my rate affect my credit score?', a: 'No. We use a soft credit inquiry to check your rate, which does not impact your score. A hard inquiry only occurs if you accept an offer and proceed.' },
-              { q: 'What credit score do I need to qualify?',       a: 'We work with borrowers across the credit spectrum. While better rates are available for higher scores, we have options for scores as low as 550.' },
-              { q: 'How much can I borrow?',                        a: 'Loan amounts range from $5,000 to over $100,000, depending on your creditworthiness, income, and existing debt load.' },
-              { q: 'How fast can I get funded?',                    a: 'Approved applicants can receive funds in as few as 2 business days after accepting their offer and completing verification.' },
-              { q: 'Are there any fees?',                           a: 'There are no application fees. Some loan offers may include an origination fee, clearly disclosed before you accept. Never any prepayment penalties.' },
-            ].map((faq) => (
-              <div key={faq.q} className="rounded-xl p-6 border" style={{ borderColor: '#d9d9d9' }}>
+              { q: 'Will checking my rate affect my credit score?', a: 'No. We use a soft credit inquiry that doesn\'t impact your score. A hard inquiry only occurs if you accept a loan offer.' },
+              { q: 'What credit score do I need?',                  a: 'We work with a range of credit profiles. Better rates are available for higher scores, but we have options for scores as low as 550.' },
+              { q: 'How much can I borrow?',                        a: 'Loan amounts range from $5,000 to over $100,000, depending on your creditworthiness and income.' },
+              { q: 'How fast can I get funded?',                    a: 'Funds can be deposited in as few as 2 business days after you accept your offer and complete verification.' },
+              { q: 'Are there any fees?',                           a: 'No application fees. Some offers may include an origination fee (0–6%), clearly disclosed before you accept. No prepayment penalties.' },
+            ].map(faq => (
+              <div key={faq.q} className="bg-white rounded-2xl p-6" style={{ border: '1px solid #e9ecef' }}>
                 <h3 className="font-bold mb-2" style={{ color: '#0d1b2a' }}>{faq.q}</h3>
                 <p className="text-sm leading-relaxed" style={{ color: '#494949' }}>{faq.a}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── CTA Banner ── */}
-      <section className="py-20" style={{ background: 'linear-gradient(135deg, #2b7cff 0%, #30a2ff 100%)' }}>
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to Consolidate Your Debt?</h2>
-          <p className="text-lg mb-8" style={{ color: 'rgba(255,255,255,0.85)' }}>
-            Check your rate in minutes. No impact to your credit score.
-          </p>
-          <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            className="inline-block px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 hover:-translate-y-1"
-            style={{ background: '#0d1b2a', color: '#ffffff', boxShadow: '0 6px 24px rgba(13,27,42,0.35)' }}>
-            Check My Rate Now
-          </a>
-          <p className="mt-4 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-            Or call <a href="tel:877-867-2002" className="underline font-semibold text-white">877-867-2002</a>
-          </p>
         </div>
       </section>
     </Layout>
