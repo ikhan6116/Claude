@@ -79,8 +79,8 @@ export default function Layout({
       <header className={`bg-white sticky top-0 z-50 transition-shadow duration-300 ${scrolled ? 'shadow-md' : ''}`}
         style={{ borderBottom: scrolled ? 'none' : '1px solid #e9ecef' }}>
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center h-auto lg:h-16 py-2 lg:py-0 lg:flex-row lg:justify-center lg:gap-8">
-            <Link href="/" className="flex items-center mb-2 lg:mb-0">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="flex items-center flex-shrink-0">
               <Image src="/brightpath-logo.svg" alt="BrightPath Finance" width={180} height={50} priority />
             </Link>
 
