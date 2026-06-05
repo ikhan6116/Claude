@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 160" fill="none">
+  <!-- Sunburst arc dashes top-left, dark navy → light blue -->
+  <g transform="translate(52, 72)">
+    <!-- 12 dashes arranged in ~180° arc from lower-left to upper-right -->
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#0d1b2a" stroke-width="3.5" stroke-linecap="round" transform="rotate(-80)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#1a3560" stroke-width="3.5" stroke-linecap="round" transform="rotate(-65)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#1e4d8c" stroke-width="3.5" stroke-linecap="round" transform="rotate(-50)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#2860a8" stroke-width="3.5" stroke-linecap="round" transform="rotate(-35)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#3878c0" stroke-width="3.5" stroke-linecap="round" transform="rotate(-20)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#4d93d2" stroke-width="3.5" stroke-linecap="round" transform="rotate(-5)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#5ea4da" stroke-width="3.5" stroke-linecap="round" transform="rotate(10)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#6ab0e3" stroke-width="3.5" stroke-linecap="round" transform="rotate(25)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#72b4e6" stroke-width="3.5" stroke-linecap="round" transform="rotate(40)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#77b6e8" stroke-width="3.5" stroke-linecap="round" transform="rotate(55)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#77b6e8" stroke-width="3.5" stroke-linecap="round" transform="rotate(70)"/>
+    <line x1="0"   y1="0" x2="-8"  y2="-18" stroke="#77b6e8" stroke-width="3" stroke-linecap="round" transform="rotate(85)"/>
+  </g>
+
+  <!-- "bright" in dark navy -->
+  <text x="36" y="108" font-family="Inter, sans-serif" font-size="60" font-weight="700" fill="#0d1b2a" letter-spacing="-1">bright</text>
+
+  <!-- "path" in light blue -->
+  <text x="207" y="108" font-family="Inter, sans-serif" font-size="60" font-weight="700" fill="#77b6e8" letter-spacing="-1">path</text>
+
+  <!-- Divider lines + "Finance" label -->
+  <line x1="90" y1="128" x2="155" y2="128" stroke="#d9d9d9" stroke-width="1.5"/>
+  <text x="160" y="133" font-family="Inter, sans-serif" font-size="18" font-weight="400" fill="#aaaaaa" letter-spacing="3">Finance</text>
+  <line x1="266" y1="128" x2="330" y2="128" stroke="#d9d9d9" stroke-width="1.5"/>
+</svg>

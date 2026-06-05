@@ -2,34 +2,152 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @layer base {
   html {
     scroll-behavior: smooth;
   }
   body {
-    @apply font-sans text-gray-800 antialiased;
+    @apply font-sans antialiased;
+    color: #494949;
+    background: #ffffff;
+  }
+  h1, h2, h3, h4 {
+    color: #0d1b2a;
   }
 }
 
 @layer components {
+  /* Primary CTA — brand blue gradient */
   .btn-primary {
-    @apply bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold
-           hover:bg-primary-700 transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold
+           text-white transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+    background: linear-gradient(135deg, #2b7cff 0%, #30a2ff 100%);
+    box-shadow: 0 4px 16px rgba(43, 124, 255, 0.30);
+    focus-ring-color: #2b7cff;
   }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #1a63e8 0%, #2b7cff 100%);
+    box-shadow: 0 6px 20px rgba(43, 124, 255, 0.40);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  /* Secondary — navy outline */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold
+           transition-all duration-200 border-2
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+    color: #0d1b2a;
+    border-color: #0d1b2a;
+    background: transparent;
+  }
+  .btn-secondary:hover {
+    background: #0d1b2a;
+    color: #ffffff;
+  }
+
+  /* Ghost — light blue */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+    color: #2b7cff;
+    background: rgba(43, 124, 255, 0.08);
+  }
+  .btn-ghost:hover {
+    background: rgba(43, 124, 255, 0.15);
+  }
+
+  /* Keep accent alias pointing to primary for backwards compat */
   .btn-accent {
-    @apply bg-accent-500 text-white px-6 py-3 rounded-lg font-semibold
-           hover:bg-accent-600 transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2;
+    @apply btn-primary;
   }
+
+  /* Form inputs */
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-           placeholder-gray-400 text-gray-700;
+    @apply w-full px-4 py-3 rounded-xl border text-neutral-800
+           focus:outline-none focus:ring-2 focus:border-transparent
+           placeholder-neutral-400 transition-all duration-200;
+    border-color: #d9d9d9;
+    background: #fff;
   }
+  .input-field:focus {
+    border-color: #2b7cff;
+    --tw-ring-color: rgba(43, 124, 255, 0.25);
+    box-shadow: 0 0 0 3px rgba(43, 124, 255, 0.15);
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-2xl border;
+    border-color: #d9d9d9;
+    box-shadow: 0 2px 12px rgba(13, 27, 42, 0.06);
+  }
+  .card-hover {
+    @apply card transition-all duration-200;
+  }
+  .card-hover:hover {
+    box-shadow: 0 8px 32px rgba(43, 124, 255, 0.14);
+    border-color: #77b6e8;
+    transform: translateY(-2px);
+  }
+
+  /* Section spacing */
   .section-padding {
-    @apply px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24;
+    @apply px-4 sm:px-6 lg:px-8 py-16 sm:py-20;
+  }
+
+  /* Gradient hero backgrounds */
+  .hero-gradient {
+    background: linear-gradient(135deg, #0d1b2a 0%, #0f2744 40%, #1a3d6b 100%);
+  }
+
+  /* Badge / chip */
+  .badge-blue {
+    @apply inline-block text-sm font-semibold px-4 py-1.5 rounded-full;
+    background: rgba(43, 124, 255, 0.12);
+    color: #2b7cff;
+  }
+  .badge-navy {
+    @apply inline-block text-sm font-semibold px-4 py-1.5 rounded-full;
+    background: rgba(13, 27, 42, 0.08);
+    color: #0d1b2a;
+  }
+
+  /* Check item */
+  .check-item {
+    @apply flex items-center space-x-3;
+  }
+  .check-icon {
+    @apply flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs text-white;
+    background: linear-gradient(135deg, #2b7cff, #30a2ff);
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    @apply w-full rounded-full h-2;
+    background: #d9d9d9;
+  }
+  .progress-fill {
+    @apply h-2 rounded-full transition-all duration-500;
+    background: linear-gradient(90deg, #2b7cff, #30a2ff);
+  }
+
+  /* Step circle */
+  .step-circle {
+    @apply w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold text-white mx-auto mb-4;
+    background: linear-gradient(135deg, #2b7cff, #30a2ff);
+    box-shadow: 0 4px 14px rgba(43, 124, 255, 0.30);
+  }
+
+  /* Divider line matching brand */
+  .brand-divider {
+    @apply border-t;
+    border-color: #d9d9d9;
   }
 }
