@@ -34,14 +34,15 @@ export default function Home() {
       {/* ── Stats ── */}
       <section className="bg-white" style={{ borderBottom: '1px solid #e9ecef' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
             {[
               { value: '5.99%',    sub: 'Low fixed APR¹' },
               { value: '$100K+',   sub: 'Loan amounts' },
               { value: '2 days',   sub: 'Fast funding²' },
               { value: '$0',       sub: 'Application fees' },
             ].map(s => (
-              <div key={s.sub}>
+              <div key={s.sub} className="rounded-2xl p-5 sm:p-6"
+                style={{ background: '#f8fbff', border: '1px solid #e0ecf8' }}>
                 <p className="text-3xl sm:text-4xl font-extrabold" style={{ color: '#0d1b2a' }}>{s.value}</p>
                 <p className="text-sm mt-1" style={{ color: '#494949' }}>{s.sub}</p>
               </div>

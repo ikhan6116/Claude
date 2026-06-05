@@ -66,13 +66,12 @@ export default function Layout({
 
       {/* ── Top bar ── */}
       <div className="hidden sm:block text-xs py-1.5" style={{ background: '#0d1b2a', color: 'rgba(255,255,255,0.6)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center space-x-4">
           <span>NMLS #2670114</span>
-          <div className="flex items-center space-x-4">
-            <a href="mailto:team@brightpath-fin.com" className="hover:text-white transition-colors">team@brightpath-fin.com</a>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-            <a href="tel:877-867-2002" className="hover:text-white transition-colors">877-867-2002</a>
-          </div>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+          <a href="mailto:team@brightpath-fin.com" className="hover:text-white transition-colors">team@brightpath-fin.com</a>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+          <a href="tel:877-867-2002" className="hover:text-white transition-colors">877-867-2002</a>
         </div>
       </div>
 
@@ -80,8 +79,8 @@ export default function Layout({
       <header className={`bg-white sticky top-0 z-50 transition-shadow duration-300 ${scrolled ? 'shadow-md' : ''}`}
         style={{ borderBottom: scrolled ? 'none' : '1px solid #e9ecef' }}>
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center">
+          <div className="flex flex-col items-center h-auto lg:h-16 py-2 lg:py-0 lg:flex-row lg:justify-center lg:gap-8">
+            <Link href="/" className="flex items-center mb-2 lg:mb-0">
               <Image src="/brightpath-logo.svg" alt="BrightPath Finance" width={180} height={50} priority />
             </Link>
 

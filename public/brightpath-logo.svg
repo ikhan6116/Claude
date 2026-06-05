@@ -1,28 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
-  <!-- Sunburst arc above the "b" — 15 graduated dashes, navy → light blue -->
-  <g transform="translate(28, 34)">
-    <line x1="0" y1="0" x2="0" y2="-14" stroke="#0d1b2a" stroke-width="2.2" stroke-linecap="round" transform="rotate(-85)"/>
-    <line x1="0" y1="0" x2="0" y2="-14" stroke="#0d1b2a" stroke-width="2.2" stroke-linecap="round" transform="rotate(-73)"/>
-    <line x1="0" y1="0" x2="0" y2="-15" stroke="#132d4a" stroke-width="2.2" stroke-linecap="round" transform="rotate(-61)"/>
-    <line x1="0" y1="0" x2="0" y2="-15" stroke="#1e4470" stroke-width="2.2" stroke-linecap="round" transform="rotate(-49)"/>
-    <line x1="0" y1="0" x2="0" y2="-16" stroke="#2a5b96" stroke-width="2.2" stroke-linecap="round" transform="rotate(-37)"/>
-    <line x1="0" y1="0" x2="0" y2="-16" stroke="#3672b0" stroke-width="2.2" stroke-linecap="round" transform="rotate(-25)"/>
-    <line x1="0" y1="0" x2="0" y2="-17" stroke="#4688c4" stroke-width="2.3" stroke-linecap="round" transform="rotate(-13)"/>
-    <line x1="0" y1="0" x2="0" y2="-17" stroke="#569dd4" stroke-width="2.3" stroke-linecap="round" transform="rotate(0)"/>
-    <line x1="0" y1="0" x2="0" y2="-17" stroke="#62aade" stroke-width="2.3" stroke-linecap="round" transform="rotate(13)"/>
-    <line x1="0" y1="0" x2="0" y2="-16" stroke="#6bb1e4" stroke-width="2.3" stroke-linecap="round" transform="rotate(25)"/>
-    <line x1="0" y1="0" x2="0" y2="-16" stroke="#72b4e6" stroke-width="2.2" stroke-linecap="round" transform="rotate(37)"/>
-    <line x1="0" y1="0" x2="0" y2="-15" stroke="#77b6e8" stroke-width="2.2" stroke-linecap="round" transform="rotate(49)"/>
-    <line x1="0" y1="0" x2="0" y2="-15" stroke="#77b6e8" stroke-width="2.2" stroke-linecap="round" transform="rotate(61)"/>
-    <line x1="0" y1="0" x2="0" y2="-14" stroke="#77b6e8" stroke-width="2" stroke-linecap="round" transform="rotate(73)"/>
-    <line x1="0" y1="0" x2="0" y2="-14" stroke="#77b6e8" stroke-width="2" stroke-linecap="round" transform="rotate(85)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 85" fill="none">
+  <!-- Sunburst arc — tick marks along a semicircle above "b", navy → light blue -->
+  <g transform="translate(32, 40)">
+    <line x1="0" y1="-22" x2="0" y2="-32" stroke="#0d1b2a" stroke-width="2.8" stroke-linecap="round" transform="rotate(-82)"/>
+    <line x1="0" y1="-22" x2="0" y2="-31" stroke="#0d1b2a" stroke-width="2.8" stroke-linecap="round" transform="rotate(-70)"/>
+    <line x1="0" y1="-21" x2="0" y2="-30" stroke="#102a45" stroke-width="2.6" stroke-linecap="round" transform="rotate(-58)"/>
+    <line x1="0" y1="-20" x2="0" y2="-29" stroke="#183d60" stroke-width="2.5" stroke-linecap="round" transform="rotate(-46)"/>
+    <line x1="0" y1="-20" x2="0" y2="-29" stroke="#24507a" stroke-width="2.5" stroke-linecap="round" transform="rotate(-34)"/>
+    <line x1="0" y1="-19" x2="0" y2="-28" stroke="#316494" stroke-width="2.5" stroke-linecap="round" transform="rotate(-22)"/>
+    <line x1="0" y1="-19" x2="0" y2="-29" stroke="#3f78ae" stroke-width="2.6" stroke-linecap="round" transform="rotate(-10)"/>
+    <line x1="0" y1="-19" x2="0" y2="-30" stroke="#4d8cc2" stroke-width="2.8" stroke-linecap="round" transform="rotate(2)"/>
+    <line x1="0" y1="-19" x2="0" y2="-29" stroke="#5a9ad0" stroke-width="2.6" stroke-linecap="round" transform="rotate(14)"/>
+    <line x1="0" y1="-19" x2="0" y2="-28" stroke="#64a5d8" stroke-width="2.5" stroke-linecap="round" transform="rotate(26)"/>
+    <line x1="0" y1="-20" x2="0" y2="-29" stroke="#6bade0" stroke-width="2.5" stroke-linecap="round" transform="rotate(38)"/>
+    <line x1="0" y1="-20" x2="0" y2="-29" stroke="#71b2e4" stroke-width="2.5" stroke-linecap="round" transform="rotate(50)"/>
+    <line x1="0" y1="-21" x2="0" y2="-30" stroke="#74b4e6" stroke-width="2.6" stroke-linecap="round" transform="rotate(62)"/>
+    <line x1="0" y1="-22" x2="0" y2="-31" stroke="#77b6e8" stroke-width="2.8" stroke-linecap="round" transform="rotate(74)"/>
+    <line x1="0" y1="-22" x2="0" y2="-32" stroke="#77b6e8" stroke-width="2.8" stroke-linecap="round" transform="rotate(86)"/>
   </g>
-  <!-- "bright" -->
-  <text x="18" y="58" font-family="'Inter',system-ui,sans-serif" font-size="36" font-weight="700" fill="#0d1b2a" letter-spacing="-0.5">bright</text>
-  <!-- "path" -->
-  <text x="130" y="58" font-family="'Inter',system-ui,sans-serif" font-size="36" font-weight="700" fill="#77b6e8" letter-spacing="-0.5">path</text>
-  <!-- divider + Finance -->
-  <line x1="52" y1="68" x2="100" y2="68" stroke="#d9d9d9" stroke-width="1"/>
-  <text x="104" y="72" font-family="'Inter',system-ui,sans-serif" font-size="12" font-weight="400" fill="#999" letter-spacing="2.5">Finance</text>
-  <line x1="178" y1="68" x2="226" y2="68" stroke="#d9d9d9" stroke-width="1"/>
+  <!-- "bright" in navy -->
+  <text x="10" y="62" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="38" font-weight="700" fill="#0d1b2a" letter-spacing="-0.5">bright</text>
+  <!-- "path" in light blue -->
+  <text x="136" y="62" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="38" font-weight="700" fill="#77b6e8" letter-spacing="-0.5">path</text>
+  <!-- divider lines + Finance -->
+  <line x1="60" y1="73" x2="112" y2="73" stroke="#d9d9d9" stroke-width="1"/>
+  <text x="117" y="77" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="13" font-weight="400" fill="#999" letter-spacing="2">Finance</text>
+  <line x1="192" y1="73" x2="244" y2="73" stroke="#d9d9d9" stroke-width="1"/>
 </svg>
