@@ -262,6 +262,7 @@ export default function LeadChatBot() {
   const [isOpen,        setIsOpen]        = useState(false)
   const [messages,      setMessages]      = useState<Message[]>([])
   const [stepIndex,     setStepIndex]     = useState(0)
+  const [stepHistory,   setStepHistory]   = useState<number[]>([])
   const [inputValue,    setInputValue]    = useState('')
   const [inputError,    setInputError]    = useState('')
   const [isTyping,      setIsTyping]      = useState(false)
@@ -324,6 +325,36 @@ export default function LeadChatBot() {
     return next
   }
 
+  function goBack() {
+    if (stepHistory.length === 0) return
+    const prevIndex = stepHistory[stepHistory.length - 1]
+    const prevStep = STEPS[prevIndex]
+    const prevValue = collectedData[prevStep.field]
+
+    setStepHistory(h => h.slice(0, -1))
+    setShowConsent(false)
+    setStepIndex(prevIndex)
+    setInputError('')
+    setCustomCredit('')
+    setShowCustom(false)
+
+    // Pre-fill the input with what they previously entered (not for option/creditLine pickers)
+    if (prevStep.inputType !== 'options' && prevStep.inputType !== 'creditLine') {
+      setInputValue(prevValue != null ? String(prevValue) : '')
+    } else {
+      setInputValue('')
+    }
+
+    // Remove the field from collected data so it must be re-entered
+    setCollectedData(d => {
+      const next = { ...d }
+      delete next[prevStep.field]
+      return next
+    })
+
+    showBotMessage(resolveMsg(prevStep.botMessage, collectedData), 400)
+  }
+
   function advance(value: string | number, display?: string) {
     const step = STEPS[stepIndex]
     const newData: Partial<ChatData> = { ...collectedData, [step.field]: value }
@@ -333,6 +364,7 @@ export default function LeadChatBot() {
     setInputError('')
     setCustomCredit('')
     setShowCustom(false)
+    setStepHistory(prev => [...prev, stepIndex])
 
     const next = findNextStep(stepIndex, newData)
     if (next >= STEPS.length) {
@@ -528,11 +560,26 @@ export default function LeadChatBot() {
           </div>
 
           {/* ── Input area ── */}
-          {!showConsent && !isTyping && step && (
+          {(!showConsent || stepHistory.length > 0) && !isTyping && (step || showConsent) && (
             <div className="border-t border-gray-100 bg-white px-3 py-3 flex-shrink-0">
 
+              {/* Back button */}
+              {stepHistory.length > 0 && (
+                <div className="mb-2">
+                  <button
+                    onClick={goBack}
+                    className="flex items-center gap-1 text-xs text-brand-gray hover:text-brand-blue transition-colors"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Change previous answer
+                  </button>
+                </div>
+              )}
+
               {/* Options quick-replies */}
-              {isOptions && (
+              {!showConsent && isOptions && (
                 <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
                   {step.options?.map(opt => (
                     <button
@@ -547,7 +594,7 @@ export default function LeadChatBot() {
               )}
 
               {/* Credit line preset buttons + custom */}
-              {isCredit && (
+              {!showConsent && isCredit && (
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-1.5">
                     {CREDIT_LINE_OPTIONS.map(opt => (
@@ -604,7 +651,7 @@ export default function LeadChatBot() {
               )}
 
               {/* Free text / dollar / percent / email / tel input */}
-              {showInput && (
+              {!showConsent && showInput && (
                 <div className="space-y-1">
                   <div className="flex gap-2">
                     {isDollar ? (
