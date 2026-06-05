@@ -65,7 +65,6 @@ function botMessage(step: Step, data: ChatData): string {
 export default function ChatWidget() {
   const [open, setOpen]           = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
-  const [pulse, setPulse]         = useState(false);
   const [messages, setMessages]   = useState<Message[]>([]);
   const [step, setStep]           = useState<Step>('greeting');
   const [data, setData]           = useState<ChatData>({});
@@ -75,20 +74,12 @@ export default function ChatWidget() {
   const bottomRef                 = useRef<HTMLDivElement>(null);
   const inputRef                  = useRef<HTMLInputElement>(null);
 
-  // Pulse after 8 seconds to draw attention
+  // Auto-open 1.5 seconds after the page loads
   useEffect(() => {
-    const t = setTimeout(() => setPulse(true), 8000);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Auto-open after 20 seconds if user hasn't interacted
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (!hasOpened) openChat();
-    }, 20000);
+    const t = setTimeout(() => openChat(), 1500);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasOpened]);
+  }, []);
 
   // Scroll to latest message
   useEffect(() => {
@@ -98,7 +89,6 @@ export default function ChatWidget() {
   function openChat() {
     setOpen(true);
     setHasOpened(true);
-    setPulse(false);
     if (messages.length === 0) {
       appendBot('greeting', {});
     }
@@ -174,7 +164,7 @@ export default function ChatWidget() {
       <button
         onClick={() => open ? setOpen(false) : openChat()}
         aria-label="Chat with us"
-        className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg transition-transform duration-200 hover:scale-105 ${pulse && !open ? 'animate-bounce' : ''}`}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg transition-transform duration-200 hover:scale-105"
         style={{ background: 'linear-gradient(135deg, #2b7cff, #30a2ff)', boxShadow: '0 4px 20px rgba(43,124,255,0.45)' }}
       >
         {open ? (
