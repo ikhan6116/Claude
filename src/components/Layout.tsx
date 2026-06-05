@@ -58,6 +58,9 @@ export default function Layout({
             </Link>
 
             <div className="hidden md:flex items-center space-x-8">
+              <Link href="/loans" className="text-gray-600 hover:text-primary-600 font-medium">
+                Consolidation Loans
+              </Link>
               <Link href="/debt-consolidation" className="text-gray-600 hover:text-primary-600 font-medium">
                 Debt Consolidation
               </Link>
@@ -99,6 +102,7 @@ export default function Layout({
             <div>
               <h4 className="text-white font-semibold mb-4">Services</h4>
               <ul className="space-y-2 text-sm">
+                <li><Link href="/loans" className="hover:text-white">Consolidation Loans</Link></li>
                 <li><Link href="/debt-consolidation" className="hover:text-white">Debt Consolidation</Link></li>
                 <li><Link href="/debt-relief" className="hover:text-white">Debt Relief Programs</Link></li>
                 <li><Link href="/credit-card-debt-help" className="hover:text-white">Credit Card Debt Help</Link></li>
