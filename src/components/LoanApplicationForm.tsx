@@ -56,6 +56,8 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
   const [codeError, setCodeError]         = useState('');
   const [sendingCode, setSendingCode]     = useState(false);
   const [phoneError, setPhoneError]       = useState('');
+  const [phoneLookupDone, setPhoneLookupDone] = useState(false);
+  const [checkingPhone, setCheckingPhone] = useState(false);
   const [result, setResult]               = useState<LoanResult | null>(null);
   const [error, setError]                 = useState('');
 
@@ -69,6 +71,30 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
   const stepIndex  = steps.indexOf(step as typeof steps[number]);
   const progress   = (step === 'processing' || step === 'result') ? 100
                    : ((stepIndex + 1) / steps.length) * 100;
+
+  const lookupPhone = async () => {
+    const phone = getValues('phone');
+    if (!phone || phone.replace(/\D/g, '').length < 10) return;
+    setCheckingPhone(true); setPhoneError('');
+    try {
+      const r = await fetch('/api/loans/lookup-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const d = await r.json();
+      if (!d.valid) {
+        setPhoneError(d.error === 'landline'
+          ? 'Landline numbers cannot receive SMS. Please enter a mobile phone number.'
+          : "That doesn't appear to be a valid US phone number. Please check and try again.");
+        setPhoneLookupDone(false);
+      } else {
+        setPhoneLookupDone(true);
+      }
+    } catch {
+      setPhoneLookupDone(true);
+    } finally { setCheckingPhone(false); }
+  };
 
   const validateAndNext = async (fields: (keyof LoanFormData)[], next: FormStep) => {
     if (await trigger(fields)) setStep(next);
@@ -334,10 +360,12 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
               <input {...register('phone', {
                 required: 'Required',
                 pattern: { value: /^[\d\s\-()+]{10,}$/, message: 'Valid phone required' },
-                onChange: () => setPhoneError(''),
+                onChange: () => { setPhoneError(''); setPhoneLookupDone(false); },
+                onBlur: () => lookupPhone(),
               })}
                 type="tel" className={inp} placeholder="(555) 123-4567" />
               {errors.phone && <p className={err}>{errors.phone.message}</p>}
+              {checkingPhone && <p className="text-xs mt-1" style={{ color: '#2b7cff' }}>Validating phone number…</p>}
               {phoneError && <p className={err}>{phoneError}</p>}
             </div>
 
@@ -360,14 +388,18 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
                 Back
               </button>
               <button type="button" className="flex-1 btn-primary py-3.5"
-                disabled={sendingCode}
+                disabled={sendingCode || checkingPhone || !!phoneError}
                 onClick={async () => {
                   const valid = await trigger(['email','phone','tcpaConsent']);
                   if (!valid) return;
+                  if (!phoneLookupDone) {
+                    await lookupPhone();
+                    if (!getValues('phone') || phoneError) return;
+                  }
                   const ok = await sendCode();
                   if (ok) setStep('verify');
                 }}>
-                {sendingCode ? 'Checking…' : 'Verify Phone'}
+                {sendingCode ? 'Sending Code…' : checkingPhone ? 'Validating…' : 'Verify Phone'}
               </button>
             </div>
           </div>
