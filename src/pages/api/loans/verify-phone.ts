@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { smsClient } from '@/lib/sms';
+import { lookupPhoneLineType } from './lookup-phone';
 
 const verificationCodes = new Map<string, { code: string; expiresAt: number }>();
 
@@ -16,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const normalized = phone.replace(/\D/g, '');
 
+  // ── Verify step (user entered code) ──
   if (code) {
     const stored = verificationCodes.get(normalized);
     if (!stored) {
@@ -30,6 +32,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     verificationCodes.delete(normalized);
     return res.status(200).json({ verified: true });
+  }
+
+  // ── Send step — run Twilio Lookup v2 first ──
+  const lookup = await lookupPhoneLineType(phone);
+
+  if (!lookup.valid) {
+    if (lookup.error === 'landline') {
+      return res.status(422).json({
+        error: 'Landline numbers cannot receive SMS. Please enter a mobile phone number.',
+        lineType: 'landline',
+      });
+    }
+    return res.status(422).json({
+      error: 'That doesn\'t appear to be a valid US phone number. Please check and try again.',
+      lineType: 'invalid',
+    });
   }
 
   const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -54,3 +72,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return res.status(200).json({ sent: true });
 }
+

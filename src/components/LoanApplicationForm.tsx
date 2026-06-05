@@ -55,6 +55,7 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
   const [codeVerified, setCodeVerified]   = useState(false);
   const [codeError, setCodeError]         = useState('');
   const [sendingCode, setSendingCode]     = useState(false);
+  const [phoneError, setPhoneError]       = useState('');
   const [result, setResult]               = useState<LoanResult | null>(null);
   const [error, setError]                 = useState('');
 
@@ -73,22 +74,29 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
     if (await trigger(fields)) setStep(next);
   };
 
-  const sendCode = async () => {
+  const sendCode = async (): Promise<boolean> => {
     const phone = getValues('phone');
-    if (!phone) return;
-    setSendingCode(true); setCodeError('');
+    if (!phone) return false;
+    setSendingCode(true); setCodeError(''); setPhoneError('');
     try {
       const r = await fetch('/api/loans/verify-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone }),
       });
-      if (!r.ok) throw new Error();
       const d = await r.json();
+      if (!r.ok) {
+        // 422 = landline or invalid — show inline on the phone field
+        if (r.status === 422) { setPhoneError(d.error); return false; }
+        throw new Error(d.error || 'Failed to send code');
+      }
       setCode(d.code || '');
       setCodeSent(true);
-    } catch { setCodeError('Failed to send code. Please try again.'); }
-    finally   { setSendingCode(false); }
+      return true;
+    } catch (e) {
+      setCodeError(e instanceof Error ? e.message : 'Failed to send code. Please try again.');
+      return false;
+    } finally { setSendingCode(false); }
   };
 
   const verifyCode = useCallback(() => {
@@ -323,9 +331,14 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
 
             <div>
               <label className={lbl} style={{ color: '#0d1b2a' }}>Phone Number *</label>
-              <input {...register('phone', { required: 'Required', pattern: { value: /^[\d\s\-()+]{10,}$/, message: 'Valid phone required' } })}
+              <input {...register('phone', {
+                required: 'Required',
+                pattern: { value: /^[\d\s\-()+]{10,}$/, message: 'Valid phone required' },
+                onChange: () => setPhoneError(''),
+              })}
                 type="tel" className={inp} placeholder="(555) 123-4567" />
               {errors.phone && <p className={err}>{errors.phone.message}</p>}
+              {phoneError && <p className={err}>{phoneError}</p>}
             </div>
 
             <div className="rounded-xl p-4" style={{ background: '#f8f9fa', border: '1px solid #d9d9d9' }}>
@@ -347,11 +360,14 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
                 Back
               </button>
               <button type="button" className="flex-1 btn-primary py-3.5"
+                disabled={sendingCode}
                 onClick={async () => {
                   const valid = await trigger(['email','phone','tcpaConsent']);
-                  if (valid) { setStep('verify'); if (watchPhone && !codeSent) sendCode(); }
+                  if (!valid) return;
+                  const ok = await sendCode();
+                  if (ok) setStep('verify');
                 }}>
-                Verify Phone
+                {sendingCode ? 'Checking…' : 'Verify Phone'}
               </button>
             </div>
           </div>
