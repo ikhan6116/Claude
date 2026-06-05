@@ -2,42 +2,67 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 type LineType = 'mobile' | 'landline' | 'voip' | 'unknown' | null;
 
+const INVALID_US_PREFIXES = /^(\+1)?(0|1)\d{9}$/; // area codes starting with 0 or 1 are invalid
+
 export async function lookupPhoneLineType(phone: string): Promise<{ valid: boolean; lineType: LineType; error?: string }> {
+  const digits = phone.replace(/\D/g, '');
+  // Strip leading country code 1 if present
+  const tenDigit = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
+
+  // Hard validation: must be exactly 10 digits, area code can't start with 0 or 1
+  if (tenDigit.length !== 10 || /^[01]/.test(tenDigit)) {
+    return { valid: false, lineType: null, error: 'invalid' };
+  }
+
+  // Common fake/test numbers
+  const repeating = /^(\d)\1{9}$/.test(tenDigit); // e.g. 1111111111, 0000000000
+  const sequential = tenDigit === '1234567890' || tenDigit === '0987654321';
+  if (repeating || sequential) {
+    return { valid: false, lineType: null, error: 'invalid' };
+  }
+
+  const normalized = `+1${tenDigit}`;
+
   const sid = process.env.TWILIO_ACCOUNT_SID;
   const token = process.env.TWILIO_AUTH_TOKEN;
 
   if (!sid || !token) {
-    return { valid: true, lineType: null }; // skip check if not configured
-  }
-
-  const normalized = `+1${phone.replace(/\D/g, '').slice(-10)}`;
-
-  const url = `https://lookups.twilio.com/v2/PhoneNumbers/${encodeURIComponent(normalized)}?Fields=line_type_intelligence`;
-
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`,
-    },
-  });
-
-  if (!response.ok) {
-    // 404 = number not found / invalid
-    if (response.status === 404) return { valid: false, lineType: null, error: 'invalid' };
-    // Other errors: fail open so we don't block legitimate users
+    console.warn('[Lookup] Twilio credentials not configured — basic validation only');
     return { valid: true, lineType: null };
   }
 
-  const data = await response.json();
+  const url = `https://lookups.twilio.com/v2/PhoneNumbers/${encodeURIComponent(normalized)}?Fields=line_type_intelligence`;
 
-  if (!data.valid) return { valid: false, lineType: null, error: 'invalid' };
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`,
+      },
+    });
 
-  const lineType: LineType = data.line_type_intelligence?.type ?? null;
+    if (!response.ok) {
+      if (response.status === 404) return { valid: false, lineType: null, error: 'invalid' };
+      // Twilio error — fail open but log it
+      console.error('[Lookup] Twilio returned', response.status, await response.text().catch(() => ''));
+      return { valid: true, lineType: null };
+    }
 
-  if (lineType === 'landline') {
-    return { valid: false, lineType, error: 'landline' };
+    const data = await response.json();
+    console.log('[Lookup] Twilio response:', JSON.stringify(data));
+
+    if (!data.valid) return { valid: false, lineType: null, error: 'invalid' };
+
+    const lineType: LineType = data.line_type_intelligence?.type ?? null;
+
+    if (lineType === 'landline') {
+      return { valid: false, lineType, error: 'landline' };
+    }
+
+    return { valid: true, lineType };
+  } catch (err) {
+    console.error('[Lookup] Fetch error:', err);
+    return { valid: true, lineType: null }; // fail open on network error
   }
-
-  return { valid: true, lineType };
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
