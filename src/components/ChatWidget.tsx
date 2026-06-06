@@ -97,7 +97,7 @@ export default function ChatWidget() {
 
   // Auto-open 1.5 seconds after the page loads
   useEffect(() => {
-    const t = setTimeout(() => openChat(), 1500);
+    const t = setTimeout(() => openChat(), 2500);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
