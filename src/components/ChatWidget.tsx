@@ -8,6 +8,10 @@ interface Message {
 interface ChatData {
   firstName?: string;
   lastName?: string;
+  streetAddress?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
   email?: string;
   phone?: string;
   debtAmount?: string;
@@ -24,6 +28,7 @@ type Step =
   | 'loanAmount'
   | 'creditScore'
   | 'loanPurpose'
+  | 'address'
   | 'email'
   | 'phone'
   | 'done';
@@ -33,7 +38,7 @@ const LOAN_OPTIONS    = ['$5K–$10K', '$10K–$25K', '$25K–$50K', '$50K–$75
 const SCORE_OPTIONS   = ['Excellent (750+)', 'Good (700–749)', 'Fair (650–699)', 'Below Average (600–649)', 'Poor (550–599)', 'Not Sure'];
 const PURPOSE_OPTIONS = ['Consolidate Credit Cards', 'Pay Off Medical Bills', 'Lower Monthly Payments', 'Reduce Interest Rate', 'Home Improvement', 'Other'];
 
-const STEP_ORDER: Step[] = ['greeting','firstName','lastName','debtAmount','loanAmount','creditScore','loanPurpose','email','phone','done'];
+const STEP_ORDER: Step[] = ['greeting','firstName','lastName','debtAmount','loanAmount','creditScore','loanPurpose','address','email','phone','done'];
 
 function botMessage(step: Step, data: ChatData): string {
   switch (step) {
@@ -51,15 +56,30 @@ function botMessage(step: Step, data: ChatData): string {
       return "Perfect. What's your estimated credit score range? No worries — this won't affect your score at all!";
     case 'loanPurpose':
       return "What's the main reason you're looking for a loan today?";
+    case 'address':
+      return "What's your home address? (Street, City, State ZIP — e.g. 123 Main St, Dallas, TX 75201)";
     case 'email':
-      return `Awesome, ${data.firstName}! You're almost there. What's the best email address to send your rate options to?`;
+      return `Almost there, ${data.firstName}! What's the best email address to send your rate options to?`;
     case 'phone':
-      return "Last one! What's your phone number? A specialist may reach out to help finalize your options. 📞";
+      return "Last one! What's your mobile phone number? We'll use it to verify and reach out. 📞";
     case 'done':
       return `You're all set, ${data.firstName}! 🎉 We're reviewing your info now. A specialist from BrightPath Finance will be in touch shortly. You can also call us directly at 877-867-2002. Have a great day!`;
     default:
       return '';
   }
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidUSPhone(phone: string): boolean {
+  const digits = phone.replace(/\D/g, '');
+  const ten = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
+  if (ten.length !== 10 || /^[01]/.test(ten)) return false;
+  if (/^(\d)\1{9}$/.test(ten)) return false;
+  if (ten === '1234567890' || ten === '0987654321') return false;
+  return true;
 }
 
 export default function ChatWidget() {
@@ -71,6 +91,7 @@ export default function ChatWidget() {
   const [input, setInput]         = useState('');
   const [sending, setSending]     = useState(false);
   const [showOptions, setOptions] = useState<string[]>([]);
+  const [validating, setValidating] = useState(false);
   const bottomRef                 = useRef<HTMLDivElement>(null);
   const inputRef                  = useRef<HTMLInputElement>(null);
 
@@ -110,6 +131,14 @@ export default function ChatWidget() {
     setTimeout(() => inputRef.current?.focus(), 100);
   }
 
+  function parseAddress(text: string): { street: string; city: string; state: string; zip: string } | null {
+    // Try to parse "123 Main St, Dallas, TX 75201" pattern
+    const match = text.match(/^(.+?),\s*(.+?),\s*([A-Z]{2})\s*(\d{5})$/i);
+    if (match) return { street: match[1].trim(), city: match[2].trim(), state: match[3].toUpperCase(), zip: match[4] };
+    // Fallback: just store the whole thing as street
+    return { street: text, city: '', state: '', zip: '' };
+  }
+
   function advanceStep(userText: string, currentStep: Step, currentData: ChatData): [Step, ChatData] {
     const next = STEP_ORDER[STEP_ORDER.indexOf(currentStep) + 1] as Step;
     const newData = { ...currentData };
@@ -122,6 +151,16 @@ export default function ChatWidget() {
       case 'loanAmount': newData.loanAmount  = userText; break;
       case 'creditScore':newData.creditScore = userText; break;
       case 'loanPurpose':newData.loanPurpose = userText; break;
+      case 'address': {
+        const addr = parseAddress(userText);
+        if (addr) {
+          newData.streetAddress = addr.street;
+          newData.city = addr.city;
+          newData.state = addr.state;
+          newData.zipCode = addr.zip;
+        }
+        break;
+      }
       case 'email':      newData.email       = userText; break;
       case 'phone':      newData.phone       = userText; break;
     }
@@ -129,11 +168,72 @@ export default function ChatWidget() {
     return [next, newData];
   }
 
+  async function validatePhoneWithAPI(phone: string): Promise<{ valid: boolean; error?: string }> {
+    try {
+      const r = await fetch('/api/loans/lookup-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      return await r.json();
+    } catch {
+      return { valid: true };
+    }
+  }
+
   async function handleSend(value?: string) {
     const text = (value ?? input).trim();
-    if (!text || sending) return;
+    if (!text || sending || validating) return;
     setInput('');
     setOptions([]);
+
+    // Client-side validation before accepting the answer
+    if (step === 'email' && !isValidEmail(text)) {
+      setMessages(prev => [...prev,
+        { role: 'user', text },
+        { role: 'bot', text: "Hmm, that doesn't look like a valid email address. Could you double-check and try again? 📧" },
+      ]);
+      return;
+    }
+
+    if (step === 'phone') {
+      if (!isValidUSPhone(text)) {
+        setMessages(prev => [...prev,
+          { role: 'user', text },
+          { role: 'bot', text: "That doesn't look like a valid US mobile number. Please enter a 10-digit number (e.g. 555-123-4567)." },
+        ]);
+        return;
+      }
+
+      // Run Twilio lookup
+      setMessages(prev => [...prev, { role: 'user', text }]);
+      setValidating(true);
+      const lookup = await validatePhoneWithAPI(text);
+      setValidating(false);
+
+      if (!lookup.valid) {
+        const msg = lookup.error === 'landline'
+          ? "It looks like that's a landline number. We need a mobile number to send you a verification text. Could you enter your cell phone number instead?"
+          : "That doesn't appear to be a valid phone number. Could you double-check and try again?";
+        setMessages(prev => [...prev, { role: 'bot', text: msg }]);
+        return;
+      }
+
+      // Phone is valid — advance to done
+      const [nextStep, newData] = advanceStep(text, step, data);
+      setData(newData);
+      setSending(true);
+      await new Promise(r => setTimeout(r, 600));
+      appendBot(nextStep, newData);
+      // Submit in background
+      fetch('/api/loans/chat-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newData),
+      }).catch(() => {});
+      setSending(false);
+      return;
+    }
 
     setMessages(prev => [...prev, { role: 'user', text }]);
 
@@ -144,7 +244,6 @@ export default function ChatWidget() {
     await new Promise(r => setTimeout(r, 600)); // brief typing delay
 
     if (nextStep === 'done') {
-      // Submit to API silently
       appendBot('done', newData);
       fetch('/api/loans/chat-submit', {
         method: 'POST',
@@ -216,7 +315,7 @@ export default function ChatWidget() {
                 </div>
               </div>
             ))}
-            {sending && (
+            {(sending || validating) && (
               <div className="flex justify-start">
                 <div className="rounded-2xl rounded-bl-sm px-4 py-3" style={{ background: '#f0f7ff', border: '1px solid #ddeeff' }}>
                   <span className="flex space-x-1">
@@ -253,11 +352,11 @@ export default function ChatWidget() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSend()}
-                placeholder="Type your answer…"
+                placeholder={step === 'address' ? 'Street, City, ST ZIP' : step === 'email' ? 'you@email.com' : step === 'phone' ? '(555) 123-4567' : 'Type your answer…'}
                 className="flex-1 text-sm px-4 py-2.5 rounded-xl outline-none"
                 style={{ background: '#f8f9fa', border: '1.5px solid #e9ecef', color: '#0d1b2a' }}
               />
-              <button onClick={() => handleSend()} disabled={!input.trim() || sending}
+              <button onClick={() => handleSend()} disabled={!input.trim() || sending || validating}
                 className="w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0 disabled:opacity-40 transition-opacity"
                 style={{ background: 'linear-gradient(135deg,#2b7cff,#30a2ff)' }}>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
