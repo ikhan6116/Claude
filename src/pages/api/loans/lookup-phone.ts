@@ -53,9 +53,15 @@ export async function lookupPhoneLineType(phone: string): Promise<{ valid: boole
     if (!data.valid) return { valid: false, lineType: null, error: 'invalid' };
 
     const lineType: LineType = data.line_type_intelligence?.type ?? null;
+    console.log('[Lookup] Line type:', lineType);
 
     if (lineType === 'landline') {
       return { valid: false, lineType, error: 'landline' };
+    }
+
+    if (!lineType) {
+      console.log('[Lookup] No carrier data — treating as invalid');
+      return { valid: false, lineType: null, error: 'invalid' };
     }
 
     return { valid: true, lineType };

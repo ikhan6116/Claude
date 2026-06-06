@@ -1,8 +1,15 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResendClient(): Resend | null {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  if (!_resend) _resend = new Resend(key);
+  return _resend;
+}
 
-const FROM = 'BrightPath Finance <team@brightpath-fin.com>';
+const VERIFIED_FROM = 'BrightPath Finance <team@brightpath-fin.com>';
+const FALLBACK_FROM = 'BrightPath Finance <onboarding@resend.dev>';
 
 function getRecipients(): string[] {
   const env = process.env.LEAD_NOTIFICATION_EMAILS || '';
@@ -124,24 +131,55 @@ function row(label: string, value: string): string {
 }
 
 export async function sendLeadNotificationEmail(data: LeadEmailPayload): Promise<boolean> {
+  console.log('[Email] sendLeadNotificationEmail called');
+
   const to = getRecipients();
-  if (!to.length || !process.env.RESEND_API_KEY) {
-    console.warn('[Email] RESEND_API_KEY or LEAD_NOTIFICATION_EMAILS not configured — skipping');
+  console.log('[Email] Recipients:', to);
+  console.log('[Email] RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
+
+  if (!to.length) {
+    console.warn('[Email] LEAD_NOTIFICATION_EMAILS not configured — skipping');
     return false;
   }
 
+  const client = getResendClient();
+  if (!client) {
+    console.warn('[Email] RESEND_API_KEY not configured — skipping');
+    return false;
+  }
+
+  const subject = `🔔 New Lead [${data.routing.toUpperCase()}] — ${data.firstName} ${data.lastName} | ${data.loanRequestAmount}`;
+
   try {
-    const { error } = await resend.emails.send({
-      from: FROM,
+    console.log('[Email] Attempting send with verified domain...');
+    const { data: result, error } = await client.emails.send({
+      from: VERIFIED_FROM,
       to,
-      subject: `🔔 New Lead [${data.routing.toUpperCase()}] — ${data.firstName} ${data.lastName} | ${data.loanRequestAmount}`,
+      subject,
       html: buildHtml(data),
     });
 
-    if (error) { console.error('[Email] Resend error:', error); return false; }
+    if (error) {
+      console.warn('[Email] Verified domain failed:', JSON.stringify(error));
+      console.log('[Email] Retrying with fallback from address...');
+      const { data: fallbackResult, error: fallbackError } = await client.emails.send({
+        from: FALLBACK_FROM,
+        to,
+        subject,
+        html: buildHtml(data),
+      });
+      if (fallbackError) {
+        console.error('[Email] Fallback also failed:', JSON.stringify(fallbackError));
+        return false;
+      }
+      console.log('[Email] Sent successfully via fallback:', fallbackResult);
+      return true;
+    }
+
+    console.log('[Email] Sent successfully:', result);
     return true;
   } catch (err) {
-    console.error('[Email] Failed to send lead notification:', err);
+    console.error('[Email] Exception during send:', err);
     return false;
   }
 }
