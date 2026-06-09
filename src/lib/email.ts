@@ -130,56 +130,125 @@ function row(label: string, value: string): string {
   </tr>`;
 }
 
-export async function sendLeadNotificationEmail(data: LeadEmailPayload): Promise<boolean> {
-  console.log('[Email] sendLeadNotificationEmail called');
+const INTERNAL_ALERT_RECIPIENTS = ['contact@brightpathfinance.com', 'team@brightpath-fin.com'];
 
-  const to = getRecipients();
-  console.log('[Email] Recipients:', to);
-  console.log('[Email] RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
+function buildInternalAlertHtml(data: LeadEmailPayload): string {
+  const submittedDate = new Date(data.submittedAt).toLocaleString('en-US', {
+    timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short',
+  });
+  const address = [data.streetAddress, data.city, data.state, data.zipCode].filter(Boolean).join(', ');
 
-  if (!to.length) {
-    console.warn('[Email] LEAD_NOTIFICATION_EMAILS not configured — skipping');
-    return false;
-  }
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f0f4f8;font-family:'Helvetica Neue',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:32px 16px">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
 
-  const client = getResendClient();
-  if (!client) {
-    console.warn('[Email] RESEND_API_KEY not configured — skipping');
-    return false;
-  }
+        <tr><td style="background:#0d1b2a;border-radius:12px 12px 0 0;padding:28px 32px;text-align:center">
+          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.3px">BrightPath Finance</p>
+          <p style="margin:6px 0 0;color:rgba(255,255,255,0.6);font-size:13px">New Loan Application Received</p>
+        </td></tr>
 
-  const subject = `🔔 New Lead [${data.routing.toUpperCase()}] — ${data.firstName} ${data.lastName} | ${data.loanRequestAmount}`;
+        <tr><td style="background:#fff;padding:24px 32px;border-radius:0 0 12px 12px">
+          <p style="margin:0 0 16px;color:#494949;font-size:13px">Submitted ${submittedDate} ET · Source: ${data.source}</p>
 
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e9ecef;border-radius:10px;overflow:hidden">
+            <tr style="background:#f8f9fa">
+              <td colspan="2" style="padding:12px 16px;font-size:11px;font-weight:700;color:#0d1b2a;letter-spacing:1px;text-transform:uppercase">Applicant</td>
+            </tr>
+            ${row('Name', `${data.firstName} ${data.lastName}`)}
+            ${row('Email', data.email)}
+            ${row('Phone', data.phone)}
+            ${address ? row('Address', address) : ''}
+          </table>
+
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e9ecef;border-radius:10px;overflow:hidden;margin-top:16px">
+            <tr style="background:#f8f9fa">
+              <td colspan="2" style="padding:12px 16px;font-size:11px;font-weight:700;color:#0d1b2a;letter-spacing:1px;text-transform:uppercase">Loan Details</td>
+            </tr>
+            ${row('Purpose', data.loanPurpose)}
+            ${row('Unsecured Debt', data.unsecuredDebtBalance)}
+            ${row('Loan Requested', data.loanRequestAmount)}
+            ${row('Estimated FICO', data.estimatedFico)}
+          </table>
+
+          <div style="text-align:center;margin-top:24px">
+            <a href="tel:${data.phone}" style="display:inline-block;background:linear-gradient(135deg,#2b7cff,#30a2ff);
+              color:#fff;font-size:14px;font-weight:700;padding:14px 36px;border-radius:10px;text-decoration:none;
+              box-shadow:0 4px 14px rgba(43,124,255,0.35)">
+              Call ${data.firstName} Now &rarr; ${data.phone}
+            </a>
+          </div>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+async function sendWithFallback(
+  client: InstanceType<typeof Resend>,
+  to: string[],
+  subject: string,
+  html: string,
+  label: string,
+): Promise<boolean> {
   try {
-    console.log('[Email] Attempting send with verified domain...');
+    console.log(`[Email:${label}] Sending to ${to.join(', ')}...`);
     const { data: result, error } = await client.emails.send({
-      from: VERIFIED_FROM,
-      to,
-      subject,
-      html: buildHtml(data),
+      from: VERIFIED_FROM, to, subject, html,
     });
 
     if (error) {
-      console.warn('[Email] Verified domain failed:', JSON.stringify(error));
-      console.log('[Email] Retrying with fallback from address...');
-      const { data: fallbackResult, error: fallbackError } = await client.emails.send({
-        from: FALLBACK_FROM,
-        to,
-        subject,
-        html: buildHtml(data),
+      console.warn(`[Email:${label}] Verified domain failed:`, JSON.stringify(error));
+      const { data: fbResult, error: fbError } = await client.emails.send({
+        from: FALLBACK_FROM, to, subject, html,
       });
-      if (fallbackError) {
-        console.error('[Email] Fallback also failed:', JSON.stringify(fallbackError));
+      if (fbError) {
+        console.error(`[Email:${label}] Fallback also failed:`, JSON.stringify(fbError));
         return false;
       }
-      console.log('[Email] Sent successfully via fallback:', fallbackResult);
+      console.log(`[Email:${label}] Sent via fallback:`, fbResult);
       return true;
     }
 
-    console.log('[Email] Sent successfully:', result);
+    console.log(`[Email:${label}] Sent:`, result);
     return true;
   } catch (err) {
-    console.error('[Email] Exception during send:', err);
+    console.error(`[Email:${label}] Exception:`, err);
     return false;
   }
+}
+
+export async function sendLeadNotificationEmail(data: LeadEmailPayload): Promise<boolean> {
+  console.log('[Email] sendLeadNotificationEmail called');
+  console.log('[Email] RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
+
+  const client = getResendClient();
+  if (!client) {
+    console.warn('[Email] RESEND_API_KEY not configured — skipping all emails');
+    return false;
+  }
+
+  // 1) Internal lead alert → contact@brightpathfinance.com + team@brightpath-fin.com
+  const internalSubject = `New Loan Application — ${data.firstName} ${data.lastName} (${data.phone})`;
+  const internalPromise = sendWithFallback(
+    client, INTERNAL_ALERT_RECIPIENTS, internalSubject,
+    buildInternalAlertHtml(data), 'internal',
+  );
+
+  // 2) Lead review alert → LEAD_NOTIFICATION_EMAILS env var recipients
+  const reviewRecipients = getRecipients();
+  const reviewSubject = `🔔 New Lead [${data.routing.toUpperCase()}] — ${data.firstName} ${data.lastName} | ${data.loanRequestAmount}`;
+  const reviewPromise = reviewRecipients.length
+    ? sendWithFallback(client, reviewRecipients, reviewSubject, buildHtml(data), 'review')
+    : Promise.resolve(false);
+
+  const [internalOk, reviewOk] = await Promise.all([internalPromise, reviewPromise]);
+  console.log('[Email] Results — internal:', internalOk, 'review:', reviewOk);
+  return internalOk || reviewOk;
 }
