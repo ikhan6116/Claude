@@ -66,6 +66,9 @@ export class HubSpotClient {
       return { contactId: '' };
     }
 
+    // Use only standard HubSpot contact properties so the create/update never
+    // fails on a custom property the portal hasn't defined. All the loan-specific
+    // detail is folded into the standard `message` property as a readable summary.
     const properties: Record<string, string | number> = {
       firstname: data.firstName,
       lastname: data.lastName,
@@ -77,16 +80,21 @@ export class HubSpotClient {
     if (data.city) properties.city = data.city;
     if (data.state) properties.state = data.state;
     if (data.zip) properties.zip = data.zip;
-    if (data.leadSource) properties.lead_source = data.leadSource;
 
-    if (data.softPullScore != null) properties.soft_pull_score = data.softPullScore;
-    if (data.totalDebtBalance != null) properties.total_debt_balance = data.totalDebtBalance;
-    if (data.loanRequestAmount != null) properties.loan_request_amount = data.loanRequestAmount;
-    if (data.estimatedFico) properties.estimated_fico_range = data.estimatedFico;
-    if (data.loanPurpose) properties.loan_purpose = data.loanPurpose;
-    if (data.unsecuredDebtBalance != null) properties.unsecured_debt_balance = data.unsecuredDebtBalance;
-    if (data.consentGranted != null) properties.credit_inquiry_consent = data.consentGranted ? 'true' : 'false';
-    if (data.consentTimestamp) properties.consent_timestamp = data.consentTimestamp;
+    const summaryLines: string[] = [];
+    if (data.leadSource) summaryLines.push(`Lead Source: ${data.leadSource}`);
+    if (data.loanPurpose) summaryLines.push(`Loan Purpose: ${data.loanPurpose}`);
+    if (data.loanRequestAmount != null) summaryLines.push(`Loan Amount Requested: $${data.loanRequestAmount.toLocaleString()}`);
+    if (data.unsecuredDebtBalance != null) summaryLines.push(`Unsecured Debt Balance: $${data.unsecuredDebtBalance.toLocaleString()}`);
+    if (data.estimatedFico) summaryLines.push(`Estimated FICO: ${data.estimatedFico}`);
+    if (data.softPullScore != null) summaryLines.push(`Soft Pull Score: ${data.softPullScore}`);
+    if (data.totalDebtBalance != null) summaryLines.push(`Total Debt (soft pull): $${data.totalDebtBalance.toLocaleString()}`);
+    if (data.consentGranted != null) summaryLines.push(`Credit Inquiry Consent: ${data.consentGranted ? 'Yes' : 'No'}`);
+    if (data.consentTimestamp) summaryLines.push(`Consent Timestamp: ${data.consentTimestamp}`);
+
+    if (summaryLines.length) {
+      properties.message = `BrightPath Finance Loan Inquiry\n${summaryLines.join('\n')}`;
+    }
 
     try {
       const existing = await this.searchContactByEmail(data.email);

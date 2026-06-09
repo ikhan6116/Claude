@@ -49,7 +49,6 @@ const STEP_LABELS: Record<string, string> = {
 
 export default function LoanApplicationForm({ source = 'landing-page' }: { source?: string }) {
   const [step, setStep]                   = useState<FormStep>('personal');
-  const [verificationCode, setCode]       = useState('');
   const [enteredCode, setEnteredCode]     = useState('');
   const [codeSent, setCodeSent]           = useState(false);
   const [codeVerified, setCodeVerified]   = useState(false);
@@ -116,7 +115,6 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
         if (r.status === 422) { setPhoneError(d.error); return false; }
         throw new Error(d.error || 'Failed to send code');
       }
-      setCode(d.code || '');
       setCodeSent(true);
       return true;
     } catch (e) {
@@ -125,11 +123,25 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
     } finally { setSendingCode(false); }
   };
 
-  const verifyCode = useCallback(() => {
+  const verifyCode = useCallback(async () => {
     if (enteredCode.length !== 6) { setCodeError('Please enter the 6-digit code.'); return; }
-    if (verificationCode && enteredCode !== verificationCode) { setCodeError('Invalid code. Try again.'); return; }
-    setCodeVerified(true); setCodeError('');
-  }, [enteredCode, verificationCode]);
+    setCodeError('');
+    try {
+      const r = await fetch('/api/loans/verify-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: getValues('phone'), code: enteredCode }),
+      });
+      const d = await r.json();
+      if (r.ok && d.verified) {
+        setCodeVerified(true); setCodeError('');
+      } else {
+        setCodeError(d.error || 'Invalid code. Try again.');
+      }
+    } catch {
+      setCodeError('Could not verify the code. Please try again.');
+    }
+  }, [enteredCode, getValues]);
 
   useEffect(() => {
     if (enteredCode.length === 6 && !codeVerified) verifyCode();
