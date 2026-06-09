@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { smsClient } from '@/lib/sms';
 import { lookupPhoneLineType } from './lookup-phone';
 
+// Legacy fallback store — only used when Twilio Verify is NOT configured.
+// NOTE: this Map does not survive serverless cold starts; Twilio Verify is preferred.
 const verificationCodes = new Map<string, { code: string; expiresAt: number }>();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -19,6 +21,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // ── Verify step (user entered code) ──
   if (code) {
+    if (smsClient.verifyEnabled) {
+      const result = await smsClient.checkVerification(phone, code);
+      if (result.approved) {
+        return res.status(200).json({ verified: true });
+      }
+      if (result.error === 'expired') {
+        return res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
+      }
+      return res.status(400).json({ error: 'Invalid verification code.' });
+    }
+
+    // Legacy fallback
     const stored = verificationCodes.get(normalized);
     if (!stored) {
       return res.status(400).json({ error: 'No verification code found. Please request a new one.' });
@@ -50,8 +64,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  // ── Send the OTP ──
+  if (smsClient.verifyEnabled) {
+    const result = await smsClient.startVerification(phone);
+    if (!result.success) {
+      return res.status(502).json({ error: 'Unable to send verification code. Please try again.' });
+    }
+    return res.status(200).json({ sent: true });
+  }
 
+  // Legacy fallback — generate & store our own code
+  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
   verificationCodes.set(normalized, {
     code: verificationCode,
     expiresAt: Date.now() + 10 * 60 * 1000,
@@ -72,4 +95,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return res.status(200).json({ sent: true });
 }
-
