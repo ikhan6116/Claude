@@ -31,6 +31,7 @@ type Step =
   | 'address'
   | 'email'
   | 'phone'
+  | 'verifyCode'
   | 'done';
 
 const DEBT_OPTIONS    = ['$5K–$10K', '$10K–$25K', '$25K–$50K', '$50K–$75K', '$75K–$100K', '$100K+'];
@@ -38,7 +39,7 @@ const LOAN_OPTIONS    = ['$5K–$10K', '$10K–$25K', '$25K–$50K', '$50K–$75
 const SCORE_OPTIONS   = ['Excellent (750+)', 'Good (700–749)', 'Fair (650–699)', 'Below Average (600–649)', 'Poor (550–599)', 'Not Sure'];
 const PURPOSE_OPTIONS = ['Consolidate Credit Cards', 'Pay Off Medical Bills', 'Lower Monthly Payments', 'Reduce Interest Rate', 'Home Improvement', 'Other'];
 
-const STEP_ORDER: Step[] = ['greeting','firstName','lastName','debtAmount','loanAmount','creditScore','loanPurpose','address','email','phone','done'];
+const STEP_ORDER: Step[] = ['greeting','firstName','lastName','debtAmount','loanAmount','creditScore','loanPurpose','address','email','phone','verifyCode','done'];
 
 function botMessage(step: Step, data: ChatData): string {
   switch (step) {
@@ -62,6 +63,8 @@ function botMessage(step: Step, data: ChatData): string {
       return `Almost there, ${data.firstName}! What's the best email address to send your rate options to?`;
     case 'phone':
       return "Last one! What's your mobile phone number? We'll use it to verify and reach out. 📞";
+    case 'verifyCode':
+      return `We just sent a 6-digit verification code to your phone. Please enter it below to confirm your number. 🔐`;
     case 'done':
       return `You're all set, ${data.firstName}! 🎉 We're reviewing your info now. A specialist from BrightPath Finance will be in touch shortly. You can also call us directly at 877-867-2002. Have a great day!`;
     default:
@@ -163,22 +166,10 @@ export default function ChatWidget() {
       }
       case 'email':      newData.email       = userText; break;
       case 'phone':      newData.phone       = userText; break;
+      case 'verifyCode': break;
     }
 
     return [next, newData];
-  }
-
-  async function validatePhoneWithAPI(phone: string): Promise<{ valid: boolean; error?: string }> {
-    try {
-      const r = await fetch('/api/loans/lookup-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      return await r.json();
-    } catch {
-      return { valid: true };
-    }
   }
 
   async function handleSend(value?: string) {
@@ -205,33 +196,79 @@ export default function ChatWidget() {
         return;
       }
 
-      // Run Twilio lookup
       setMessages(prev => [...prev, { role: 'user', text }]);
       setValidating(true);
-      const lookup = await validatePhoneWithAPI(text);
-      setValidating(false);
 
-      if (!lookup.valid) {
-        const msg = lookup.error === 'landline'
-          ? "It looks like that's a landline number. We need a mobile number to send you a verification text. Could you enter your cell phone number instead?"
-          : "That doesn't appear to be a valid phone number. Could you double-check and try again?";
-        setMessages(prev => [...prev, { role: 'bot', text: msg }]);
+      try {
+        const r = await fetch('/api/loans/verify-phone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: text }),
+        });
+        const result = await r.json();
+        setValidating(false);
+
+        if (!r.ok) {
+          const msg = result.lineType === 'landline'
+            ? "It looks like that's a landline number. We need a mobile number to send you a verification text. Could you enter your cell phone number instead?"
+            : result.error || "That doesn't appear to be a valid phone number. Could you double-check and try again?";
+          setMessages(prev => [...prev, { role: 'bot', text: msg }]);
+          return;
+        }
+
+        const newData = { ...data, phone: text };
+        setData(newData);
+        setSending(true);
+        await new Promise(r => setTimeout(r, 600));
+        appendBot('verifyCode', newData);
+        setSending(false);
+      } catch {
+        setValidating(false);
+        setMessages(prev => [...prev, { role: 'bot', text: "Something went wrong sending the verification code. Please try again." }]);
+      }
+      return;
+    }
+
+    if (step === 'verifyCode') {
+      const code = text.replace(/\D/g, '');
+      if (code.length !== 6) {
+        setMessages(prev => [...prev,
+          { role: 'user', text },
+          { role: 'bot', text: "Please enter the 6-digit code we sent to your phone." },
+        ]);
         return;
       }
 
-      // Phone is valid — advance to done
-      const [nextStep, newData] = advanceStep(text, step, data);
-      setData(newData);
-      setSending(true);
-      await new Promise(r => setTimeout(r, 600));
-      appendBot(nextStep, newData);
-      // Submit in background
-      fetch('/api/loans/chat-submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newData),
-      }).catch(() => {});
-      setSending(false);
+      setMessages(prev => [...prev, { role: 'user', text }]);
+      setValidating(true);
+
+      try {
+        const r = await fetch('/api/loans/verify-phone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: data.phone, code }),
+        });
+        const result = await r.json();
+        setValidating(false);
+
+        if (!r.ok || !result.verified) {
+          setMessages(prev => [...prev, { role: 'bot', text: result.error || "That code didn't match. Please try again or request a new one." }]);
+          return;
+        }
+
+        setSending(true);
+        await new Promise(r => setTimeout(r, 600));
+        appendBot('done', data);
+        fetch('/api/loans/chat-submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }).catch(() => {});
+        setSending(false);
+      } catch {
+        setValidating(false);
+        setMessages(prev => [...prev, { role: 'bot', text: "Something went wrong verifying your code. Please try again." }]);
+      }
       return;
     }
 
@@ -352,7 +389,7 @@ export default function ChatWidget() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSend()}
-                placeholder={step === 'address' ? 'Street, City, ST ZIP' : step === 'email' ? 'you@email.com' : step === 'phone' ? '(555) 123-4567' : 'Type your answer…'}
+                placeholder={step === 'address' ? 'Street, City, ST ZIP' : step === 'email' ? 'you@email.com' : step === 'phone' ? '(555) 123-4567' : step === 'verifyCode' ? '6-digit code' : 'Type your answer…'}
                 className="flex-1 text-sm px-4 py-2.5 rounded-xl outline-none"
                 style={{ background: '#f8f9fa', border: '1.5px solid #e9ecef', color: '#0d1b2a' }}
               />
