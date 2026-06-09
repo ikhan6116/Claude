@@ -1,6 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { sendLeadNotificationEmail } from '@/lib/email';
 import { isBusinessHours, smsClient } from '@/lib/sms';
+import { hubspotClient } from '@/lib/hubspot';
+
+function parseAmount(rangeStr: string): number | null {
+  if (!rangeStr) return null;
+  const match = rangeStr.match(/\$([\d,]+)/);
+  if (!match) return null;
+  return parseInt(match[1].replace(/,/g, ''), 10);
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -11,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   console.log('[ChatSubmit] Processing lead:', { firstName, lastName, email, phone, source: 'chatbot' });
 
-  const emailResult = await sendLeadNotificationEmail({
+  const emailPromise = sendLeadNotificationEmail({
     firstName:           firstName || '',
     lastName:            lastName || '',
     email:               email || '',
@@ -30,17 +38,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     routing:             'review',
     submittedAt:         new Date().toISOString(),
     phoneVerified:       false,
+  }).catch(err => { console.error('[ChatSubmit] Email failed:', err); return false; });
+
+  const hubspotPromise = hubspotClient.createOrUpdateContact({
+    firstName:            firstName || '',
+    lastName:             lastName || '',
+    email:                email || '',
+    phone:                phone || '',
+    address:              streetAddress || '',
+    city:                 city || '',
+    state:                state || '',
+    zip:                  zipCode || '',
+    leadSource:           'Chatbot',
+    loanRequestAmount:    parseAmount(loanAmount),
+    unsecuredDebtBalance: parseAmount(debtAmount),
+    estimatedFico:        creditScore || '',
+    loanPurpose:          loanPurpose || '',
+  }).catch(err => {
+    console.error('[ChatSubmit] HubSpot sync failed:', err);
+    return { contactId: '' };
   });
 
-  console.log('[ChatSubmit] Email sent:', emailResult);
-
-  const smsResult = phone
-    ? await smsClient.sendLeadConfirmationSMS(phone, firstName, isBusinessHours()).catch(err => {
+  const smsPromise = phone
+    ? smsClient.sendLeadConfirmationSMS(phone, firstName, isBusinessHours()).catch(err => {
         console.error('[ChatSubmit] SMS failed:', err);
         return null;
       })
-    : null;
+    : Promise.resolve(null);
 
+  const [emailResult, hubspotResult, smsResult] = await Promise.all([emailPromise, hubspotPromise, smsPromise]);
+
+  console.log('[ChatSubmit] Email sent:', emailResult);
+  console.log('[ChatSubmit] HubSpot result:', hubspotResult);
   console.log('[ChatSubmit] SMS result:', smsResult);
 
   // CRM webhook
@@ -67,5 +96,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  return res.status(200).json({ success: true, emailSent: emailResult });
+  return res.status(200).json({ success: true, emailSent: emailResult, hubspotContactId: hubspotResult.contactId });
 }

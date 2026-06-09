@@ -77,7 +77,7 @@ export class HubSpotClient {
     if (data.city) properties.city = data.city;
     if (data.state) properties.state = data.state;
     if (data.zip) properties.zip = data.zip;
-    if (data.leadSource) properties.hs_lead_status = data.leadSource;
+    if (data.leadSource) properties.lead_source = data.leadSource;
 
     if (data.softPullScore != null) properties.soft_pull_score = data.softPullScore;
     if (data.totalDebtBalance != null) properties.total_debt_balance = data.totalDebtBalance;
