@@ -264,6 +264,9 @@ export default function ChatWidget() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         }).catch(() => {});
+        if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
+          (window as any).fbq('track', 'Lead');
+        }
         setSending(false);
       } catch {
         setValidating(false);

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { sendLeadNotificationEmail } from '@/lib/email';
 import { isBusinessHours, smsClient } from '@/lib/sms';
 import { hubspotClient } from '@/lib/hubspot';
+import { sendLeadEvent } from '@/lib/meta-capi';
 
 function parseAmount(rangeStr: string): number | null {
   if (!rangeStr) return null;
@@ -66,7 +67,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     : Promise.resolve(null);
 
-  const [emailResult, hubspotResult, smsResult] = await Promise.all([emailPromise, hubspotPromise, smsPromise]);
+  const capiPromise = sendLeadEvent({
+    email,
+    phone,
+    firstName,
+    lastName,
+    city,
+    state,
+    zip: zipCode,
+    clientIpAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress,
+    clientUserAgent: req.headers['user-agent'],
+    fbc: req.cookies._fbc,
+    fbp: req.cookies._fbp,
+  }).catch(err => { console.error('[ChatSubmit] Meta CAPI failed:', err); return false; });
+
+  const [emailResult, hubspotResult, smsResult] = await Promise.all([emailPromise, hubspotPromise, smsPromise, capiPromise]);
 
   console.log('[ChatSubmit] Email sent:', emailResult);
   console.log('[ChatSubmit] HubSpot result:', hubspotResult);

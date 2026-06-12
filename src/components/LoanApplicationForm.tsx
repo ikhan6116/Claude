@@ -159,6 +159,9 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
       const d = await r.json();
       setResult({ approved: d.approved, score: d.creditScore, totalDebt: d.totalDebtBalance, message: d.message, offerId: d.offerId });
       setStep('result');
+      if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
+        (window as any).fbq('track', 'Lead');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       setStep('contact');

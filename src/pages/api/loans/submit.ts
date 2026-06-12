@@ -3,6 +3,7 @@ import { softPullClient } from '@/lib/soft-pull';
 import { hubspotClient } from '@/lib/hubspot';
 import { smsClient, isBusinessHours } from '@/lib/sms';
 import { sendLeadNotificationEmail } from '@/lib/email';
+import { sendLeadEvent } from '@/lib/meta-capi';
 
 interface LoanSubmission {
   firstName: string;
@@ -106,6 +107,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ? smsClient.sendLeadConfirmationSMS(data.phone, data.firstName, isBusinessHours())
       : Promise.resolve({ success: false });
 
+    const capiPromise = sendLeadEvent({
+      email: data.email,
+      phone: data.phone,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      city: data.city,
+      state: data.state,
+      zip: data.zipCode,
+      clientIpAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress,
+      clientUserAgent: req.headers['user-agent'],
+      fbc: req.cookies._fbc,
+      fbp: req.cookies._fbp,
+    }).catch(err => { console.error('[Loans] Meta CAPI failed:', err); return false; });
+
     const emailPromise = sendLeadNotificationEmail({
       firstName: data.firstName,
       lastName: data.lastName,
@@ -127,7 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       phoneVerified: data.phoneVerified,
     }).catch(err => { console.error('[Loans] Email notification failed:', err); return false; });
 
-    const [hubspotResult] = await Promise.all([hubspotPromise, crmPromise, smsPromise, emailPromise]);
+    const [hubspotResult] = await Promise.all([hubspotPromise, crmPromise, smsPromise, emailPromise, capiPromise]);
 
     let responseMessage: string;
     let approved: boolean;
