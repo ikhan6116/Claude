@@ -26,6 +26,7 @@ export interface LeadEmailPayload {
   state: string;
   zipCode: string;
   unsecuredDebtBalance: string;
+  monthlyDebtPayment?: string;
   loanRequestAmount: string;
   estimatedFico: string;
   loanPurpose: string;
@@ -98,6 +99,7 @@ function buildHtml(data: LeadEmailPayload): string {
             </tr>
             ${row('Loan Purpose', data.loanPurpose)}
             ${row('Unsecured Debt Balance', data.unsecuredDebtBalance)}
+            ${data.monthlyDebtPayment ? row('Monthly Minimum Payments', data.monthlyDebtPayment) : ''}
             ${row('Loan Amount Requested', data.loanRequestAmount)}
             ${row('Estimated FICO (self-reported)', data.estimatedFico)}
             ${row('Soft Pull Credit Score', data.creditScore !== null ? `<strong>${data.creditScore}</strong>` : 'Not available')}
@@ -170,6 +172,7 @@ function buildInternalAlertHtml(data: LeadEmailPayload): string {
             </tr>
             ${row('Purpose', data.loanPurpose)}
             ${row('Unsecured Debt', data.unsecuredDebtBalance)}
+            ${data.monthlyDebtPayment ? row('Monthly Min. Payments', data.monthlyDebtPayment) : ''}
             ${row('Loan Requested', data.loanRequestAmount)}
             ${row('Estimated FICO', data.estimatedFico)}
           </table>

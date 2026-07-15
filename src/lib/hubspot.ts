@@ -16,6 +16,7 @@ export interface HubSpotContactData {
   estimatedFico?: string;
   loanPurpose?: string;
   unsecuredDebtBalance?: number | null;
+  monthlyDebtPayment?: string;
   consentGranted?: boolean;
   consentTimestamp?: string;
 }
@@ -86,6 +87,7 @@ export class HubSpotClient {
     if (data.loanPurpose) summaryLines.push(`Loan Purpose: ${data.loanPurpose}`);
     if (data.loanRequestAmount != null) summaryLines.push(`Loan Amount Requested: $${data.loanRequestAmount.toLocaleString()}`);
     if (data.unsecuredDebtBalance != null) summaryLines.push(`Unsecured Debt Balance: $${data.unsecuredDebtBalance.toLocaleString()}`);
+    if (data.monthlyDebtPayment) summaryLines.push(`Monthly Minimum Payments (excl. mortgage/auto): ${data.monthlyDebtPayment}`);
     if (data.estimatedFico) summaryLines.push(`Estimated FICO: ${data.estimatedFico}`);
     if (data.softPullScore != null) summaryLines.push(`Soft Pull Score: ${data.softPullScore}`);
     if (data.totalDebtBalance != null) summaryLines.push(`Total Debt (soft pull): $${data.totalDebtBalance.toLocaleString()}`);

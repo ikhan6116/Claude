@@ -15,6 +15,7 @@ interface ChatData {
   email?: string;
   phone?: string;
   debtAmount?: string;
+  monthlyPayment?: string;
   loanAmount?: string;
   creditScore?: string;
   loanPurpose?: string;
@@ -25,6 +26,7 @@ type Step =
   | 'firstName'
   | 'lastName'
   | 'debtAmount'
+  | 'monthlyPayment'
   | 'loanAmount'
   | 'creditScore'
   | 'loanPurpose'
@@ -35,11 +37,12 @@ type Step =
   | 'done';
 
 const DEBT_OPTIONS    = ['$5K–$10K', '$10K–$25K', '$25K–$50K', '$50K–$75K', '$75K–$100K', '$100K+'];
+const PAYMENT_OPTIONS = ['Less than $250', '$250–$500', '$500–$1,000', '$1,000–$1,500', '$1,500–$2,500', '$2,500+'];
 const LOAN_OPTIONS    = ['$5K–$10K', '$10K–$25K', '$25K–$50K', '$50K–$75K', '$75K–$100K', '$100K+'];
 const SCORE_OPTIONS   = ['Excellent (750+)', 'Good (700–749)', 'Fair (650–699)', 'Below Average (600–649)', 'Poor (550–599)', 'Not Sure'];
 const PURPOSE_OPTIONS = ['Consolidate Credit Cards', 'Pay Off Medical Bills', 'Lower Monthly Payments', 'Reduce Interest Rate', 'Home Improvement', 'Other'];
 
-const STEP_ORDER: Step[] = ['greeting','firstName','lastName','debtAmount','loanAmount','creditScore','loanPurpose','address','email','phone','verifyCode','done'];
+const STEP_ORDER: Step[] = ['greeting','firstName','lastName','debtAmount','monthlyPayment','loanAmount','creditScore','loanPurpose','address','email','phone','verifyCode','done'];
 
 function botMessage(step: Step, data: ChatData): string {
   switch (step) {
@@ -51,6 +54,8 @@ function botMessage(step: Step, data: ChatData): string {
       return `Nice to meet you, ${data.firstName}! And your last name?`;
     case 'debtAmount':
       return `Thanks, ${data.firstName}! To find the best options for you, roughly how much unsecured debt do you currently have? (Credit cards, personal loans, medical bills, etc.)`;
+    case 'monthlyPayment':
+      return "Roughly how much are your total monthly minimum payments on that debt? (Don't include mortgage or auto loans.)";
     case 'loanAmount':
       return "Got it! And how much would you like to borrow to consolidate that debt?";
     case 'creditScore':
@@ -125,6 +130,7 @@ export default function ChatWidget() {
 
     // Set quick-reply options for choice steps
     if (nextStep === 'debtAmount')  setOptions(DEBT_OPTIONS);
+    else if (nextStep === 'monthlyPayment') setOptions(PAYMENT_OPTIONS);
     else if (nextStep === 'loanAmount')  setOptions(LOAN_OPTIONS);
     else if (nextStep === 'creditScore') setOptions(SCORE_OPTIONS);
     else if (nextStep === 'loanPurpose') setOptions(PURPOSE_OPTIONS);
@@ -151,6 +157,7 @@ export default function ChatWidget() {
       case 'firstName':  newData.firstName  = userText; break;
       case 'lastName':   newData.lastName   = userText; break;
       case 'debtAmount': newData.debtAmount  = userText; break;
+      case 'monthlyPayment': newData.monthlyPayment = userText; break;
       case 'loanAmount': newData.loanAmount  = userText; break;
       case 'creditScore':newData.creditScore = userText; break;
       case 'loanPurpose':newData.loanPurpose = userText; break;

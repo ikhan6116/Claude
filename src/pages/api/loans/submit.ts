@@ -13,6 +13,7 @@ interface LoanSubmission {
   state: string;
   zipCode: string;
   unsecuredDebtBalance: string;
+  monthlyDebtPayment: string;
   loanRequestAmount: string;
   estimatedFico: string;
   loanPurpose: string;
@@ -94,6 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       estimatedFico: data.estimatedFico,
       loanPurpose: data.loanPurpose,
       unsecuredDebtBalance: parseAmount(data.unsecuredDebtBalance),
+      monthlyDebtPayment: data.monthlyDebtPayment,
       consentGranted: data.creditInquiryConsent,
       consentTimestamp: data.consentTimestamp,
     }).catch((err) => {
@@ -131,6 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       state: data.state,
       zipCode: data.zipCode,
       unsecuredDebtBalance: data.unsecuredDebtBalance,
+      monthlyDebtPayment: data.monthlyDebtPayment,
       loanRequestAmount: data.loanRequestAmount,
       estimatedFico: data.estimatedFico,
       loanPurpose: data.loanPurpose,
@@ -211,6 +214,7 @@ async function sendToCRM(
         loan: {
           type: 'debt_consolidation',
           unsecured_debt_balance: data.unsecuredDebtBalance,
+          monthly_minimum_payment: data.monthlyDebtPayment,
           loan_request_amount: data.loanRequestAmount,
           estimated_fico: data.estimatedFico,
           purpose: data.loanPurpose,

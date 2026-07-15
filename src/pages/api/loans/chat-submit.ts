@@ -14,7 +14,7 @@ function parseAmount(rangeStr: string): number | null {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { firstName, lastName, email, phone, streetAddress, city, state, zipCode, debtAmount, loanAmount, creditScore, loanPurpose } = req.body;
+  const { firstName, lastName, email, phone, streetAddress, city, state, zipCode, debtAmount, monthlyPayment, loanAmount, creditScore, loanPurpose } = req.body;
 
   if (!firstName || !email) return res.status(400).json({ error: 'Missing required fields' });
 
@@ -30,6 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     state:               state || '',
     zipCode:             zipCode || '',
     unsecuredDebtBalance: debtAmount || 'Not provided',
+    monthlyDebtPayment:  monthlyPayment || 'Not provided',
     loanRequestAmount:   loanAmount || 'Not provided',
     estimatedFico:       creditScore || 'Not provided',
     loanPurpose:         loanPurpose || 'Not provided',
@@ -53,6 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     leadSource:           'Chatbot',
     loanRequestAmount:    parseAmount(loanAmount),
     unsecuredDebtBalance: parseAmount(debtAmount),
+    monthlyDebtPayment:   monthlyPayment || '',
     estimatedFico:        creditScore || '',
     loanPurpose:          loanPurpose || '',
   }).catch(err => {
@@ -98,6 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           loan: {
             type: 'debt_consolidation',
             unsecured_debt_balance: debtAmount,
+            monthly_minimum_payment: monthlyPayment,
             loan_request_amount: loanAmount,
             estimated_fico: creditScore,
             purpose: loanPurpose,

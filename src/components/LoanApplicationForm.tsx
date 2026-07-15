@@ -9,6 +9,7 @@ interface LoanFormData {
   state: string;
   zipCode: string;
   unsecuredDebtBalance: string;
+  monthlyDebtPayment: string;
   loanRequestAmount: string;
   estimatedFico: string;
   loanPurpose: string;
@@ -39,6 +40,7 @@ const FICO_RANGES    = ['Excellent (750+)','Good (700-749)','Fair (650-699)','Be
 const LOAN_PURPOSES  = ['Consolidate Credit Card Debt','Pay Off Medical Bills','Consolidate Multiple Loans','Reduce Monthly Payments','Lower Interest Rates','Home Improvement','Major Purchase','Other'];
 const DEBT_AMOUNTS   = ['$5,000 - $10,000','$10,000 - $25,000','$25,000 - $50,000','$50,000 - $75,000','$75,000 - $100,000','$100,000+'];
 const LOAN_AMOUNTS   = ['$5,000 - $10,000','$10,000 - $25,000','$25,000 - $50,000','$50,000 - $75,000','$75,000 - $100,000','$100,000+'];
+const MONTHLY_PAYMENTS = ['Less than $250','$250 - $500','$500 - $1,000','$1,000 - $1,500','$1,500 - $2,500','$2,500+'];
 
 const STEP_LABELS: Record<string, string> = {
   personal: 'Personal Info',
@@ -320,6 +322,16 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
             </div>
 
             <div>
+              <label className={lbl} style={{ color: '#0d1b2a' }}>Total Monthly Minimum Payments *</label>
+              <select {...register('monthlyDebtPayment', { required: 'Required' })} className={inp}>
+                <option value="">Select monthly minimum payment</option>
+                {MONTHLY_PAYMENTS.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+              {errors.monthlyDebtPayment && <p className={err}>{errors.monthlyDebtPayment.message}</p>}
+              <p className="text-xs mt-1" style={{ color: '#aaaaaa' }}>Combined minimum payments on your unsecured debt. Exclude mortgage and auto loans.</p>
+            </div>
+
+            <div>
               <label className={lbl} style={{ color: '#0d1b2a' }}>Loan Amount Requested *</label>
               <select {...register('loanRequestAmount', { required: 'Required' })} className={inp}>
                 <option value="">Select desired loan amount</option>
@@ -353,7 +365,7 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
                 Back
               </button>
               <button type="button" className="flex-1 btn-primary py-3.5"
-                onClick={() => validateAndNext(['unsecuredDebtBalance','loanRequestAmount','estimatedFico','loanPurpose'], 'contact')}>
+                onClick={() => validateAndNext(['unsecuredDebtBalance','monthlyDebtPayment','loanRequestAmount','estimatedFico','loanPurpose'], 'contact')}>
                 Continue
               </button>
             </div>
