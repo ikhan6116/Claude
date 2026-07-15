@@ -1,7 +1,9 @@
 import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRef } from 'react';
 import LoanApplicationForm from '@/components/LoanApplicationForm';
+import ChatWidget from '@/components/ChatWidget';
 
 /**
  * Standalone, distraction-free landing page for paid ad traffic.
@@ -28,9 +30,9 @@ export default function ApplyPage() {
       <header className="bg-white sticky top-0 z-50" style={{ borderBottom: '1px solid #e9ecef' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center flex-shrink-0">
+            <Link href="/" className="flex items-center flex-shrink-0" aria-label="BrightPath Finance home">
               <Image src="/brightpath-logo.svg" alt="BrightPath Finance" width={170} height={47} priority />
-            </div>
+            </Link>
             <div className="flex items-center space-x-4">
               <span className="hidden sm:inline text-xs" style={{ color: '#aaaaaa' }}>NMLS #2670114</span>
               <a href="tel:877-867-2002" className="text-sm font-semibold" style={{ color: '#0d1b2a' }}>877-867-2002</a>
@@ -137,6 +139,8 @@ export default function ApplyPage() {
           </div>
         </div>
       </footer>
+
+      <ChatWidget />
     </>
   );
 }
