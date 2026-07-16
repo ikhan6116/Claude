@@ -78,8 +78,10 @@ function makeRefId(): string {
 function authHeader(): { name: string; value: string } | null {
   const key = process.env.RELINTEX_API_KEY;
   if (key) {
-    const name = process.env.RELINTEX_AUTH_HEADER || 'authkey';
-    // If they explicitly point at Authorization, send it as a bearer token.
+    // Relintex (Yii) authenticates via `Authorization: Bearer <key>` — the
+    // confirmed method. Header name is overridable for safety; when it's
+    // Authorization the key is sent as a bearer token.
+    const name = process.env.RELINTEX_AUTH_HEADER || 'Authorization';
     const value = name.toLowerCase() === 'authorization' ? `Bearer ${key}` : key;
     return { name, value };
   }
