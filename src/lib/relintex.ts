@@ -1,31 +1,33 @@
 /**
- * Relintex CRM lead integration.
+ * Relintex CRM lead integration (Add Lead API).
  *
  * Posts each completed lead to the Relintex lead-intake endpoint. Fully
  * gated on environment variables — if they are not set, sendLeadToRelintex
  * is a no-op, so nothing breaks until you finish configuration.
  *
  * Required env:
- *   RELINTEX_LEAD_POST_URL   Full endpoint URL Relintex gave you for lead intake
- *                            (e.g. https://connect.relintex.net/api/v2/lead/create)
+ *   RELINTEX_LEAD_POST_URL   Full Add-Lead endpoint URL Relintex gave you
  *
  * Auth — set ONE of:
  *   RELINTEX_API_USERNAME + RELINTEX_API_PASSWORD   (HTTP Basic auth)
  *   RELINTEX_API_TOKEN                              (Bearer token)
  *
  * Optional:
- *   RELINTEX_CAMPAIGN_ID     Campaign / vendor / lead-type id to attach the lead to
+ *   RELINTEX_UTM_CAMPAIGN    Value sent as utm_campaign on every lead
+ *   RELINTEX_POST_FORMAT     'json' (default) or 'form' (x-www-form-urlencoded)
  *
- * NOTE: The field names in buildPayload() below are a sensible default for a
- * loan lead-post API. Confirm them against your Relintex field spec and adjust
- * the keys if Relintex expects different names.
+ * Field names below match the Relintex "Add Lead" API spec exactly.
+ * Notable mapping: the monthly minimum payment is sent as `co_pays`
+ * (Relintex's "Deductibles/Co-Pays" field).
  */
 
 export interface RelintexLead {
+  refId?: string;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
+  dob?: string;
   address?: string;
   city?: string;
   state?: string;
@@ -45,6 +47,28 @@ export interface RelintexLead {
   userAgent?: string;
 }
 
+/**
+ * Parse a dollar amount out of a range/label string into a number.
+ * Handles: "$25,000 - $50,000" -> 25000, "$25K–$50K" -> 25000,
+ * "Less than $250" -> 250, "$2,500+" -> 2500, "$100K+" -> 100000.
+ * Uses the lower bound of a range. Returns 0 when nothing parseable.
+ */
+function parseMoney(s?: string): number {
+  if (!s) return 0;
+  const m = s.match(/\$?\s*([\d,]+(?:\.\d+)?)\s*([kKmM])?/);
+  if (!m) return 0;
+  let n = parseFloat(m[1].replace(/,/g, ''));
+  if (Number.isNaN(n)) return 0;
+  const suffix = (m[2] || '').toLowerCase();
+  if (suffix === 'k') n *= 1000;
+  if (suffix === 'm') n *= 1000000;
+  return n;
+}
+
+function makeRefId(): string {
+  return `BP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function authHeader(): string | null {
   const token = process.env.RELINTEX_API_TOKEN;
   if (token) return `Bearer ${token}`;
@@ -57,34 +81,28 @@ function authHeader(): string | null {
   return null;
 }
 
-function buildPayload(lead: RelintexLead): Record<string, unknown> {
-  const payload: Record<string, unknown> = {
+function buildPayload(lead: RelintexLead): Record<string, string | number> {
+  const payload: Record<string, string | number> = {
+    ref_id: lead.refId || makeRefId(),
     first_name: lead.firstName,
     last_name: lead.lastName,
-    email: lead.email,
     phone: lead.phone,
+    email: lead.email || '',
     address: lead.address || '',
     city: lead.city || '',
     state: lead.state || '',
-    zip_code: lead.zip || '',
-    loan_type: 'debt_consolidation',
-    loan_purpose: lead.loanPurpose || '',
-    unsecured_debt_amount: lead.unsecuredDebtBalance || '',
-    monthly_minimum_payment: lead.monthlyDebtPayment || '',
-    requested_loan_amount: lead.loanRequestAmount || '',
-    estimated_fico: lead.estimatedFico || '',
-    credit_score: lead.creditScore ?? '',
-    total_debt_balance: lead.totalDebtBalance ?? '',
-    lead_source: lead.leadSource || 'BrightPath Finance',
-    tcpa_consent: lead.tcpaConsent ? '1' : '0',
-    phone_verified: lead.phoneVerified ? '1' : '0',
-    submitted_at: lead.submittedAt || new Date().toISOString(),
-    ip_address: lead.ipAddress || '',
-    user_agent: lead.userAgent || '',
+    zip: lead.zip || '',
+    tcpa: lead.tcpaConsent ? 'agree' : 'none',
+    utm_src: lead.leadSource || 'BrightPath Finance',
+    debt_amount: parseMoney(lead.unsecuredDebtBalance),
+    co_pays: parseMoney(lead.monthlyDebtPayment),
+    loan_amount: parseMoney(lead.loanRequestAmount),
   };
 
-  const campaignId = process.env.RELINTEX_CAMPAIGN_ID;
-  if (campaignId) payload.campaign_id = campaignId;
+  if (lead.dob) payload.dob = lead.dob;
+
+  const utmCampaign = process.env.RELINTEX_UTM_CAMPAIGN;
+  if (utmCampaign) payload.utm_campaign = utmCampaign;
 
   return payload;
 }
@@ -102,23 +120,43 @@ export async function sendLeadToRelintex(lead: RelintexLead): Promise<boolean> {
     return false;
   }
 
+  const payload = buildPayload(lead);
+  const asForm = (process.env.RELINTEX_POST_FORMAT || 'json').toLowerCase() === 'form';
+
+  const headers: Record<string, string> = { Authorization: auth };
+  let body: string;
+  if (asForm) {
+    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    body = new URLSearchParams(
+      Object.entries(payload).reduce((acc, [k, v]) => {
+        acc[k] = String(v);
+        return acc;
+      }, {} as Record<string, string>)
+    ).toString();
+  } else {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(payload);
+  }
+
   try {
+    // Relintex asks for at least a 5-second timeout window.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: auth,
-      },
-      body: JSON.stringify(buildPayload(lead)),
-    });
+      headers,
+      body,
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
 
     if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      console.error(`[Relintex] Lead post failed ${response.status}:`, body);
+      const errBody = await response.text().catch(() => '');
+      console.error(`[Relintex] Lead post failed ${response.status}:`, errBody);
       return false;
     }
 
-    console.log('[Relintex] Lead posted successfully.');
+    console.log('[Relintex] Lead posted successfully (ref_id:', payload.ref_id, ')');
     return true;
   } catch (err) {
     console.error('[Relintex] Lead post error:', err);
