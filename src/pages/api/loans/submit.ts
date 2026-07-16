@@ -130,7 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       submittedAt: data.submittedAt,
       ipAddress: clientIp,
       userAgent: req.headers['user-agent'],
-    }).catch(err => { console.error('[Loans] Relintex failed:', err); return false; });
+    }).catch(err => { console.error('[Loans] Relintex failed:', err); return { ok: false }; });
 
     const smsPromise = data.tcpaConsent
       ? smsClient.sendLeadConfirmationSMS(data.phone, data.firstName, isBusinessHours())

@@ -6,13 +6,14 @@
  * is a no-op, so nothing breaks until you finish configuration.
  *
  * Required env:
- *   RELINTEX_LEAD_POST_URL   Full Add-Lead endpoint URL Relintex gave you
- *
- * Auth — set ONE of:
- *   RELINTEX_API_USERNAME + RELINTEX_API_PASSWORD   (HTTP Basic auth)
- *   RELINTEX_API_TOKEN                              (Bearer token)
+ *   RELINTEX_LEAD_POST_URL   Full Add-Lead endpoint URL, e.g.
+ *                            https://countrywide.relintex.net/ws/api/v1/lead/create
+ *   RELINTEX_API_KEY         The Auth Key Relintex gave you
  *
  * Optional:
+ *   RELINTEX_AUTH_HEADER     Header name the key is sent under (default 'authkey').
+ *                            Set to 'Authorization' or whatever Relintex documents
+ *                            if the default is rejected.
  *   RELINTEX_UTM_CAMPAIGN    Value sent as utm_campaign on every lead
  *   RELINTEX_POST_FORMAT     'json' (default) or 'form' (x-www-form-urlencoded)
  *
@@ -69,14 +70,18 @@ function makeRefId(): string {
   return `BP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function authHeader(): string | null {
-  const token = process.env.RELINTEX_API_TOKEN;
-  if (token) return `Bearer ${token}`;
-
-  const user = process.env.RELINTEX_API_USERNAME;
-  const pass = process.env.RELINTEX_API_PASSWORD;
-  if (user && pass) {
-    return `Basic ${Buffer.from(`${user}:${pass}`).toString('base64')}`;
+/**
+ * Returns the auth header {name, value} for the request, or null if no
+ * credentials are configured. Defaults to sending RELINTEX_API_KEY under an
+ * `authkey` header; the header name is overridable via RELINTEX_AUTH_HEADER.
+ */
+function authHeader(): { name: string; value: string } | null {
+  const key = process.env.RELINTEX_API_KEY;
+  if (key) {
+    const name = process.env.RELINTEX_AUTH_HEADER || 'authkey';
+    // If they explicitly point at Authorization, send it as a bearer token.
+    const value = name.toLowerCase() === 'authorization' ? `Bearer ${key}` : key;
+    return { name, value };
   }
   return null;
 }
@@ -107,23 +112,30 @@ function buildPayload(lead: RelintexLead): Record<string, string | number> {
   return payload;
 }
 
-export async function sendLeadToRelintex(lead: RelintexLead): Promise<boolean> {
+export interface RelintexResult {
+  ok: boolean;
+  status?: number;
+  detail?: string;
+  refId?: string;
+}
+
+export async function sendLeadToRelintex(lead: RelintexLead): Promise<RelintexResult> {
   const url = process.env.RELINTEX_LEAD_POST_URL;
   if (!url) {
     // Not configured yet — silently skip.
-    return false;
+    return { ok: false, detail: 'RELINTEX_LEAD_POST_URL not set' };
   }
 
   const auth = authHeader();
   if (!auth) {
-    console.warn('[Relintex] RELINTEX_LEAD_POST_URL is set but no credentials found (set RELINTEX_API_USERNAME/PASSWORD or RELINTEX_API_TOKEN).');
-    return false;
+    console.warn('[Relintex] RELINTEX_LEAD_POST_URL is set but RELINTEX_API_KEY is missing.');
+    return { ok: false, detail: 'RELINTEX_API_KEY not set' };
   }
 
   const payload = buildPayload(lead);
   const asForm = (process.env.RELINTEX_POST_FORMAT || 'json').toLowerCase() === 'form';
 
-  const headers: Record<string, string> = { Authorization: auth };
+  const headers: Record<string, string> = { [auth.name]: auth.value };
   let body: string;
   if (asForm) {
     headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -150,16 +162,17 @@ export async function sendLeadToRelintex(lead: RelintexLead): Promise<boolean> {
       signal: controller.signal,
     }).finally(() => clearTimeout(timeout));
 
+    const respText = await response.text().catch(() => '');
+
     if (!response.ok) {
-      const errBody = await response.text().catch(() => '');
-      console.error(`[Relintex] Lead post failed ${response.status}:`, errBody);
-      return false;
+      console.error(`[Relintex] Lead post failed ${response.status}:`, respText);
+      return { ok: false, status: response.status, detail: respText, refId: String(payload.ref_id) };
     }
 
     console.log('[Relintex] Lead posted successfully (ref_id:', payload.ref_id, ')');
-    return true;
+    return { ok: true, status: response.status, detail: respText, refId: String(payload.ref_id) };
   } catch (err) {
     console.error('[Relintex] Lead post error:', err);
-    return false;
+    return { ok: false, detail: String(err) };
   }
 }

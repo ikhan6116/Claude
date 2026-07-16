@@ -103,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     submittedAt: new Date().toISOString(),
     ipAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
     userAgent: req.headers['user-agent'],
-  }).catch(err => { console.error('[ChatSubmit] Relintex failed:', err); return false; });
+  }).catch(err => { console.error('[ChatSubmit] Relintex failed:', err); return { ok: false }; });
 
   const [emailResult, hubspotResult, smsResult] = await Promise.all([emailPromise, hubspotPromise, smsPromise, capiPromise, relintexPromise]);
 

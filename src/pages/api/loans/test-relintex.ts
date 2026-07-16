@@ -12,8 +12,8 @@ import { sendLeadToRelintex } from '@/lib/relintex';
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   const config = {
     leadPostUrl: !!process.env.RELINTEX_LEAD_POST_URL,
-    hasToken: !!process.env.RELINTEX_API_TOKEN,
-    hasBasicAuth: !!(process.env.RELINTEX_API_USERNAME && process.env.RELINTEX_API_PASSWORD),
+    hasApiKey: !!process.env.RELINTEX_API_KEY,
+    authHeader: process.env.RELINTEX_AUTH_HEADER || 'authkey',
     postFormat: process.env.RELINTEX_POST_FORMAT || 'json',
     utmCampaign: process.env.RELINTEX_UTM_CAMPAIGN || null,
   };
@@ -21,11 +21,11 @@ export default async function handler(_req: NextApiRequest, res: NextApiResponse
   if (!config.leadPostUrl) {
     return res.status(200).json({ ok: false, error: 'RELINTEX_LEAD_POST_URL not set', config });
   }
-  if (!config.hasToken && !config.hasBasicAuth) {
-    return res.status(200).json({ ok: false, error: 'No Relintex credentials set', config });
+  if (!config.hasApiKey) {
+    return res.status(200).json({ ok: false, error: 'RELINTEX_API_KEY not set', config });
   }
 
-  const posted = await sendLeadToRelintex({
+  const result = await sendLeadToRelintex({
     firstName: 'Diagnostic',
     lastName: 'Test',
     email: `diagnostic+${Date.now()}@brightpath-fin.com`,
@@ -46,10 +46,13 @@ export default async function handler(_req: NextApiRequest, res: NextApiResponse
   });
 
   return res.status(200).json({
-    ok: posted,
-    note: posted
-      ? 'Relintex accepted the test lead. Check your Countrywide instance for a "Diagnostic Test" lead.'
-      : 'Relintex did not accept the lead — check the server logs for the [Relintex] error detail.',
+    ok: result.ok,
+    httpStatus: result.status ?? null,
+    relintexResponse: result.detail ?? null,
+    refId: result.refId ?? null,
+    note: result.ok
+      ? 'Relintex accepted the test lead. Check your Countrywide instance for a "Diagnostic Test" lead, then delete it.'
+      : 'Relintex rejected the lead. See relintexResponse below for the reason (often an auth-header or field issue).',
     config,
   });
 }
