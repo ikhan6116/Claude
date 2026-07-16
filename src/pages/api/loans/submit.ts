@@ -4,6 +4,7 @@ import { hubspotClient } from '@/lib/hubspot';
 import { smsClient, isBusinessHours } from '@/lib/sms';
 import { sendLeadNotificationEmail } from '@/lib/email';
 import { sendLeadEvent } from '@/lib/meta-capi';
+import { sendLeadToRelintex } from '@/lib/relintex';
 
 interface LoanSubmission {
   firstName: string;
@@ -105,6 +106,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const crmPromise = sendToCRM(data, softPullResult.ficoScore, softPullResult.totalDebtBalance);
 
+    const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
+
+    const relintexPromise = sendLeadToRelintex({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      address: data.streetAddress,
+      city: data.city,
+      state: data.state,
+      zip: data.zipCode,
+      loanPurpose: data.loanPurpose,
+      unsecuredDebtBalance: data.unsecuredDebtBalance,
+      monthlyDebtPayment: data.monthlyDebtPayment,
+      loanRequestAmount: data.loanRequestAmount,
+      estimatedFico: data.estimatedFico,
+      creditScore: softPullResult.ficoScore,
+      totalDebtBalance: softPullResult.totalDebtBalance,
+      leadSource: `BrightPath - ${data.source}`,
+      tcpaConsent: data.tcpaConsent,
+      phoneVerified: data.phoneVerified,
+      submittedAt: data.submittedAt,
+      ipAddress: clientIp,
+      userAgent: req.headers['user-agent'],
+    }).catch(err => { console.error('[Loans] Relintex failed:', err); return false; });
+
     const smsPromise = data.tcpaConsent
       ? smsClient.sendLeadConfirmationSMS(data.phone, data.firstName, isBusinessHours())
       : Promise.resolve({ success: false });
@@ -117,7 +144,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       city: data.city,
       state: data.state,
       zip: data.zipCode,
-      clientIpAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress,
+      clientIpAddress: clientIp,
       clientUserAgent: req.headers['user-agent'],
       fbc: req.cookies._fbc,
       fbp: req.cookies._fbp,
@@ -145,7 +172,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       phoneVerified: data.phoneVerified,
     }).catch(err => { console.error('[Loans] Email notification failed:', err); return false; });
 
-    const [hubspotResult] = await Promise.all([hubspotPromise, crmPromise, smsPromise, emailPromise, capiPromise]);
+    const [hubspotResult] = await Promise.all([hubspotPromise, crmPromise, smsPromise, emailPromise, capiPromise, relintexPromise]);
 
     let responseMessage: string;
     let approved: boolean;

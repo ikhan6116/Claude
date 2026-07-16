@@ -3,6 +3,7 @@ import { sendLeadNotificationEmail } from '@/lib/email';
 import { isBusinessHours, smsClient } from '@/lib/sms';
 import { hubspotClient } from '@/lib/hubspot';
 import { sendLeadEvent } from '@/lib/meta-capi';
+import { sendLeadToRelintex } from '@/lib/relintex';
 
 function parseAmount(rangeStr: string): number | null {
   if (!rangeStr) return null;
@@ -83,7 +84,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     fbp: req.cookies._fbp,
   }).catch(err => { console.error('[ChatSubmit] Meta CAPI failed:', err); return false; });
 
-  const [emailResult, hubspotResult, smsResult] = await Promise.all([emailPromise, hubspotPromise, smsPromise, capiPromise]);
+  const relintexPromise = sendLeadToRelintex({
+    firstName: firstName || '',
+    lastName: lastName || '',
+    email: email || '',
+    phone: phone || '',
+    address: streetAddress || '',
+    city: city || '',
+    state: state || '',
+    zip: zipCode || '',
+    loanPurpose: loanPurpose || '',
+    unsecuredDebtBalance: debtAmount || '',
+    monthlyDebtPayment: monthlyPayment || '',
+    loanRequestAmount: loanAmount || '',
+    estimatedFico: creditScore || '',
+    leadSource: 'BrightPath - Chatbot',
+    phoneVerified: false,
+    submittedAt: new Date().toISOString(),
+    ipAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
+    userAgent: req.headers['user-agent'],
+  }).catch(err => { console.error('[ChatSubmit] Relintex failed:', err); return false; });
+
+  const [emailResult, hubspotResult, smsResult] = await Promise.all([emailPromise, hubspotPromise, smsPromise, capiPromise, relintexPromise]);
 
   console.log('[ChatSubmit] Email sent:', emailResult);
   console.log('[ChatSubmit] HubSpot result:', hubspotResult);
