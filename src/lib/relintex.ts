@@ -167,11 +167,26 @@ export async function sendLeadToRelintex(lead: RelintexLead): Promise<RelintexRe
     const respText = await response.text().catch(() => '');
 
     if (!response.ok) {
-      console.error(`[Relintex] Lead post failed ${response.status}:`, respText);
+      console.error(`[Relintex] Lead post failed HTTP ${response.status}:`, respText);
       return { ok: false, status: response.status, detail: respText, refId: String(payload.ref_id) };
     }
 
-    console.log('[Relintex] Lead posted successfully (ref_id:', payload.ref_id, ')');
+    // Relintex returns HTTP 200 even when it rejects a lead (e.g. duplicate
+    // phone/email/ref_id). The real outcome is in the JSON `success` field, so
+    // inspect the body rather than trusting the status code alone.
+    let parsed: { success?: boolean; message?: string; lead_id?: number } | null = null;
+    try {
+      parsed = JSON.parse(respText);
+    } catch {
+      /* non-JSON body — fall through and treat 2xx as success */
+    }
+
+    if (parsed && parsed.success === false) {
+      console.warn(`[Relintex] Lead rejected (ref_id ${payload.ref_id}):`, respText);
+      return { ok: false, status: response.status, detail: respText, refId: String(payload.ref_id) };
+    }
+
+    console.log(`[Relintex] Lead posted successfully (ref_id ${payload.ref_id}, lead_id ${parsed?.lead_id ?? 'n/a'}):`, respText);
     return { ok: true, status: response.status, detail: respText, refId: String(payload.ref_id) };
   } catch (err) {
     console.error('[Relintex] Lead post error:', err);
