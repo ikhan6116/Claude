@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 
 interface LoanFormData {
@@ -61,6 +61,26 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
   const [checkingPhone, setCheckingPhone] = useState(false);
   const [result, setResult]               = useState<LoanResult | null>(null);
   const [error, setError]                 = useState('');
+  const partialSentRef                    = useRef(false);
+
+  // Capture an abandoned-lead record once we have contact info, so a drop-off
+  // at the verification step still notifies us. Fires at most once per session.
+  const capturePartialLead = () => {
+    if (partialSentRef.current) return;
+    partialSentRef.current = true;
+    const v = getValues();
+    fetch('/api/loans/partial-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: v.firstName, lastName: v.lastName, email: v.email, phone: v.phone,
+        streetAddress: v.streetAddress, city: v.city, state: v.state, zipCode: v.zipCode,
+        unsecuredDebtBalance: v.unsecuredDebtBalance, monthlyDebtPayment: v.monthlyDebtPayment,
+        loanRequestAmount: v.loanRequestAmount, estimatedFico: v.estimatedFico, loanPurpose: v.loanPurpose,
+        source, lastStep: 'phone verification',
+      }),
+    }).catch(() => {});
+  };
 
   const { register, handleSubmit, watch, trigger, getValues, formState: { errors } } =
     useForm<LoanFormData>({ mode: 'onBlur' });
@@ -424,7 +444,7 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
                     if (!getValues('phone') || phoneError) return;
                   }
                   const ok = await sendCode();
-                  if (ok) setStep('verify');
+                  if (ok) { capturePartialLead(); setStep('verify'); }
                 }}>
                 {sendingCode ? 'Sending Code…' : checkingPhone ? 'Validating…' : 'Verify Phone'}
               </button>

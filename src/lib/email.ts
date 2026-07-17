@@ -255,3 +255,97 @@ export async function sendLeadNotificationEmail(data: LeadEmailPayload): Promise
   console.log('[Email] Results — internal:', internalOk, 'review:', reviewOk);
   return internalOk || reviewOk;
 }
+
+// ─── Abandoned / partial lead ────────────────────────────────────────────────
+
+export interface PartialLeadPayload {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  streetAddress?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  unsecuredDebtBalance?: string;
+  monthlyDebtPayment?: string;
+  loanRequestAmount?: string;
+  estimatedFico?: string;
+  loanPurpose?: string;
+  source: string;
+  lastStep?: string;
+}
+
+function buildPartialLeadHtml(data: PartialLeadPayload): string {
+  const name = [data.firstName, data.lastName].filter(Boolean).join(' ') || '(name not provided)';
+  const address = [data.streetAddress, data.city, data.state, data.zipCode].filter(Boolean).join(', ');
+  const when = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' });
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f0f4f8;font-family:'Helvetica Neue',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:32px 16px">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
+
+        <tr><td style="background:#b26a00;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center">
+          <p style="margin:0;color:#fff;font-size:20px;font-weight:700">⚠️ Incomplete Application</p>
+          <p style="margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:13px">A visitor entered their contact info but did not finish — follow up fast.</p>
+        </td></tr>
+
+        <tr><td style="background:#fff;padding:24px 32px;border-radius:0 0 12px 12px">
+          <p style="margin:0 0 16px;color:#494949;font-size:13px">Captured ${when} ET · Source: ${data.source}${data.lastStep ? ` · Stopped at: ${data.lastStep}` : ''}</p>
+
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e9ecef;border-radius:10px;overflow:hidden">
+            <tr style="background:#f8f9fa">
+              <td colspan="2" style="padding:12px 16px;font-size:11px;font-weight:700;color:#0d1b2a;letter-spacing:1px;text-transform:uppercase">Contact</td>
+            </tr>
+            ${row('Name', name)}
+            ${data.email ? row('Email', data.email) : ''}
+            ${data.phone ? row('Phone', data.phone) : ''}
+            ${address ? row('Address', address) : ''}
+          </table>
+
+          ${(data.loanPurpose || data.unsecuredDebtBalance || data.monthlyDebtPayment || data.loanRequestAmount || data.estimatedFico) ? `
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e9ecef;border-radius:10px;overflow:hidden;margin-top:16px">
+            <tr style="background:#f8f9fa">
+              <td colspan="2" style="padding:12px 16px;font-size:11px;font-weight:700;color:#0d1b2a;letter-spacing:1px;text-transform:uppercase">Loan Details (so far)</td>
+            </tr>
+            ${data.loanPurpose ? row('Purpose', data.loanPurpose) : ''}
+            ${data.unsecuredDebtBalance ? row('Unsecured Debt', data.unsecuredDebtBalance) : ''}
+            ${data.monthlyDebtPayment ? row('Monthly Min. Payments', data.monthlyDebtPayment) : ''}
+            ${data.loanRequestAmount ? row('Loan Requested', data.loanRequestAmount) : ''}
+            ${data.estimatedFico ? row('Estimated FICO', data.estimatedFico) : ''}
+          </table>` : ''}
+
+          ${data.phone ? `
+          <div style="text-align:center;margin-top:24px">
+            <a href="tel:${data.phone}" style="display:inline-block;background:linear-gradient(135deg,#2b7cff,#30a2ff);
+              color:#fff;font-size:14px;font-weight:700;padding:14px 36px;border-radius:10px;text-decoration:none;
+              box-shadow:0 4px 14px rgba(43,124,255,0.35)">
+              Call ${data.firstName || 'Lead'} Now &rarr; ${data.phone}
+            </a>
+          </div>` : ''}
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+export async function sendPartialLeadEmail(data: PartialLeadPayload): Promise<boolean> {
+  const client = getResendClient();
+  if (!client) {
+    console.warn('[Email:partial] RESEND_API_KEY not configured — skipping');
+    return false;
+  }
+
+  const recipients = Array.from(new Set([...INTERNAL_ALERT_RECIPIENTS, ...getRecipients()]));
+  const who = [data.firstName, data.lastName].filter(Boolean).join(' ') || data.phone || data.email || 'Unknown';
+  const subject = `⚠️ Incomplete Application — ${who}`;
+
+  return sendWithFallback(client, recipients, subject, buildPartialLeadHtml(data), 'partial');
+}
