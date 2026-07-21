@@ -30,10 +30,7 @@
   .site-header{background:rgba(11,27,69,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
     border-bottom:1px solid rgba(90,172,224,.28);padding:12px 42px;display:flex;align-items:center;
     justify-content:space-between;position:sticky;top:0;z-index:20;}
-  .logo-wrap img{height:48px;width:auto;display:block;border-radius:6px;}
-  .logo-text{font-size:24px;font-weight:700;color:#fff;letter-spacing:.01em;line-height:1;display:flex;flex-direction:column;}
-  .logo-text span{color:var(--blue);}
-  .logo-text small{font-size:9px;font-weight:600;color:var(--blue-light);letter-spacing:.28em;margin-top:3px;}
+  .logo-wrap .logo-svg{height:62px;width:auto;display:block;}
   .header-badge{font-size:11px;font-weight:600;color:var(--blue-light);letter-spacing:.16em;
     border:1px solid rgba(90,172,224,.35);padding:6px 16px;border-radius:20px;text-transform:uppercase;
     display:flex;align-items:center;gap:7px;background:rgba(90,172,224,.08);}
@@ -299,7 +296,13 @@
 <body>
 
 <header class="site-header">
-  <div class="logo-wrap"><div class="logo-text"><div>bright<span>path</span></div><small>FINANCE</small></div></div>
+  <div class="logo-wrap"><svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1010 500" role="img" aria-label="BrightPath Finance">
+  <g><line x1="41" y1="353" x2="-9" y2="357" stroke="#6081b7" stroke-width="11" stroke-linecap="butt"/><line x1="40" y1="320" x2="-10" y2="318" stroke="#5f7fb5" stroke-width="11" stroke-linecap="butt"/><line x1="44" y1="287" x2="-6" y2="278" stroke="#5d7eb4" stroke-width="11" stroke-linecap="butt"/><line x1="51" y1="254" x2="3" y2="240" stroke="#5c7db2" stroke-width="11" stroke-linecap="butt"/><line x1="63" y1="223" x2="17" y2="203" stroke="#5c7cb2" stroke-width="11" stroke-linecap="butt"/><line x1="78" y1="194" x2="36" y2="168" stroke="#5b7cb1" stroke-width="11" stroke-linecap="butt"/><line x1="97" y1="167" x2="58" y2="136" stroke="#5b7db1" stroke-width="11" stroke-linecap="butt"/><line x1="120" y1="143" x2="85" y2="107" stroke="#5b7db1" stroke-width="11" stroke-linecap="butt"/><line x1="145" y1="121" x2="115" y2="81" stroke="#5c7fb2" stroke-width="11" stroke-linecap="butt"/><line x1="173" y1="103" x2="148" y2="60" stroke="#5d80b3" stroke-width="11" stroke-linecap="butt"/><line x1="203" y1="89" x2="184" y2="42" stroke="#5e82b4" stroke-width="11" stroke-linecap="butt"/><line x1="234" y1="78" x2="222" y2="30" stroke="#6085b6" stroke-width="11" stroke-linecap="butt"/><line x1="267" y1="72" x2="260" y2="23" stroke="#6287b9" stroke-width="11" stroke-linecap="butt"/><line x1="300" y1="70" x2="300" y2="20" stroke="#648bbc" stroke-width="11" stroke-linecap="butt"/><line x1="333" y1="72" x2="339" y2="21" stroke="#668fbe" stroke-width="11" stroke-linecap="butt"/><line x1="365" y1="78" x2="379" y2="27" stroke="#6a92c2" stroke-width="11" stroke-linecap="butt"/><line x1="397" y1="89" x2="417" y2="39" stroke="#6d97c5" stroke-width="11" stroke-linecap="butt"/><line x1="427" y1="103" x2="454" y2="55" stroke="#709cca" stroke-width="11" stroke-linecap="butt"/><line x1="455" y1="121" x2="488" y2="75" stroke="#74a1ce" stroke-width="11" stroke-linecap="butt"/><line x1="480" y1="142" x2="520" y2="101" stroke="#78a7d3" stroke-width="11" stroke-linecap="butt"/><line x1="502" y1="167" x2="548" y2="130" stroke="#7cadd9" stroke-width="11" stroke-linecap="butt"/><line x1="521" y1="194" x2="573" y2="162" stroke="#82b4df" stroke-width="11" stroke-linecap="butt"/><line x1="537" y1="223" x2="593" y2="198" stroke="#87bae5" stroke-width="11" stroke-linecap="butt"/><line x1="549" y1="254" x2="609" y2="236" stroke="#8cc2eb" stroke-width="11" stroke-linecap="butt"/></g>
+  <text x="30" y="392" font-family="'Jost','Poppins',sans-serif" font-weight="500" font-size="215" letter-spacing="-4"><tspan fill="#ffffff">bright</tspan><tspan fill="#8CC2EB">path</tspan></text>
+  <line x1="45" y1="462" x2="320" y2="462" stroke="#3d5387" stroke-width="7"/>
+  <text x="505" y="486" text-anchor="middle" font-family="'Jost','Poppins',sans-serif" font-weight="400" font-size="86" fill="#aebadb">Finance</text>
+  <line x1="690" y1="462" x2="965" y2="462" stroke="#3d5387" stroke-width="7"/>
+</svg></div>
   <div class="header-badge"><span class="dot"></span> Secure Application Portal</div>
 </header>
 
@@ -537,17 +540,29 @@ function maskSSN(s){if(!s)return '—';const c=s.replace(/\D/g,'');return 'XXX-X
 function loanLabelFor(){return {personal:'Personal Loan','biz-capital':'Business Working Capital','biz-equip':'Business Equipment Financing',revenue:'Revenue Based Financing'}[S.loanType]||'—';}
 
 // ── Submit ──
-window.submitApp=function(){
+window.submitApp=async function(){
   const overlay=document.getElementById('downloadOverlay');
   document.getElementById('overlayMsg').textContent='Submitting your application…';
   overlay.classList.add('active');
-  setTimeout(()=>{
+  const refId='BPF-'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+String(Math.floor(1000+Math.random()*9000));
+  try{
+    const res=await fetch('/api/submit-application',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({refId,appDate:S.appDate,loanType:S.loanType,hasCoApp:S.hasCoApp,
+        applicant:S.applicant,coApplicant:S.hasCoApp?S.coApplicant:undefined,
+        business:isBizLoan()?S.business:undefined})
+    });
+    if(!res.ok)throw new Error('Request failed');
     S.submitted=true;
-    S.refId='BPF-'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+String(Math.floor(1000+Math.random()*9000));
+    S.refId=refId;
     overlay.classList.remove('active');
     renderComplete();
     window.scrollTo({top:0,behavior:'smooth'});
-  },1100);
+  }catch(err){
+    overlay.classList.remove('active');
+    showAlert('We could not submit your application. Please check your connection and try again.');
+  }
 };
 
 // ── Validation ──
