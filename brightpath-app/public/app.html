@@ -246,6 +246,7 @@
 
   /* ── Print / PDF layout ── */
   @media print {
+    @page { size: letter; margin: 0; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     body { background: white !important; margin: 0; }
     body::before { display: none; }
@@ -291,7 +292,6 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   .download-spinner p{font-size:15px;font-weight:500;color:var(--blue-light);letter-spacing:.04em;}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -687,38 +687,18 @@ window.downloadPDF=function(){
 
   const pv=document.getElementById('printView');
   pv.innerHTML=`<div class="print-page">${pg1}</div><div class="print-page">${pg2}</div>`;
-  pv.style.display='block';
-  pv.style.width='216mm';
 
   const applicantName=(a.name||'Applicant').replace(/[^a-zA-Z0-9]/g,'_');
-  const fileName=`BrightPath_Application_${applicantName}_${(S.appDate||new Date().toISOString().slice(0,10))}.pdf`;
+  const fileName=`BrightPath_Application_${applicantName}_${(S.appDate||new Date().toISOString().slice(0,10))}`;
 
-  if(typeof html2pdf==='undefined'){
-    setTimeout(()=>{window.print();setTimeout(()=>{pv.style.display='none';},1000);},200);
-    return;
-  }
-
-  const overlay=document.getElementById('downloadOverlay');
-  document.getElementById('overlayMsg').textContent='Generating your PDF…';
-  overlay.classList.add('active');
-
-  setTimeout(()=>{
-    html2pdf().set({
-      margin:0,
-      filename:fileName,
-      image:{type:'jpeg',quality:0.95},
-      html2canvas:{scale:2,useCORS:true,logging:false,width:pv.scrollWidth,windowWidth:pv.scrollWidth},
-      jsPDF:{unit:'mm',format:'letter',orientation:'portrait'},
-      pagebreak:{mode:['css'],avoid:['.print-section']}
-    }).from(pv).save().then(()=>{
-      overlay.classList.remove('active');
-      pv.style.display='none';
-    }).catch(function(err){
-      console.error('PDF generation error:',err);
-      overlay.classList.remove('active');
-      setTimeout(()=>{window.print();setTimeout(()=>{pv.style.display='none';},1000);},200);
-    });
-  },400);
+  // Native print-to-PDF: crisp vector text, correct A4/Letter layout, no clipping, includes full SSN.
+  // The @media print stylesheet hides the app and shows #printView. Setting document.title makes the
+  // browser's "Save as PDF" default to a sensible filename.
+  const prevTitle=document.title;
+  document.title=fileName;
+  const cleanup=()=>{document.title=prevTitle;window.removeEventListener('afterprint',cleanup);};
+  window.addEventListener('afterprint',cleanup);
+  setTimeout(()=>{ window.print(); },150);
 };
 
 // ── Success screen ──
