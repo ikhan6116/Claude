@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrightPath Finance – Credit Authorization Application</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#0b1b45; --navy-mid:#122550; --navy-light:#1e3872;
+    --blue:#5aace0; --blue-light:#8fd0f5; --blue-pale:#eaf4fc;
+    --off-white:#f7f9fd; --card:#ffffff;
+    --text-dark:#0b1b45; --text-mid:#33466f; --text-light:#6f81a8;
+    --border:#d9e2f2; --error:#c0392b; --success:#1e8e5a;
+    --radius:10px;
+    --shadow:0 20px 60px rgba(6,15,42,.35), 0 2px 10px rgba(6,15,42,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Jost',sans-serif;background:var(--navy);min-height:100vh;color:var(--text-dark);overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 900px 600px at 15% -5%, rgba(90,172,224,.14) 0%, transparent 55%),
+      radial-gradient(ellipse 800px 700px at 95% 105%, rgba(30,56,114,.55) 0%, transparent 60%),
+      radial-gradient(circle at center, rgba(255,255,255,.028) 1px, transparent 1px);
+    background-size:auto,auto,26px 26px;}
+  ::selection{background:var(--blue);color:#fff;}
+
+  /* ── Header ── */
+  .site-header{background:rgba(11,27,69,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(90,172,224,.28);padding:12px 42px;display:flex;align-items:center;
+    justify-content:space-between;position:sticky;top:0;z-index:20;}
+  .logo-wrap img{height:48px;width:auto;display:block;border-radius:6px;}
+  .logo-text{font-size:24px;font-weight:700;color:#fff;letter-spacing:.01em;line-height:1;display:flex;flex-direction:column;}
+  .logo-text span{color:var(--blue);}
+  .logo-text small{font-size:9px;font-weight:600;color:var(--blue-light);letter-spacing:.28em;margin-top:3px;}
+  .header-badge{font-size:11px;font-weight:600;color:var(--blue-light);letter-spacing:.16em;
+    border:1px solid rgba(90,172,224,.35);padding:6px 16px;border-radius:20px;text-transform:uppercase;
+    display:flex;align-items:center;gap:7px;background:rgba(90,172,224,.08);}
+  .header-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 8px rgba(30,142,90,.9);animation:pulse 2.2s ease infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+  .app-shell{max-width:840px;margin:0 auto;padding:40px 20px 90px;position:relative;z-index:1;}
+
+  /* ── Progress ── */
+  .progress-wrapper{margin-bottom:32px;}
+  .progress-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;}
+  .progress-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:#fff;line-height:1.05;letter-spacing:.01em;}
+  .progress-meta{font-size:11px;color:var(--blue-light);letter-spacing:.16em;text-transform:uppercase;font-weight:600;padding-bottom:5px;}
+  .steps-track{display:flex;align-items:flex-start;}
+  .step-node{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;}
+  .step-node:not(:last-child)::after{content:'';position:absolute;top:15px;left:calc(50% + 20px);right:calc(-50% + 20px);
+    height:2px;background:rgba(255,255,255,.14);border-radius:2px;transition:background .5s;}
+  .step-node.done:not(:last-child)::after{background:var(--blue);}
+  .step-dot{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.22);color:rgba(255,255,255,.45);
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--navy);
+    transition:all .35s;position:relative;z-index:1;}
+  .step-node.active .step-dot{border-color:var(--blue-light);color:var(--navy);background:var(--blue-light);
+    box-shadow:0 0 0 5px rgba(143,208,245,.16), 0 4px 14px rgba(90,172,224,.4);}
+  .step-node.done .step-dot{border-color:var(--blue);background:var(--blue);color:var(--navy);}
+  .step-label{margin-top:9px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    color:rgba(255,255,255,.32);transition:color .3s;text-align:center;}
+  .step-node.active .step-label{color:var(--blue-light);}
+  .step-node.done .step-label{color:rgba(90,172,224,.65);}
+
+  /* ── Card ── */
+  .card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;animation:fadeUp .4s ease both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .card-header{background:linear-gradient(120deg,var(--navy) 0%,var(--navy-mid) 100%);padding:22px 32px;
+    display:flex;align-items:center;gap:15px;border-bottom:3px solid var(--blue);position:relative;overflow:hidden;}
+  .card-header::after{content:'';position:absolute;top:-40px;right:-30px;width:180px;height:180px;border-radius:50%;
+    background:radial-gradient(circle,rgba(90,172,224,.18),transparent 70%);}
+  .card-header-icon{width:38px;height:38px;background:rgba(90,172,224,.14);border:1px solid rgba(90,172,224,.35);
+    border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .card-header h2{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:#fff;line-height:1.05;}
+  .card-header p{font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;font-weight:300;letter-spacing:.05em;}
+  .card-body{padding:32px;}
+
+  .intro-note{font-size:14px;color:var(--text-mid);margin-bottom:20px;line-height:1.65;}
+
+  .section-divider{display:flex;align-items:center;gap:13px;margin:26px 0 18px;}
+  .section-divider:first-child{margin-top:0;}
+  .section-divider span{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-light);white-space:nowrap;}
+  .section-divider::before{content:'';width:22px;height:2px;background:var(--blue);border-radius:2px;}
+  .section-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  /* ── Fields ── */
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .col-full{grid-column:1/-1;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-mid);}
+  label .req{color:var(--blue);margin-left:2px;}
+  input[type=text],input[type=email],input[type=tel],input[type=date],input[type=number],input[type=password],select,textarea{
+    width:100%;padding:12px 15px;border:1.5px solid var(--border);border-radius:var(--radius);
+    font-family:'Jost',sans-serif;font-size:14.5px;color:var(--text-dark);background:var(--off-white);
+    outline:none;transition:border-color .2s,box-shadow .2s,background .2s;-webkit-appearance:none;}
+  input:focus,select:focus,textarea:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 4px rgba(90,172,224,.14);}
+  .field.invalid input,.field.invalid select,.field.invalid textarea{border-color:var(--error);background:#fdf5f4;}
+  .field-error{font-size:11.5px;color:var(--error);display:none;line-height:1.35;}
+  .field.invalid .field-error{display:block;}
+  .field-hint{font-size:11px;color:var(--text-light);line-height:1.4;}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236f81a8' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+
+  .form-alert{display:none;align-items:flex-start;gap:10px;background:#fdf3f2;border:1px solid #efc4bf;
+    border-radius:var(--radius);padding:13px 16px;margin-bottom:20px;font-size:13px;color:#8f2c20;line-height:1.5;}
+  .form-alert.show{display:flex;animation:fadeUp .25s ease both;}
+  .form-alert .ic{flex-shrink:0;font-size:15px;}
+
+  /* ── Loan cards ── */
+  .loan-types{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px;}
+  .loan-card{border:1.5px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:all .22s;
+    background:var(--off-white);position:relative;}
+  .loan-card:hover{border-color:var(--blue);background:#fff;transform:translateY(-2px);box-shadow:0 8px 24px rgba(11,27,69,.08);}
+  .loan-card.selected{border-color:var(--blue);background:linear-gradient(150deg,#f2f9fe,#e7f3fc);
+    box-shadow:0 8px 26px rgba(90,172,224,.22);}
+  .loan-card input[type=radio]{position:absolute;opacity:0;}
+  .loan-card .loan-icon{width:40px;height:40px;border-radius:10px;background:var(--blue-pale);display:flex;
+    align-items:center;justify-content:center;font-size:19px;margin-bottom:11px;transition:background .2s;}
+  .loan-card.selected .loan-icon{background:var(--blue);filter:grayscale(0);}
+  .loan-card .loan-name{font-size:14.5px;font-weight:600;color:var(--text-dark);margin-bottom:4px;}
+  .loan-card .loan-desc{font-size:11.5px;color:var(--text-light);line-height:1.45;}
+  .loan-card .check-mark{position:absolute;top:13px;right:13px;width:22px;height:22px;border:2px solid var(--border);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;background:#fff;}
+  .loan-card.selected .check-mark{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .loan-card.selected .check-mark::after{content:'✓';font-size:11px;font-weight:700;}
+
+  /* ── Toggle / co-applicant ── */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--off-white);
+    border:1.5px solid var(--border);border-radius:12px;padding:14px 18px;cursor:pointer;transition:border-color .2s;margin-bottom:6px;}
+  .toggle-row:hover{border-color:var(--blue);}
+  .toggle-row .toggle-info h4{font-size:14px;font-weight:600;color:var(--text-dark);}
+  .toggle-row .toggle-info p{font-size:11.5px;color:var(--text-light);margin-top:2px;}
+  .toggle-switch{width:48px;height:27px;background:var(--border);border-radius:14px;position:relative;transition:background .25s;flex-shrink:0;}
+  .toggle-switch.on{background:var(--blue);}
+  .toggle-switch::after{content:'';position:absolute;width:21px;height:21px;background:#fff;border-radius:50%;
+    top:3px;left:3px;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.22);}
+  .toggle-switch.on::after{transform:translateX(21px);}
+  .co-section{display:none;margin-top:18px;padding:20px;background:linear-gradient(150deg,#f1f7ff,#e9f2fc);
+    border:1px solid rgba(30,56,114,.13);border-radius:12px;}
+  .co-section.visible{display:block;animation:fadeUp .3s ease both;}
+  .co-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--navy-light);
+    margin-bottom:15px;display:flex;align-items:center;gap:9px;}
+  .co-label::after{content:'';flex:1;height:1px;background:rgba(30,56,114,.16);}
+
+  .entity-grid{display:flex;flex-wrap:wrap;gap:9px;}
+  .entity-chip{padding:8px 16px;border:1.5px solid var(--border);border-radius:22px;font-size:12.5px;font-weight:500;
+    cursor:pointer;background:var(--off-white);transition:all .18s;color:var(--text-mid);}
+  .entity-chip:hover{border-color:var(--navy-light);color:var(--navy);}
+  .entity-chip.selected{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+  /* ── Signature ── */
+  .sig-area{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;background:#fff;transition:border-color .2s;}
+  .sig-area.invalid{border-color:var(--error);}
+  .sig-toolbar{display:flex;align-items:center;justify-content:space-between;background:var(--off-white);
+    border-bottom:1px solid var(--border);padding:8px 14px;}
+  .sig-toolbar span{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-light);}
+  .sig-clear{background:none;border:1px solid var(--border);padding:5px 13px;border-radius:6px;font-size:11px;
+    cursor:pointer;font-family:'Jost',sans-serif;color:var(--text-mid);transition:all .15s;}
+  .sig-clear:hover{border-color:var(--error);color:var(--error);}
+  canvas.sig-canvas{display:block;width:100%;height:132px;cursor:crosshair;touch-action:none;}
+  .sig-underline{margin:7px 16px 9px;border-top:1px solid var(--border);font-size:10px;color:var(--text-light);
+    padding-top:6px;letter-spacing:.05em;font-style:italic;}
+  .sig-error{font-size:11.5px;color:var(--error);margin-top:6px;display:none;}
+  .sig-error.show{display:block;}
+
+  .disclosure-box{background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:rgba(255,255,255,.78);
+    border-radius:12px;padding:20px 22px;font-size:12px;line-height:1.75;font-weight:300;margin-bottom:26px;
+    border:1px solid rgba(90,172,224,.22);}
+  .disclosure-box strong{color:var(--blue-light);font-weight:600;}
+
+  /* ── Buttons ── */
+  .nav-row{display:flex;gap:12px;margin-top:30px;}
+  .btn{padding:15px 30px;border-radius:var(--radius);font-family:'Jost',sans-serif;font-size:13px;font-weight:600;
+    letter-spacing:.09em;text-transform:uppercase;cursor:pointer;transition:all .2s;border:none;outline:none;}
+  .btn:focus-visible{box-shadow:0 0 0 4px rgba(90,172,224,.35);}
+  .btn-primary{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:#fff;flex:1;
+    box-shadow:0 6px 20px rgba(11,27,69,.35);}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 9px 28px rgba(11,27,69,.45);}
+  .btn-secondary{background:transparent;border:1.5px solid var(--border);color:var(--text-mid);min-width:110px;}
+  .btn-secondary:hover{border-color:var(--navy-light);color:var(--navy);}
+  .btn-download{background:linear-gradient(135deg,var(--blue),var(--blue-light));color:var(--navy);padding:15px 32px;
+    font-size:14px;display:inline-flex;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(90,172,224,.4);
+    border:none;border-radius:var(--radius);cursor:pointer;font-family:'Jost',sans-serif;font-weight:700;
+    letter-spacing:.08em;text-transform:uppercase;transition:all .2s;}
+  .btn-download:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(90,172,224,.5);}
+  .btn-submit{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:#fff;flex:1;padding:16px 32px;
+    font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:var(--radius);
+    cursor:pointer;font-family:'Jost',sans-serif;box-shadow:0 6px 22px rgba(11,27,69,.4);transition:all .2s;}
+  .btn-submit:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(11,27,69,.5);}
+
+  /* ── Review ── */
+  .review-section{margin-bottom:26px;}
+  .review-section h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:var(--navy);
+    padding-bottom:9px;border-bottom:1px solid var(--border);margin-bottom:14px;}
+  .review-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 26px;}
+  .review-item label{font-size:10px;color:var(--text-light);display:block;margin-bottom:2px;text-transform:uppercase;letter-spacing:.09em;}
+  .review-item .val{font-size:14.5px;font-weight:500;color:var(--text-dark);word-break:break-word;}
+  .review-sig-preview{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:8px;background:#fafbfd;}
+  .review-sig-preview img{width:100%;max-height:72px;object-fit:contain;}
+
+  /* ── Success ── */
+  .success-view{text-align:center;padding:16px 0 4px;}
+  .success-icon{width:72px;height:72px;background:linear-gradient(135deg,var(--blue),var(--blue-light));border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy);margin:0 auto 18px;
+    box-shadow:0 10px 34px rgba(90,172,224,.4);animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;}
+  @keyframes popIn{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  .success-view h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);margin-bottom:10px;}
+  .success-view p{font-size:14px;color:var(--text-mid);line-height:1.65;max-width:460px;margin:0 auto 24px;}
+  .success-ref{display:inline-block;background:var(--blue-pale);border:1px dashed rgba(90,172,224,.6);
+    border-radius:8px;padding:9px 20px;font-size:13px;color:var(--navy);font-weight:600;letter-spacing:.06em;margin-bottom:24px;}
+  .success-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+  .restart-link{font-size:13px;color:var(--text-light);cursor:pointer;text-decoration:underline;margin-top:16px;display:inline-block;}
+  .restart-link:hover{color:var(--navy);}
+  .next-steps{margin-top:26px;background:var(--off-white);border-radius:12px;padding:20px;text-align:left;}
+  .next-steps h4{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mid);margin-bottom:14px;}
+  .step-item{display:flex;gap:13px;align-items:flex-start;margin-bottom:12px;}
+  .step-item:last-child{margin-bottom:0;}
+  .step-num{width:26px;height:26px;background:var(--navy);color:var(--blue-light);border-radius:50%;font-size:11px;
+    font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .step-item p{font-size:13px;color:var(--text-mid);line-height:1.55;}
+
+  .ssn-wrapper{position:relative;}
+  .ssn-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;
+    cursor:pointer;font-size:14px;color:var(--text-light);padding:4px;}
+  .ssn-wrapper input{padding-right:42px;letter-spacing:.08em;}
+  .input-prefix{display:flex;align-items:stretch;}
+  .prefix-tag{background:var(--blue-pale);border:1.5px solid var(--border);border-right:none;
+    border-radius:var(--radius) 0 0 var(--radius);padding:0 13px;font-size:13.5px;font-weight:600;color:var(--navy);
+    display:flex;align-items:center;}
+  .input-prefix input{border-radius:0 var(--radius) var(--radius) 0;}
+
+  .trust-strip{display:flex;justify-content:center;gap:26px;flex-wrap:wrap;margin-top:24px;font-size:11.5px;
+    color:rgba(255,255,255,.45);letter-spacing:.04em;}
+  .trust-strip span{display:flex;align-items:center;gap:6px;}
+
+  @media(max-width:640px){
+    .field-grid{grid-template-columns:1fr;} .loan-types{grid-template-columns:1fr;}
+    .review-grid{grid-template-columns:1fr;} .card-body{padding:20px 16px;}
+    .site-header{padding:10px 16px;} .header-badge{display:none;}
+    .app-shell{padding:22px 12px 60px;} .nav-row{flex-direction:column;}
+    .progress-title{font-size:25px;} .step-label{display:none;}
+    .step-node.active .step-label{display:block;position:absolute;top:38px;white-space:nowrap;}
+    .steps-track{margin-bottom:26px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+  }
+
+  /* ── Print / PDF layout ── */
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { background: white !important; margin: 0; }
+    body::before { display: none; }
+    .site-header, .app-shell, .download-overlay { display: none !important; }
+    #printView { display: block !important; }
+    #printView .print-page { page-break-after: always; }
+    #printView .print-page:last-child { page-break-after: avoid; }
+  }
+  #printView { display: none; font-family: 'Jost', Arial, sans-serif; }
+  #printView .print-page { page-break-after: always; }
+  #printView .print-page:last-child { page-break-after: avoid; }
+  .print-hdr { background: #0b1b45; color: white; padding: 18px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .print-hdr-logo { font-size: 22px; font-weight: 700; color: white; font-family:'Jost',sans-serif; }
+  .print-hdr-logo span { color: #5aace0; }
+  .print-hdr-right { font-size: 10px; color: #8fd0f5; letter-spacing: .1em; text-transform: uppercase; text-align: right; line-height:1.6; }
+  .print-blue-bar { height: 3px; background: #5aace0; }
+  .print-body { padding: 26px 40px; flex: 1; }
+  .print-intro { font-size: 9px; color: #6f81a8; margin-bottom: 16px; line-height: 1.5; }
+  .print-section { margin-bottom: 16px; }
+  .print-section-hdr { background: #0b1b45; color: #8fd0f5; font-size: 8.5px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; padding: 5px 10px; border-radius: 3px; margin-bottom: 10px; }
+  .print-row { display: flex; gap: 20px; margin-bottom: 9px; }
+  .print-field { flex: 1; }
+  .print-field.full { flex: 0 0 100%; }
+  .print-field-label { font-size: 7px; color: #6f81a8; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 2px; }
+  .print-field-value { font-size: 11px; font-weight: 600; color: #0b1b45; border-bottom: 1px solid #d9e2f2; padding-bottom: 4px; min-height: 16px; }
+  .print-sig-block { margin-top: 14px; }
+  .print-sig-label { font-size: 8px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #0b1b45; margin-bottom: 5px; }
+  .print-sig-box { border: 1.5px solid #d9e2f2; border-radius: 4px; height: 70px; display: flex; align-items: flex-end; padding: 5px 10px; background: #f7f9fd; }
+  .print-sig-line { width: 220px; border-top: 1.5px solid #5aace0; padding-top: 4px; font-size: 9px; color: #6f81a8; }
+  .print-sig-img { height: 60px; max-width: 260px; object-fit: contain; display: block; }
+  .print-date-row { font-size: 9px; color: #6f81a8; margin-bottom: 10px; }
+  .print-footer { background: #0b1b45; color: #7a94c0; font-size: 8px; padding: 6px 40px; display: flex; justify-content: space-between; letter-spacing: .05em; margin-top: auto; }
+  .print-page { display: flex; flex-direction: column; min-height: 279mm; box-sizing: border-box; background:#fff; }
+  .print-disclosure { font-size: 8.5px; color: #444; line-height: 1.65; border: 1px solid #d9e2f2; border-radius: 4px; padding: 12px; margin-bottom: 14px; background: #f8fafd; }
+
+  /* ── Overlay ── */
+  .download-overlay{position:fixed;inset:0;background:rgba(11,27,69,.88);z-index:9999;display:flex;align-items:center;
+    justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+  .download-overlay.active{opacity:1;pointer-events:auto;}
+  .download-spinner{text-align:center;color:#fff;}
+  .download-spinner .spin-ring{width:54px;height:54px;border:4px solid rgba(255,255,255,.15);border-top-color:var(--blue);
+    border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 18px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .download-spinner p{font-size:15px;font-weight:500;color:var(--blue-light);letter-spacing:.04em;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo-wrap"><div class="logo-text"><div>bright<span>path</span></div><small>FINANCE</small></div></div>
+  <div class="header-badge"><span class="dot"></span> Secure Application Portal</div>
+</header>
+
+<div class="app-shell">
+  <div class="progress-wrapper" id="progressArea">
+    <div class="progress-header">
+      <div class="progress-title" id="stepTitle">Loan Type Selection</div>
+      <div class="progress-meta" id="stepMeta">Step 1 of 6</div>
+    </div>
+    <div class="steps-track" id="stepsTrack"></div>
+  </div>
+  <div class="card" id="mainCard">
+    <div class="card-header">
+      <div class="card-header-icon" id="cardIcon">📋</div>
+      <div><h2 id="cardTitle">Credit Authorization Application</h2><p id="cardSub">BrightPath Finance — Confidential &amp; Secure</p></div>
+    </div>
+    <div class="card-body" id="cardBody"></div>
+  </div>
+  <div class="trust-strip">
+    <span>🔒 Encrypted &amp; confidential</span>
+    <span>🛡 Your information is never sold</span>
+    <span>⚡ Takes about 5 minutes</span>
+  </div>
+</div>
+
+<!-- Processing / download overlay -->
+<div class="download-overlay" id="downloadOverlay"><div class="download-spinner"><div class="spin-ring"></div><p id="overlayMsg">Working…</p></div></div>
+
+<!-- Print view (hidden until PDF generation) -->
+<div id="printView"></div>
+
+<script>
+(function(){
+const S={
+  step:0,loanType:'',hasCoApp:false,submitted:false,refId:'',appDate:new Date().toISOString().split('T')[0],
+  applicant:{name:'',dob:'',ssn:'',street:'',city:'',state:'',zip:'',email:'',phone:'',employer:'',title:'',empYears:'',empMonths:'',income:'',fico:'',sigData:''},
+  coApplicant:{name:'',dob:'',ssn:'',street:'',city:'',state:'',zip:'',email:'',phone:'',employer:'',title:'',empYears:'',empMonths:'',income:'',fico:'',sigData:''},
+  business:{name:'',street:'',city:'',state:'',zip:'',entity:'',revenue:'',ein:'',nature:'',use:''}
+};
+const STEPS=[
+  {key:'loanType',title:'Loan Type',icon:'🏦',label:'Loan Type'},
+  {key:'personal',title:'Personal Info',icon:'👤',label:'Personal'},
+  {key:'financial',title:'Financial Info',icon:'💼',label:'Financial'},
+  {key:'business',title:'Business Details',icon:'🏢',label:'Business'},
+  {key:'signature',title:'Authorization & Sign',icon:'✍️',label:'Sign'},
+  {key:'review',title:'Review & Submit',icon:'📄',label:'Review'},
+];
+
+// Escape user input before injecting into HTML
+function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+function isBizLoan(){return S.loanType==='biz-capital'||S.loanType==='biz-equip'||S.loanType==='revenue';}
+function visibleSteps(){return STEPS.filter(s=>s.key!=='business'||isBizLoan());}
+
+function renderProgress(){
+  const vs=visibleSteps(),cur=vs[S.step];
+  document.getElementById('stepsTrack').innerHTML=vs.map((s,i)=>{
+    const cls=i<S.step?'done':i===S.step?'active':'';
+    const inner=i<S.step?'✓':(i+1);
+    return `<div class="step-node ${cls}"><div class="step-dot">${inner}</div><div class="step-label">${s.label}</div></div>`;
+  }).join('');
+  document.getElementById('stepTitle').textContent=cur?cur.title:'Complete';
+  document.getElementById('stepMeta').textContent=`Step ${S.step+1} of ${vs.length}`;
+  document.getElementById('cardIcon').textContent=cur?cur.icon:'✅';
+  document.getElementById('cardTitle').textContent=cur?cur.title:'Application Submitted';
+}
+function renderStep(){
+  const vs=visibleSteps(),cur=vs[S.step];
+  if(!cur){renderComplete();return;}
+  renderProgress();
+  const body=document.getElementById('cardBody');body.innerHTML='';
+  ({loanType:renderLoanType,personal:renderPersonal,financial:renderFinancial,business:renderBusiness,signature:renderSignature,review:renderReview})[cur.key](body);
+}
+function alertBox(){return `<div class="form-alert" id="formAlert"><span class="ic">⚠️</span><span id="formAlertMsg"></span></div>`;}
+function showAlert(msg){const a=document.getElementById('formAlert');if(!a)return;document.getElementById('formAlertMsg').textContent=msg;a.classList.add('show');window.scrollTo({top:0,behavior:'smooth'});}
+function clearAlert(){const a=document.getElementById('formAlert');if(a)a.classList.remove('show');}
+function markInvalid(id,msg){const el=document.getElementById(id);if(!el)return;const f=el.closest('.field');if(!f)return;f.classList.add('invalid');let e=f.querySelector('.field-error');if(!e){e=document.createElement('span');e.className='field-error';f.appendChild(e);}e.textContent=msg;}
+function clearInvalid(scope){(scope||document).querySelectorAll('.field.invalid').forEach(f=>f.classList.remove('invalid'));}
+
+// ── Step 1: Loan type ──
+function renderLoanType(body){
+  const types=[
+    {id:'personal',icon:'🏠',name:'Personal Loan',desc:'Debt consolidation, home improvement, medical expenses & more'},
+    {id:'biz-capital',icon:'📊',name:'Business Working Capital',desc:'Operational funding, cash flow, inventory & growth'},
+    {id:'biz-equip',icon:'⚙️',name:'Business Equipment Financing',desc:'Machinery, vehicles, technology & business equipment'},
+    {id:'revenue',icon:'💹',name:'Revenue Based Financing',desc:'Business funding tied to your monthly revenue & performance'},
+  ];
+  body.innerHTML=`${alertBox()}<p class="intro-note">Welcome to BrightPath Finance. Select the type of financing you're applying for to get started.</p>
+  <div class="loan-types">${types.map(t=>`<div class="loan-card ${S.loanType===t.id?'selected':''}" onclick="pickLoan('${t.id}',this)" role="radio" aria-checked="${S.loanType===t.id}" tabindex="0"><input type="radio" name="loanType" value="${t.id}" ${S.loanType===t.id?'checked':''}><div class="loan-icon">${t.icon}</div><div class="loan-name">${t.name}</div><div class="loan-desc">${t.desc}</div><div class="check-mark"></div></div>`).join('')}</div>
+  <div class="nav-row"><button class="btn btn-primary" onclick="nextStep()">Continue →</button></div>`;
+}
+window.pickLoan=function(id,el){S.loanType=id;clearAlert();document.querySelectorAll('.loan-card').forEach(c=>{c.classList.remove('selected');c.setAttribute('aria-checked','false');});el.classList.add('selected');el.setAttribute('aria-checked','true');};
+
+// ── Step 2: Personal ──
+function renderPersonal(body){
+  body.innerHTML=`${alertBox()}<div class="toggle-row" onclick="toggleCoApp()"><div class="toggle-info"><h4>Adding a Co-Applicant?</h4><p>Enable to add a second borrower to this application</p></div><div class="toggle-switch ${S.hasCoApp?'on':''}" id="coToggle"></div></div>
+  <div class="section-divider"><span>Primary Applicant</span></div>${pFields('app')}
+  <div class="co-section ${S.hasCoApp?'visible':''}" id="coSection"><div class="co-label">Co-Applicant Information</div>${pFields('co')}</div>
+  <div class="nav-row"><button class="btn btn-secondary" onclick="prevStep()">← Back</button><button class="btn btn-primary" onclick="nextStep()">Continue →</button></div>`;
+  bindF('app',S.applicant,['name','dob','ssn','street','city','state','zip','email','phone']);
+  bindF('co',S.coApplicant,['name','dob','ssn','street','city','state','zip','email','phone']);
+  initSSN('app-ssn');initSSN('co-ssn');initPhone('app-phone');initPhone('co-phone');
+}
+function pFields(p){
+  const st=p==='app'?S.applicant:S.coApplicant,states=usStates();
+  return `<div class="field-grid">
+    <div class="field col-full"><label for="${p}-name">Full Legal Name <span class="req">*</span></label><input type="text" id="${p}-name" value="${esc(st.name)}" placeholder="As on government ID" autocomplete="name"></div>
+    <div class="field"><label for="${p}-dob">Date of Birth <span class="req">*</span></label><input type="date" id="${p}-dob" value="${esc(st.dob)}"></div>
+    <div class="field"><label for="${p}-ssn">Social Security Number <span class="req">*</span></label><div class="ssn-wrapper"><input type="password" id="${p}-ssn" value="${esc(st.ssn)}" placeholder="XXX-XX-XXXX" maxlength="11" inputmode="numeric" autocomplete="off"><button class="ssn-toggle" type="button" onclick="toggleSSN('${p}')" aria-label="Show or hide SSN">👁</button></div></div>
+    <div class="field col-full"><label for="${p}-street">Street Address <span class="req">*</span></label><input type="text" id="${p}-street" value="${esc(st.street)}" placeholder="123 Main Street" autocomplete="street-address"></div>
+    <div class="field"><label for="${p}-city">City <span class="req">*</span></label><input type="text" id="${p}-city" value="${esc(st.city)}"></div>
+    <div class="field"><label for="${p}-state">State <span class="req">*</span></label><select id="${p}-state"><option value="">— Select —</option>${states.map(s=>`<option value="${s}" ${st.state===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="field"><label for="${p}-zip">ZIP Code <span class="req">*</span></label><input type="text" id="${p}-zip" value="${esc(st.zip)}" maxlength="5" placeholder="92501" inputmode="numeric"></div>
+    <div class="field"><label for="${p}-email">Email Address <span class="req">*</span></label><input type="email" id="${p}-email" value="${esc(st.email)}" placeholder="your@email.com" autocomplete="email"></div>
+    <div class="field"><label for="${p}-phone">Phone Number <span class="req">*</span></label><input type="tel" id="${p}-phone" value="${esc(st.phone)}" placeholder="(555) 000-0000" maxlength="14" inputmode="tel" autocomplete="tel"></div>
+  </div>`;
+}
+window.toggleCoApp=function(){S.hasCoApp=!S.hasCoApp;const t=document.getElementById('coToggle'),s=document.getElementById('coSection');if(t)t.classList.toggle('on',S.hasCoApp);if(s)s.classList.toggle('visible',S.hasCoApp);};
+function initSSN(id){const el=document.getElementById(id);if(!el)return;el.addEventListener('input',function(){let v=this.value.replace(/\D/g,'').substring(0,9);if(v.length>5)v=v.substring(0,3)+'-'+v.substring(3,5)+'-'+v.substring(5);else if(v.length>3)v=v.substring(0,3)+'-'+v.substring(3);this.value=v;});}
+function initPhone(id){const el=document.getElementById(id);if(!el)return;el.addEventListener('input',function(){let v=this.value.replace(/\D/g,'').substring(0,10);if(v.length>6)v='('+v.substring(0,3)+') '+v.substring(3,6)+'-'+v.substring(6);else if(v.length>3)v='('+v.substring(0,3)+') '+v.substring(3);this.value=v;});}
+window.toggleSSN=function(p){const el=document.getElementById(p+'-ssn');if(el)el.type=el.type==='password'?'text':'password';};
+function bindF(p,obj,fields){fields.forEach(f=>{const el=document.getElementById(`${p}-${f}`);if(!el)return;const save=()=>{obj[f]=el.value;const fd=el.closest('.field');if(fd)fd.classList.remove('invalid');};el.addEventListener('input',save);el.addEventListener('change',save);});}
+
+// ── Step 3: Financial ──
+function renderFinancial(body){
+  body.innerHTML=`${alertBox()}<div class="section-divider"><span>Primary Applicant — Employment &amp; Finances</span></div>${fFields('app')}
+  ${S.hasCoApp?`<div class="co-section visible" style="margin-top:22px;"><div class="co-label">Co-Applicant Employment &amp; Finances</div>${fFields('co')}</div>`:''}
+  <div class="nav-row"><button class="btn btn-secondary" onclick="prevStep()">← Back</button><button class="btn btn-primary" onclick="nextStep()">Continue →</button></div>`;
+  bindF('app',S.applicant,['employer','title','empYears','empMonths','income','fico']);
+  if(S.hasCoApp)bindF('co',S.coApplicant,['employer','title','empYears','empMonths','income','fico']);
+}
+function fFields(p){
+  const st=p==='app'?S.applicant:S.coApplicant;
+  return `<div class="field-grid">
+    <div class="field col-full"><label for="${p}-employer">Current Employer Name <span class="req">*</span></label><input type="text" id="${p}-employer" value="${esc(st.employer)}" placeholder="Company Name" autocomplete="organization"></div>
+    <div class="field"><label for="${p}-title">Position / Title <span class="req">*</span></label><input type="text" id="${p}-title" value="${esc(st.title)}" placeholder="e.g. Sales Manager"></div>
+    <div class="field"><label>Length of Employment</label><div style="display:flex;gap:8px;"><input type="number" id="${p}-empYears" value="${esc(st.empYears)}" placeholder="Years" min="0" style="flex:1;"><input type="number" id="${p}-empMonths" value="${esc(st.empMonths)}" placeholder="Months" min="0" max="11" style="flex:1;"></div></div>
+    <div class="field"><label for="${p}-income">Total Annual Household Income <span class="req">*</span></label><div class="input-prefix"><span class="prefix-tag">$</span><input type="number" id="${p}-income" value="${esc(st.income)}" placeholder="0" min="0"></div><span class="field-hint">Include all verifiable income sources</span></div>
+    <div class="field"><label for="${p}-fico">Estimated FICO Score</label><input type="number" id="${p}-fico" value="${esc(st.fico)}" placeholder="e.g. 680" min="300" max="850"></div>
+  </div>`;
+}
+
+// ── Step 4: Business ──
+function renderBusiness(body){
+  const b=S.business,states=usStates(),entities=['Sole Proprietorship','Partnership','LLC','S-Corporation','C-Corporation'];
+  body.innerHTML=`${alertBox()}<div class="field-grid">
+    <div class="field col-full"><label for="biz-name">Business Legal Name <span class="req">*</span></label><input type="text" id="biz-name" value="${esc(b.name)}" placeholder="As registered with the state"></div>
+    <div class="field col-full"><label for="biz-street">Business Street Address</label><input type="text" id="biz-street" value="${esc(b.street)}" placeholder="If different from residential"></div>
+    <div class="field"><label for="biz-city">City</label><input type="text" id="biz-city" value="${esc(b.city)}"></div>
+    <div class="field"><label for="biz-state">State</label><select id="biz-state"><option value="">— Select —</option>${states.map(s=>`<option value="${s}" ${b.state===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="field"><label for="biz-zip">ZIP Code</label><input type="text" id="biz-zip" value="${esc(b.zip)}" maxlength="5" inputmode="numeric"></div>
+    <div class="field"><label for="biz-ein">Business EIN <span class="req">*</span></label><input type="text" id="biz-ein" value="${esc(b.ein)}" placeholder="XX-XXXXXXX" maxlength="10" inputmode="numeric"></div>
+    <div class="field col-full"><label>Business Entity Type <span class="req">*</span></label><div class="entity-grid" id="entityGrid">${entities.map(e=>`<div class="entity-chip ${b.entity===e?'selected':''}" onclick="pickEntity('${e}',this)">${e}</div>`).join('')}</div><span class="field-error" id="entityError" style="display:none;">Please select an entity type</span></div>
+    <div class="field"><label for="biz-revenue">Average Monthly Revenue</label><div class="input-prefix"><span class="prefix-tag">$</span><input type="number" id="biz-revenue" value="${esc(b.revenue)}" placeholder="0" min="0"></div></div>
+    <div class="field col-full"><label for="biz-nature">Nature of Business <span class="req">*</span></label><input type="text" id="biz-nature" value="${esc(b.nature)}" placeholder="e.g. Retail, software development"></div>
+    <div class="field col-full"><label for="biz-use">Intended Use of Funds</label><textarea id="biz-use" rows="3" placeholder="Briefly describe...">${esc(b.use)}</textarea></div>
+  </div>
+  <div class="nav-row"><button class="btn btn-secondary" onclick="prevStep()">← Back</button><button class="btn btn-primary" onclick="nextStep()">Continue →</button></div>`;
+  bindF('biz',S.business,['name','street','city','state','zip','ein','revenue','nature']);
+  const bu=document.getElementById('biz-use');if(bu)bu.addEventListener('input',()=>{S.business.use=bu.value;});
+  const ein=document.getElementById('biz-ein');if(ein)ein.addEventListener('input',function(){let v=this.value.replace(/\D/g,'').substring(0,9);if(v.length>2)v=v.substring(0,2)+'-'+v.substring(2);this.value=v;});
+}
+window.pickEntity=function(v,el){S.business.entity=v;document.querySelectorAll('.entity-chip').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');const err=document.getElementById('entityError');if(err)err.style.display='none';};
+
+// ── Step 5: Signatures ──
+const sigCanvases={},sigContexts={},sigDrawing={},sigDirty={};
+function renderSignature(body){
+  body.innerHTML=`${alertBox()}<div class="disclosure-box"><strong>Authorization &amp; Agreement</strong><br><br>By signing below, I/we certify that all information provided is true and correct. I/we authorize <strong>BrightPath Finance</strong>, its affiliates, and agents to obtain and verify personal, credit, and employment information from any source, including consumer reporting agencies. I/we understand this inquiry may appear on my/our credit report. Submitting this application does not guarantee approval or create an obligation to lend.</div>
+  <div class="section-divider"><span>Primary Applicant Signature</span></div>
+  <p style="font-size:13px;color:var(--text-mid);margin-bottom:13px;">${esc(S.applicant.name)||'Applicant'} — Draw your signature in the box below</p>
+  ${sigPad('app')}
+  ${S.hasCoApp?`<div class="section-divider" style="margin-top:26px;"><span>Co-Applicant Signature</span></div><p style="font-size:13px;color:var(--text-mid);margin-bottom:13px;">${esc(S.coApplicant.name)||'Co-Applicant'} — Draw your signature in the box below</p>${sigPad('co')}`:''}
+  <div style="margin-top:20px;display:flex;align-items:center;gap:10px;"><input type="date" id="appDate" value="${esc(S.appDate)}" style="max-width:180px;"><span style="font-size:12px;color:var(--text-light);">Application Date</span></div>
+  <div class="nav-row"><button class="btn btn-secondary" onclick="prevStep()">← Back</button><button class="btn btn-primary" onclick="saveSigsAndNext()">Review Application →</button></div>`;
+  setTimeout(()=>{initSig('app');if(S.hasCoApp)initSig('co');},50);
+  const d=document.getElementById('appDate');if(d)d.addEventListener('change',()=>{S.appDate=d.value;});
+}
+function sigPad(p){return `<div><div class="sig-area" id="sigArea-${p}"><div class="sig-toolbar"><span>Sign Here</span><button class="sig-clear" onclick="clearSig('${p}')">Clear</button></div><canvas class="sig-canvas" id="sig-${p}" width="756" height="132"></canvas><div class="sig-underline">× Signature</div></div><span class="sig-error" id="sigError-${p}">A signature is required before continuing</span></div>`;}
+function initSig(p){
+  const canvas=document.getElementById('sig-'+p);if(!canvas)return;
+  const who=p==='app'?'applicant':'coApplicant';
+  sigDirty[p]=!!S[who].sigData;
+  if(S[who].sigData){const img=new Image();img.onload=()=>{canvas.getContext('2d').drawImage(img,0,0);};img.src=S[who].sigData;}
+  const ctx=canvas.getContext('2d');ctx.strokeStyle='#0b1b45';ctx.lineWidth=2.2;ctx.lineCap='round';ctx.lineJoin='round';
+  sigCanvases[p]=canvas;sigContexts[p]=ctx;sigDrawing[p]=false;
+  function gp(e){const r=canvas.getBoundingClientRect(),sx=canvas.width/r.width,sy=canvas.height/r.height,src=e.touches?e.touches[0]:e;return{x:(src.clientX-r.left)*sx,y:(src.clientY-r.top)*sy};}
+  function markDirty(){sigDirty[p]=true;const a=document.getElementById('sigArea-'+p),er=document.getElementById('sigError-'+p);if(a)a.classList.remove('invalid');if(er)er.classList.remove('show');}
+  canvas.addEventListener('mousedown',e=>{sigDrawing[p]=true;markDirty();const q=gp(e);ctx.beginPath();ctx.moveTo(q.x,q.y);});
+  canvas.addEventListener('mousemove',e=>{if(!sigDrawing[p])return;const q=gp(e);ctx.lineTo(q.x,q.y);ctx.stroke();});
+  canvas.addEventListener('mouseup',()=>sigDrawing[p]=false);
+  canvas.addEventListener('mouseleave',()=>sigDrawing[p]=false);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();sigDrawing[p]=true;markDirty();const q=gp(e);ctx.beginPath();ctx.moveTo(q.x,q.y);},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!sigDrawing[p])return;const q=gp(e);ctx.lineTo(q.x,q.y);ctx.stroke();},{passive:false});
+  canvas.addEventListener('touchend',()=>sigDrawing[p]=false);
+}
+window.clearSig=function(p){const c=sigCanvases[p];if(c)sigContexts[p].clearRect(0,0,c.width,c.height);sigDirty[p]=false;const who=p==='app'?'applicant':'coApplicant';S[who].sigData='';};
+window.saveSigsAndNext=function(){
+  let ok=true;
+  if(!sigDirty['app']){const a=document.getElementById('sigArea-app'),er=document.getElementById('sigError-app');if(a)a.classList.add('invalid');if(er)er.classList.add('show');ok=false;}
+  if(S.hasCoApp&&!sigDirty['co']){const a=document.getElementById('sigArea-co'),er=document.getElementById('sigError-co');if(a)a.classList.add('invalid');if(er)er.classList.add('show');ok=false;}
+  if(!ok){showAlert('Please provide the required signature(s) before continuing.');return;}
+  const ac=sigCanvases['app'];if(ac)S.applicant.sigData=ac.toDataURL();
+  if(S.hasCoApp){const cc=sigCanvases['co'];if(cc)S.coApplicant.sigData=cc.toDataURL();}
+  const d=document.getElementById('appDate');if(d&&d.value)S.appDate=d.value;
+  advance();
+};
+
+// ── Step 6: Review & Submit ──
+function renderReview(body){
+  const a=S.applicant,b=S.business;
+  const loanLabel=loanLabelFor();
+  body.innerHTML=`${alertBox()}<p class="intro-note">Review your information below, then click <strong>Submit Application</strong>. After submitting you'll be able to download a PDF copy of your completed application for your records.</p>
+  <div class="review-section"><h3>Loan Type</h3><div class="review-item"><label>Selected Product</label><div class="val">${esc(loanLabel)}</div></div></div>
+  <div class="review-section"><h3>Primary Applicant</h3><div class="review-grid">
+    ${rv('Full Name',a.name)}${rv('Date of Birth',a.dob)}${rv('SSN',maskSSN(a.ssn))}${rv('Email',a.email)}
+    ${rv('Phone',a.phone)}${rv('Address',[a.street,a.city,a.state,a.zip].filter(Boolean).join(', '))}
+    ${rv('Employer',a.employer)}${rv('Title',a.title)}
+    ${rv('Employment',`${a.empYears||0} yrs ${a.empMonths||0} mos`)}${rv('Annual Income',a.income?'$'+Number(a.income).toLocaleString():'—')}
+    ${rv('FICO Score',a.fico||'—')}${rv('Application Date',S.appDate)}
+  </div>${a.sigData?`<div style="margin-top:10px;"><label style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:.08em;">Signature</label><div class="review-sig-preview"><img src="${a.sigData}" alt="Signature"></div></div>`:''}</div>
+  ${S.hasCoApp?`<div class="review-section"><h3>Co-Applicant</h3><div class="review-grid">
+    ${rv('Full Name',S.coApplicant.name)}${rv('Date of Birth',S.coApplicant.dob)}
+    ${rv('SSN',maskSSN(S.coApplicant.ssn))}${rv('Email',S.coApplicant.email)}
+    ${rv('Phone',S.coApplicant.phone)}${rv('Address',[S.coApplicant.street,S.coApplicant.city,S.coApplicant.state,S.coApplicant.zip].filter(Boolean).join(', '))}
+    ${rv('Employer',S.coApplicant.employer)}${rv('Annual Income',S.coApplicant.income?'$'+Number(S.coApplicant.income).toLocaleString():'—')}
+  </div>${S.coApplicant.sigData?`<div style="margin-top:10px;"><label style="font-size:10px;color:var(--text-light);text-transform:uppercase;letter-spacing:.08em;">Co-Applicant Signature</label><div class="review-sig-preview"><img src="${S.coApplicant.sigData}" alt="Co-Applicant Signature"></div></div>`:''}</div>`:''}
+  ${isBizLoan()?`<div class="review-section"><h3>Business Information</h3><div class="review-grid">
+    ${rv('Business Name',b.name)}${rv('Entity Type',b.entity)}${rv('EIN',b.ein)}
+    ${rv('Avg Monthly Revenue',b.revenue?'$'+Number(b.revenue).toLocaleString():'—')}${rv('Nature of Business',b.nature)}${rv('Use of Funds',b.use)}
+  </div></div>`:''}
+  <div class="nav-row"><button class="btn btn-secondary" onclick="prevStep()">← Edit</button><button class="btn-submit" onclick="submitApp()">Submit Application ✓</button></div>`;
+}
+function rv(l,v){return `<div class="review-item"><label>${esc(l)}</label><div class="val">${esc(v)||'—'}</div></div>`;}
+function maskSSN(s){if(!s)return '—';const c=s.replace(/\D/g,'');return 'XXX-XX-'+c.slice(-4);}
+function loanLabelFor(){return {personal:'Personal Loan','biz-capital':'Business Working Capital','biz-equip':'Business Equipment Financing',revenue:'Revenue Based Financing'}[S.loanType]||'—';}
+
+// ── Submit ──
+window.submitApp=function(){
+  const overlay=document.getElementById('downloadOverlay');
+  document.getElementById('overlayMsg').textContent='Submitting your application…';
+  overlay.classList.add('active');
+  setTimeout(()=>{
+    S.submitted=true;
+    S.refId='BPF-'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+String(Math.floor(1000+Math.random()*9000));
+    overlay.classList.remove('active');
+    renderComplete();
+    window.scrollTo({top:0,behavior:'smooth'});
+  },1100);
+};
+
+// ── Validation ──
+function validateCurrentStep(){
+  const vs=visibleSteps(),cur=vs[S.step];if(!cur)return true;
+  clearAlert();clearInvalid();
+  const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  let bad=[];
+  const need=(id,val,msg)=>{if(!String(val||'').trim()){markInvalid(id,msg||'This field is required');bad.push(id);}};
+  if(cur.key==='loanType'){
+    if(!S.loanType){showAlert('Please select a loan type to continue.');return false;}
+    return true;
+  }
+  if(cur.key==='personal'){
+    const check=(p,o)=>{
+      need(p+'-name',o.name);need(p+'-dob',o.dob);need(p+'-street',o.street);need(p+'-city',o.city);need(p+'-state',o.state);
+      if(o.ssn.replace(/\D/g,'').length!==9){markInvalid(p+'-ssn','Enter a full 9-digit SSN');bad.push(p+'-ssn');}
+      if(!/^\d{5}$/.test(o.zip)){markInvalid(p+'-zip','Enter a 5-digit ZIP');bad.push(p+'-zip');}
+      if(!emailRe.test(o.email)){markInvalid(p+'-email','Enter a valid email address');bad.push(p+'-email');}
+      if(o.phone.replace(/\D/g,'').length!==10){markInvalid(p+'-phone','Enter a 10-digit phone number');bad.push(p+'-phone');}
+    };
+    check('app',S.applicant);
+    if(S.hasCoApp)check('co',S.coApplicant);
+  }
+  if(cur.key==='financial'){
+    const check=(p,o)=>{
+      need(p+'-employer',o.employer);need(p+'-title',o.title);
+      if(!String(o.income||'').trim()||Number(o.income)<=0){markInvalid(p+'-income','Enter your annual income');bad.push(p+'-income');}
+      if(String(o.fico||'').trim()&&(Number(o.fico)<300||Number(o.fico)>850)){markInvalid(p+'-fico','FICO must be between 300 and 850');bad.push(p+'-fico');}
+    };
+    check('app',S.applicant);
+    if(S.hasCoApp)check('co',S.coApplicant);
+  }
+  if(cur.key==='business'){
+    need('biz-name',S.business.name);need('biz-nature',S.business.nature);
+    if(S.business.ein.replace(/\D/g,'').length!==9){markInvalid('biz-ein','Enter a full 9-digit EIN');bad.push('biz-ein');}
+    if(!S.business.entity){const err=document.getElementById('entityError');if(err)err.style.display='block';bad.push('entity');}
+  }
+  if(bad.length){showAlert('Please complete the highlighted fields before continuing.');const first=document.getElementById(bad[0]);if(first)first.focus();return false;}
+  return true;
+}
+
+function advance(){const vs=visibleSteps();if(S.step<vs.length-1){S.step++;renderStep();window.scrollTo({top:0,behavior:'smooth'});}}
+window.nextStep=function(){if(!validateCurrentStep())return;advance();};
+window.prevStep=function(){if(S.step>0){S.step--;renderStep();window.scrollTo({top:0,behavior:'smooth'});}};
+
+// ── PDF generation (questions & answers) ──
+window.downloadPDF=function(){
+  const a=S.applicant,co=S.coApplicant,b=S.business;
+  const dateStr=S.appDate?new Date(S.appDate+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}):new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const loanLabel=loanLabelFor();
+
+  function pf(label,value){return `<div class="print-field"><div class="print-field-label">${esc(label)}</div><div class="print-field-value">${esc(value)||'—'}</div></div>`;}
+  function row(...fields){return `<div class="print-row">${fields.map(([l,v])=>pf(l,v)).join('')}</div>`;}
+  function fullRow(label,value){return `<div class="print-row"><div class="print-field full"><div class="print-field-label">${esc(label)}</div><div class="print-field-value">${esc(value)||'—'}</div></div></div>`;}
+  function secHdr(t){return `<div class="print-section-hdr">${esc(t)}</div>`;}
+
+  const headerHTML=`<div class="print-hdr"><div><div class="print-hdr-logo">bright<span>path</span></div><div style="font-size:9px;color:#8fd0f5;letter-spacing:.1em;margin-top:2px;">FINANCE</div></div><div class="print-hdr-right">Credit Authorization Application<br>${S.refId?'Reference: '+esc(S.refId)+'<br>':''}Confidential — For Authorized Use Only</div></div><div class="print-blue-bar"></div>`;
+  const footerHTML=`<div class="print-footer"><span>BrightPath Finance — Confidential Credit Authorization Application</span><span>${esc(dateStr)}</span></div>`;
+
+  let pg1=`${headerHTML}<div class="print-body">
+  <div class="print-intro">Thank you for choosing BrightPath Finance. All information provided is kept confidential and used solely for the purpose of processing your credit request.</div>
+  <div class="print-section">${secHdr('Loan Type Selection')}${fullRow('Selected Loan Product',loanLabel)}</div>
+  <div class="print-section">${secHdr('Primary Applicant — Personal Information')}
+    ${fullRow('Full Legal Name',a.name)}
+    ${row(['Date of Birth',a.dob],['Social Security Number',maskSSN(a.ssn)])}
+    ${fullRow('Street Address',a.street)}
+    ${row(['City',a.city],['State / ZIP',(a.state||'')+' '+(a.zip||'')])}
+    ${row(['Email Address',a.email],['Primary Phone Number',a.phone])}
+  </div>
+  <div class="print-section">${secHdr('Primary Applicant — Employment & Financial Information')}
+    ${row(['Current Employer Name',a.employer],['Position / Title',a.title])}
+    ${row(['Length of Employment',`${a.empYears||0} Years ${a.empMonths||0} Months`],['Total Annual Household Income',a.income?'$'+Number(a.income).toLocaleString():'—'])}
+    ${fullRow('Estimated FICO Score',a.fico||'—')}
+  </div>`;
+
+  if(S.hasCoApp){
+    pg1+=`<div class="print-section">${secHdr('Co-Applicant — Personal Information')}
+      ${fullRow('Full Legal Name',co.name)}
+      ${row(['Date of Birth',co.dob],['Social Security Number',maskSSN(co.ssn)])}
+      ${fullRow('Street Address',co.street)}
+      ${row(['City',co.city],['State / ZIP',(co.state||'')+' '+(co.zip||'')])}
+      ${row(['Email Address',co.email],['Primary Phone Number',co.phone])}
+    </div>
+    <div class="print-section">${secHdr('Co-Applicant — Employment & Financial Information')}
+      ${row(['Current Employer Name',co.employer],['Position / Title',co.title])}
+      ${row(['Length of Employment',`${co.empYears||0} Years ${co.empMonths||0} Months`],['Total Annual Household Income',co.income?'$'+Number(co.income).toLocaleString():'—'])}
+      ${fullRow('Estimated FICO Score',co.fico||'—')}
+    </div>`;
+  }
+
+  if(isBizLoan()){
+    pg1+=`<div class="print-section">${secHdr('Business Information')}
+      ${fullRow('Business Legal Name',b.name)}
+      ${fullRow('Business Address',b.street?[b.street,b.city,b.state,b.zip].filter(Boolean).join(', '):'—')}
+      ${row(['Business Entity Type',b.entity],['Business EIN',b.ein])}
+      ${row(['Average Monthly Revenue',b.revenue?'$'+Number(b.revenue).toLocaleString():'—'],['Nature of Business',b.nature])}
+      ${fullRow('Intended Use of Funds',b.use)}
+    </div>`;
+  }
+  pg1+=`</div>${footerHTML}`;
+
+  // Signature page
+  let pg2=`${headerHTML}<div class="print-body">
+  <div class="print-section">${secHdr('Authorization & Agreement')}
+    <div class="print-disclosure">By signing below, I/we certify that the information provided in this application is true and correct to the best of my/our knowledge. I/we authorize BrightPath Finance, its affiliates, and its agents to obtain and verify my/our personal, credit, and employment information from any source, including consumer reporting agencies (credit bureaus). I/we understand that this inquiry may appear on my/our credit report. I/we also authorize BrightPath Finance to share application and credit information with its partners for the purpose of processing this request. I/we understand that submitting this application does not guarantee approval or an obligation to lend.</div>
+  </div>
+  <div class="print-date-row">Application Date: <strong>${esc(dateStr)}</strong>${S.refId?` &nbsp;•&nbsp; Reference: <strong>${esc(S.refId)}</strong>`:''}</div>
+  <div class="print-sig-block">
+    <div class="print-sig-label">Applicant Signature</div>
+    ${a.sigData?`<img class="print-sig-img" src="${a.sigData}" alt="Applicant Signature">`:'<div class="print-sig-box"><div class="print-sig-line">Applicant\'s Signature</div></div>'}
+    <div style="font-size:9px;color:#6f81a8;margin-top:5px;">${esc(a.name)}</div>
+  </div>`;
+  if(S.hasCoApp){
+    pg2+=`<div class="print-sig-block" style="margin-top:24px;">
+    <div class="print-sig-label">Co-Applicant Signature</div>
+    ${co.sigData?`<img class="print-sig-img" src="${co.sigData}" alt="Co-Applicant Signature">`:'<div class="print-sig-box"><div class="print-sig-line">Co-Applicant\'s Signature</div></div>'}
+    <div style="font-size:9px;color:#6f81a8;margin-top:5px;">${esc(co.name)}</div>
+    </div>`;
+  }
+  pg2+=`</div>${footerHTML}`;
+
+  const pv=document.getElementById('printView');
+  pv.innerHTML=`<div class="print-page">${pg1}</div><div class="print-page">${pg2}</div>`;
+  pv.style.display='block';
+  pv.style.width='216mm';
+
+  const applicantName=(a.name||'Applicant').replace(/[^a-zA-Z0-9]/g,'_');
+  const fileName=`BrightPath_Application_${applicantName}_${(S.appDate||new Date().toISOString().slice(0,10))}.pdf`;
+
+  if(typeof html2pdf==='undefined'){
+    setTimeout(()=>{window.print();setTimeout(()=>{pv.style.display='none';},1000);},200);
+    return;
+  }
+
+  const overlay=document.getElementById('downloadOverlay');
+  document.getElementById('overlayMsg').textContent='Generating your PDF…';
+  overlay.classList.add('active');
+
+  setTimeout(()=>{
+    html2pdf().set({
+      margin:0,
+      filename:fileName,
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,useCORS:true,logging:false,width:pv.scrollWidth,windowWidth:pv.scrollWidth},
+      jsPDF:{unit:'mm',format:'letter',orientation:'portrait'},
+      pagebreak:{mode:['css'],avoid:['.print-section']}
+    }).from(pv).save().then(()=>{
+      overlay.classList.remove('active');
+      pv.style.display='none';
+    }).catch(function(err){
+      console.error('PDF generation error:',err);
+      overlay.classList.remove('active');
+      setTimeout(()=>{window.print();setTimeout(()=>{pv.style.display='none';},1000);},200);
+    });
+  },400);
+};
+
+// ── Success screen ──
+function renderComplete(){
+  document.getElementById('progressArea').style.display='none';
+  document.getElementById('cardIcon').textContent='✅';
+  document.getElementById('cardTitle').textContent='Application Submitted';
+  document.getElementById('cardSub').textContent='BrightPath Finance — Thank you';
+  document.getElementById('cardBody').innerHTML=`<div class="success-view">
+    <div class="success-icon">✓</div><h2>Application Submitted Successfully</h2>
+    <p>Thank you, ${esc(S.applicant.name.split(' ')[0])||'and congratulations'} — your application has been received. Download a PDF copy of your completed application questions and answers for your records.</p>
+    ${S.refId?`<div class="success-ref">Reference&nbsp; ${esc(S.refId)}</div><br>`:''}
+    <div class="success-actions"><button class="btn-download" onclick="downloadPDF()">⬇&nbsp; Download PDF Copy</button></div>
+    <span class="restart-link" onclick="restartApp()">Start a new application</span>
+  </div>
+  <div class="next-steps"><h4>What to Expect Next</h4>
+    <div class="step-item"><div class="step-num">1</div><p><strong>Application Review</strong> — A BrightPath Finance loan specialist will review your application promptly.</p></div>
+    <div class="step-item"><div class="step-num">2</div><p><strong>Documentation</strong> — You may be asked to provide ID, pay stubs, bank statements, or tax returns.</p></div>
+    <div class="step-item"><div class="step-num">3</div><p><strong>Decision</strong> — You will be notified of the credit decision via the contact information you provided.</p></div>
+  </div>`;
+}
+
+window.restartApp=function(){
+  Object.assign(S,{step:0,loanType:'',hasCoApp:false,submitted:false,refId:'',appDate:new Date().toISOString().split('T')[0],
+    applicant:{name:'',dob:'',ssn:'',street:'',city:'',state:'',zip:'',email:'',phone:'',employer:'',title:'',empYears:'',empMonths:'',income:'',fico:'',sigData:''},
+    coApplicant:{name:'',dob:'',ssn:'',street:'',city:'',state:'',zip:'',email:'',phone:'',employer:'',title:'',empYears:'',empMonths:'',income:'',fico:'',sigData:''},
+    business:{name:'',street:'',city:'',state:'',zip:'',entity:'',revenue:'',ein:'',nature:'',use:''}
+  });
+  sigDirty.app=false;sigDirty.co=false;
+  document.getElementById('progressArea').style.display='';
+  document.getElementById('cardSub').textContent='BrightPath Finance — Confidential & Secure';
+  renderStep();
+};
+
+function usStates(){return['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];}
+renderStep();
+})();
+</script>
+</body>
+</html>
