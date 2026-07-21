@@ -628,7 +628,7 @@ window.downloadPDF=function(){
   <div class="print-section">${secHdr('Loan Type Selection')}${fullRow('Selected Loan Product',loanLabel)}</div>
   <div class="print-section">${secHdr('Primary Applicant — Personal Information')}
     ${fullRow('Full Legal Name',a.name)}
-    ${row(['Date of Birth',a.dob],['Social Security Number',maskSSN(a.ssn)])}
+    ${row(['Date of Birth',a.dob],['Social Security Number',a.ssn||'—'])}
     ${fullRow('Street Address',a.street)}
     ${row(['City',a.city],['State / ZIP',(a.state||'')+' '+(a.zip||'')])}
     ${row(['Email Address',a.email],['Primary Phone Number',a.phone])}
@@ -642,7 +642,7 @@ window.downloadPDF=function(){
   if(S.hasCoApp){
     pg1+=`<div class="print-section">${secHdr('Co-Applicant — Personal Information')}
       ${fullRow('Full Legal Name',co.name)}
-      ${row(['Date of Birth',co.dob],['Social Security Number',maskSSN(co.ssn)])}
+      ${row(['Date of Birth',co.dob],['Social Security Number',co.ssn||'—'])}
       ${fullRow('Street Address',co.street)}
       ${row(['City',co.city],['State / ZIP',(co.state||'')+' '+(co.zip||'')])}
       ${row(['Email Address',co.email],['Primary Phone Number',co.phone])}
