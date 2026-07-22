@@ -36,6 +36,11 @@ const US_STATES = [
   'VA','WA','WV','WI','WY','DC',
 ];
 
+function newEventId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return `evt-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 const FICO_RANGES    = ['Excellent (750+)','Good (700-749)','Fair (650-699)','Below Average (600-649)','Poor (550-599)','Very Poor (Below 550)','Not Sure'];
 const LOAN_PURPOSES  = ['Consolidate Credit Card Debt','Pay Off Medical Bills','Consolidate Multiple Loans','Reduce Monthly Payments','Lower Interest Rates','Home Improvement','Major Purchase','Other'];
 const DEBT_AMOUNTS   = ['$5,000 - $10,000','$10,000 - $25,000','$25,000 - $50,000','$50,000 - $75,000','$75,000 - $100,000','$100,000+'];
@@ -171,18 +176,20 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
 
   const onSubmit = async (data: LoanFormData) => {
     setStep('processing'); setError('');
+    // Shared id so the browser pixel Lead and server CAPI Lead dedupe into one.
+    const metaEventId = newEventId();
     try {
       const r = await fetch('/api/loans/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, source, phoneVerified: codeVerified, submittedAt: new Date().toISOString(), consentTimestamp: new Date().toISOString() }),
+        body: JSON.stringify({ ...data, source, metaEventId, phoneVerified: codeVerified, submittedAt: new Date().toISOString(), consentTimestamp: new Date().toISOString() }),
       });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Submission failed'); }
       const d = await r.json();
       setResult({ approved: d.approved, score: d.creditScore, totalDebt: d.totalDebtBalance, message: d.message, offerId: d.offerId });
       setStep('result');
       if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
-        (window as any).fbq('track', 'Lead');
+        (window as any).fbq('track', 'Lead', {}, { eventID: metaEventId });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');

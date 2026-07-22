@@ -81,6 +81,11 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function newEventId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return `evt-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function isValidUSPhone(phone: string): boolean {
   const digits = phone.replace(/\D/g, '');
   const ten = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
@@ -286,13 +291,15 @@ export default function ChatWidget() {
         setSending(true);
         await new Promise(r => setTimeout(r, 600));
         appendBot('done', data);
+        // Shared id so the browser pixel Lead and server CAPI Lead dedupe into one.
+        const metaEventId = newEventId();
         fetch('/api/loans/chat-submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify({ ...data, metaEventId }),
         }).catch(() => {});
         if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
-          (window as any).fbq('track', 'Lead');
+          (window as any).fbq('track', 'Lead', {}, { eventID: metaEventId });
         }
         setSending(false);
       } catch {

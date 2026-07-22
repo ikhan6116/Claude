@@ -23,6 +23,8 @@ interface LeadEventData {
   clientUserAgent?: string;
   fbc?: string;
   fbp?: string;
+  /** Shared with the browser pixel's fbq eventID so Meta deduplicates the pair. */
+  eventId?: string;
 }
 
 export async function sendLeadEvent(data: LeadEventData): Promise<boolean> {
@@ -49,21 +51,29 @@ export async function sendLeadEvent(data: LeadEventData): Promise<boolean> {
   if (data.fbc) userData.fbc = data.fbc;
   if (data.fbp) userData.fbp = data.fbp;
 
-  const event = {
+  const event: Record<string, unknown> = {
     event_name: 'Lead',
     event_time: Math.floor(Date.now() / 1000),
     action_source: 'website',
     event_source_url: 'https://loans.brightpath-fin.com',
     user_data: userData,
   };
+  // Shared id lets Meta dedupe this server event against the browser pixel's Lead.
+  if (data.eventId) event.event_id = data.eventId;
 
   try {
+    // test_event_code makes events appear in Events Manager → Test Events.
+    // Set META_TEST_EVENT_CODE while verifying, then remove it for production.
+    const testCode = process.env.META_TEST_EVENT_CODE;
+    const requestBody: Record<string, unknown> = { data: [event] };
+    if (testCode) requestBody.test_event_code = testCode;
+
     const response = await fetch(
       `https://graph.facebook.com/${GRAPH_API_VERSION}/${pixelId}/events?access_token=${token}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: [event] }),
+        body: JSON.stringify(requestBody),
       }
     );
 

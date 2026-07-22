@@ -82,6 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     clientUserAgent: req.headers['user-agent'],
     fbc: req.cookies._fbc,
     fbp: req.cookies._fbp,
+    eventId: (req.body?.metaEventId as string) || undefined,
   }).catch(err => { console.error('[ChatSubmit] Meta CAPI failed:', err); return false; });
 
   const relintexPromise = sendLeadToRelintex({
