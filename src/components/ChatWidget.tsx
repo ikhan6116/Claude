@@ -95,7 +95,12 @@ function isValidUSPhone(phone: string): boolean {
   return true;
 }
 
-export default function ChatWidget({ autoOpen = true }: { autoOpen?: boolean } = {}) {
+export default function ChatWidget({
+  autoOpen = true,
+  autoOpenDelay = 2500,
+  align = 'right',
+}: { autoOpen?: boolean; autoOpenDelay?: number; align?: 'left' | 'right' } = {}) {
+  const side = align === 'left' ? 'left' : 'right';
   const [open, setOpen]           = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
   const [messages, setMessages]   = useState<Message[]>([]);
@@ -130,10 +135,10 @@ export default function ChatWidget({ autoOpen = true }: { autoOpen?: boolean } =
   // Auto-open 1.5 seconds after the page loads
   useEffect(() => {
     if (!autoOpen) return;
-    const t = setTimeout(() => openChat(), 2500);
+    const t = setTimeout(() => openChat(), autoOpenDelay);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoOpen]);
+  }, [autoOpen, autoOpenDelay]);
 
   // Scroll to latest message
   useEffect(() => {
@@ -338,8 +343,8 @@ export default function ChatWidget({ autoOpen = true }: { autoOpen?: boolean } =
       <button
         onClick={() => open ? setOpen(false) : openChat()}
         aria-label="Chat with us"
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg transition-transform duration-200 hover:scale-105"
-        style={{ background: 'linear-gradient(135deg, #2b7cff, #30a2ff)', boxShadow: '0 4px 20px rgba(43,124,255,0.45)' }}
+        className="fixed bottom-6 z-50 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg transition-transform duration-200 hover:scale-105"
+        style={{ [side]: '1.5rem', background: 'linear-gradient(135deg, #2b7cff, #30a2ff)', boxShadow: '0 4px 20px rgba(43,124,255,0.45)' }}
       >
         {open ? (
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -357,8 +362,8 @@ export default function ChatWidget({ autoOpen = true }: { autoOpen?: boolean } =
 
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 rounded-2xl overflow-hidden flex flex-col"
-          style={{ height: '480px', boxShadow: '0 8px 40px rgba(0,0,0,0.18)', border: '1px solid #e0ecf8' }}>
+        <div className="fixed bottom-24 z-50 w-80 sm:w-96 rounded-2xl overflow-hidden flex flex-col"
+          style={{ [side]: '1.5rem', height: '480px', boxShadow: '0 8px 40px rgba(0,0,0,0.18)', border: '1px solid #e0ecf8' }}>
 
           {/* Header */}
           <div style={{ background: 'linear-gradient(135deg, #0d1b2a, #1a3d6b)' }} className="px-5 py-4 flex items-center space-x-3 flex-shrink-0">
