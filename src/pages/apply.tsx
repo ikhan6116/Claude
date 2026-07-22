@@ -140,7 +140,7 @@ export default function ApplyPage() {
         </div>
       </footer>
 
-      <ChatWidget autoOpen autoOpenDelay={5000} align="left" />
+      <ChatWidget autoOpen autoOpenDelay={5000} align="right" />
     </>
   );
 }
