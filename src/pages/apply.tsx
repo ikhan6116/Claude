@@ -140,7 +140,7 @@ export default function ApplyPage() {
         </div>
       </footer>
 
-      <ChatWidget />
+      <ChatWidget autoOpen={false} />
     </>
   );
 }

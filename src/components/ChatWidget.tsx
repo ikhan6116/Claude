@@ -95,7 +95,7 @@ function isValidUSPhone(phone: string): boolean {
   return true;
 }
 
-export default function ChatWidget() {
+export default function ChatWidget({ autoOpen = true }: { autoOpen?: boolean } = {}) {
   const [open, setOpen]           = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
   const [messages, setMessages]   = useState<Message[]>([]);
@@ -129,10 +129,11 @@ export default function ChatWidget() {
 
   // Auto-open 1.5 seconds after the page loads
   useEffect(() => {
+    if (!autoOpen) return;
     const t = setTimeout(() => openChat(), 2500);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [autoOpen]);
 
   // Scroll to latest message
   useEffect(() => {

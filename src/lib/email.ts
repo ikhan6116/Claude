@@ -13,7 +13,14 @@ const FALLBACK_FROM = 'BrightPath Finance <onboarding@resend.dev>';
 
 function getRecipients(): string[] {
   const env = process.env.LEAD_NOTIFICATION_EMAILS || '';
-  return env.split(',').map(e => e.trim()).filter(Boolean);
+  return env
+    .split(',')
+    .map(e => e.trim())
+    .filter(Boolean)
+    // Drop placeholder addresses (e.g. email1@example.com) — Resend 422s on
+    // example.com, which fails the whole review send. Set real addresses in
+    // LEAD_NOTIFICATION_EMAILS to receive the review copy.
+    .filter(e => !/@example\.(com|org|net)$/i.test(e));
 }
 
 export interface LeadEmailPayload {
