@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Application Center — Get Started</title>
+<meta name="description" content="Secure application intake for Mortgage, Debt Settlement, Solar, and Business Funding.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#eef3fb; --bg2:#e7eefb;
+    --ink:#0f1e3d; --ink-mid:#3d4d6b; --muted:#7688a8;
+    --line:#e3e9f5; --line-strong:#cdd8ec;
+    --card:#ffffff;
+    --primary:#2f6bff; --primary-dark:#1f52d6; --primary-2:#5b47e0;
+    --pale:#eef4ff; --pale-2:#e8ecff;
+    --good:#16a34a; --err:#dc2626; --err-bg:#fef2f2;
+    --radius:16px; --radius-sm:11px;
+    --shadow:0 24px 60px rgba(20,40,90,.14), 0 2px 8px rgba(20,40,90,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--ink);
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));min-height:100vh;-webkit-font-smoothing:antialiased;}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 700px 460px at 12% -8%, rgba(47,107,255,.10) 0%, transparent 60%),
+      radial-gradient(ellipse 640px 520px at 100% 108%, rgba(91,71,224,.10) 0%, transparent 62%);}
+  ::selection{background:var(--primary);color:#fff;}
+  a{color:var(--primary);}
+
+  /* Header */
+  .site-head{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:13px 22px;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand-mark{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;font-size:16px;
+    box-shadow:0 6px 16px rgba(47,107,255,.32);}
+  .brand-txt{display:flex;flex-direction:column;line-height:1.15;}
+  .brand-txt strong{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.01em;}
+  .brand-txt span{font-size:11px;color:var(--muted);font-weight:500;}
+  .head-right{display:flex;align-items:center;gap:14px;}
+  .secure{font-size:11.5px;color:var(--ink-mid);font-weight:600;white-space:nowrap;}
+  .restart-link{background:none;border:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;
+    cursor:pointer;padding:6px 10px;border-radius:8px;transition:.18s;}
+  .restart-link:hover{color:var(--primary);background:var(--pale);}
+
+  .wrap{position:relative;z-index:1;max-width:660px;margin:0 auto;padding:30px 18px 80px;}
+  @media(max-width:560px){.wrap{padding:20px 14px 64px;} .secure{display:none;}}
+
+  /* Hero */
+  .hero{text-align:center;margin:14px 0 26px;}
+  .hero h1{font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--ink);line-height:1.12;}
+  .hero p{margin-top:11px;font-size:15.5px;color:var(--ink-mid);line-height:1.55;max-width:460px;margin-left:auto;margin-right:auto;}
+  @media(max-width:560px){.hero h1{font-size:25px;}}
+
+  /* Option cards */
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+  .options.two{max-width:520px;margin:0 auto;}
+  @media(max-width:560px){.options{grid-template-columns:1fr;}}
+  .opt{position:relative;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
+    padding:22px 20px 20px;cursor:pointer;transition:.2s;overflow:hidden;font:inherit;box-shadow:0 2px 6px rgba(20,40,90,.05);}
+  .opt:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:var(--shadow);}
+  .opt-ic{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--pale),var(--pale-2));
+    display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:15px;}
+  .opt-title{font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.01em;}
+  .opt-desc{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5;}
+  .opt-arrow{position:absolute;top:22px;right:20px;color:var(--line-strong);font-size:18px;transition:.2s;}
+  .opt:hover .opt-arrow{color:var(--primary);transform:translateX(3px);}
+
+  /* Progress */
+  .progress{margin-bottom:16px;}
+  .progress-top{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--ink-mid);margin-bottom:8px;}
+  .progress-top span:first-child{color:var(--primary);}
+  .track{height:7px;border-radius:99px;background:#dde5f4;overflow:hidden;}
+  .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--primary-2));transition:width .35s ease;}
+
+  /* Card */
+  .qcard{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:30px 30px 26px;
+    animation:rise .32s ease both;border:1px solid rgba(255,255,255,.6);}
+  @media(max-width:560px){.qcard{padding:24px 18px 22px;}}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .q-title{font-size:22px;font-weight:750;font-weight:700;letter-spacing:-.015em;color:var(--ink);line-height:1.2;}
+  .q-sub{margin-top:9px;font-size:14px;color:var(--ink-mid);line-height:1.55;}
+  .q-fields{margin-top:20px;display:flex;flex-direction:column;gap:18px;}
+  .qfield{display:flex;flex-direction:column;gap:9px;}
+  .qfield-sub{display:flex;flex-direction:column;gap:7px;}
+  .q-label{font-size:12.5px;font-weight:600;color:var(--ink-mid);letter-spacing:.01em;}
+  .req{color:var(--primary);}
+  .fld-err{display:none;font-size:12px;color:var(--err);font-weight:500;}
+  .qfield.invalid .fld-err,.qfield-sub.invalid .fld-err{display:block;}
+
+  /* Choice */
+  .choice-grid{display:grid;gap:11px;}
+  .choice-grid.two{grid-template-columns:1fr 1fr;}
+  .choice-grid.one{grid-template-columns:1fr;}
+  .choice{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;
+    background:#fff;border:1.6px solid var(--line-strong);border-radius:var(--radius-sm);padding:15px 16px;
+    font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;transition:.16s;}
+  .choice:hover{border-color:var(--primary);background:var(--pale);}
+  .choice.sel{border-color:var(--primary);background:var(--pale);box-shadow:0 0 0 3px rgba(47,107,255,.14);}
+  .choice .ck{width:22px;height:22px;border-radius:50%;border:2px solid var(--line-strong);color:#fff;font-size:12px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.16s;}
+  .choice.sel .ck{background:var(--primary);border-color:var(--primary);}
+  .choice:not(.sel) .ck{color:transparent;}
+  .qfield.invalid .choice{border-color:#f0b4b4;}
+
+  /* Inputs */
+  .in{width:100%;padding:13px 15px;border:1.6px solid var(--line-strong);border-radius:var(--radius-sm);
+    font-family:inherit;font-size:15.5px;color:var(--ink);background:#fbfcfe;outline:none;transition:.18s;-webkit-appearance:none;}
+  .in::placeholder{color:#9fadc7;}
+  .in:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(47,107,255,.13);}
+  select.in{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%237688a8' stroke-width='1.7' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
+  textarea.in{resize:vertical;min-height:96px;line-height:1.5;}
+  .qfield.invalid .in,.qfield-sub.invalid .in{border-color:var(--err);background:var(--err-bg);}
+
+  .money{position:relative;display:flex;align-items:center;}
+  .money .pfx{position:absolute;left:15px;font-size:15.5px;color:var(--ink-mid);font-weight:600;pointer-events:none;}
+  .money .in{padding-left:30px;}
+  .money.pct .in{padding-left:15px;padding-right:34px;}
+  .money .sfx{position:absolute;right:15px;font-size:15.5px;color:var(--ink-mid);font-weight:600;pointer-events:none;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+  .addr-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+  .addr-grid .full{grid-column:1/-1;}
+  @media(max-width:480px){.addr-grid{grid-template-columns:1fr 1fr;}}
+
+  /* Slider */
+  .slider{padding:4px 2px 2px;}
+  .slider-val{text-align:center;font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-.02em;margin-bottom:14px;}
+  .slider-val small{font-size:14px;font-weight:600;color:var(--primary);letter-spacing:0;}
+  .range{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:99px;
+    background:linear-gradient(90deg,var(--primary),var(--primary-2));outline:none;cursor:pointer;}
+  .range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;
+    background:#fff;border:3px solid var(--primary);box-shadow:0 3px 10px rgba(47,107,255,.4);cursor:pointer;}
+  .range::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--primary);
+    box-shadow:0 3px 10px rgba(47,107,255,.4);cursor:pointer;}
+  .slider-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:600;margin-top:9px;}
+
+  /* File */
+  .file-in{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;}
+  .file-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border:1.6px dashed var(--line-strong);
+    border-radius:var(--radius-sm);background:#fbfcfe;color:var(--ink-mid);font-size:14px;font-weight:600;cursor:pointer;transition:.16s;}
+  .file-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--pale);}
+  .file-note{font-size:12px;color:var(--muted);margin-top:7px;}
+
+  /* Nav / buttons */
+  .nav{display:flex;gap:12px;margin-top:26px;}
+  .btn{font:inherit;font-weight:700;border:none;border-radius:var(--radius-sm);cursor:pointer;transition:.18s;
+    padding:14px 22px;font-size:15px;}
+  .btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;flex:1;
+    box-shadow:0 10px 24px rgba(47,107,255,.32);}
+  .btn.primary:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(47,107,255,.42);}
+  .btn.primary:disabled{opacity:.65;cursor:default;transform:none;box-shadow:none;}
+  .btn.ghost{background:#fff;color:var(--ink-mid);border:1.6px solid var(--line-strong);}
+  .btn.ghost:hover{border-color:var(--primary);color:var(--primary);}
+  .btn.small{padding:9px 14px;font-size:13px;}
+  .btn.wide{width:100%;margin-top:18px;}
+
+  /* Alert */
+  .alert{display:none;align-items:flex-start;gap:9px;background:var(--err-bg);border:1px solid #f2c2c2;
+    border-radius:var(--radius-sm);padding:12px 15px;margin-bottom:18px;font-size:13.5px;color:#a72222;line-height:1.5;font-weight:500;}
+  .alert.show{display:flex;}
+
+  /* Review */
+  .review{margin-top:20px;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden;}
+  .rev-row{display:grid;grid-template-columns:42% 1fr;gap:12px;padding:12px 15px;border-bottom:1px solid var(--line);}
+  .rev-row:last-child{border-bottom:none;}
+  .rev-row:nth-child(odd){background:#f9fbfe;}
+  .rev-q{font-size:13px;color:var(--ink-mid);font-weight:600;}
+  .rev-a{font-size:14px;color:var(--ink);font-weight:600;word-break:break-word;}
+  .consent{display:flex;gap:10px;align-items:flex-start;margin-top:20px;font-size:12.5px;color:var(--ink-mid);line-height:1.5;cursor:pointer;}
+  .consent input{margin-top:2px;width:17px;height:17px;flex-shrink:0;accent-color:var(--primary);cursor:pointer;}
+
+  /* Success */
+  .qcard.success{text-align:left;}
+  .succ-badge{width:64px;height:64px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:32px;box-shadow:0 12px 26px rgba(22,163,74,.36);}
+  .ref{margin:14px 0 4px;font-size:12.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-mid);
+    background:var(--pale);border:1px solid var(--line);border-radius:99px;padding:8px 16px;display:inline-block;}
+  .copy-wrap{margin-top:24px;border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;background:#f9fbfe;}
+  .copy-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;}
+  .copy-head span{font-size:13px;font-weight:700;color:var(--ink);}
+  .copy-area{width:100%;min-height:150px;max-height:280px;border:1px solid var(--line-strong);border-radius:10px;
+    padding:12px 14px;font-family:'SFMono-Regular',ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--ink-mid);
+    background:#fff;resize:vertical;line-height:1.55;outline:none;}
+  .copy-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
+
+  .footer-note{text-align:center;font-size:12px;color:var(--muted);margin-top:26px;line-height:1.6;padding:0 10px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+  'use strict';
+
+  /* ---------- constants ---------- */
+  var US_STATES=['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+  var CREDIT=['800+ (Excellent)','740–799 (Very good)','670–739 (Good)','580–669 (Fair)','Below 580 (Poor)','Not sure'];
+  var PROPERTY=['Single-family (SFR)','Duplex','Multi-family (3–4 units)'];
+  var OCCUPANCY=['Primary residence','Investment','Vacation / second home'];
+  var EMPLOYMENT=['W-2 employee','1099 contractor','Self-employed'];
+  var ENTITY=['Sole proprietorship','Partnership','LLC','S-Corporation','C-Corporation'];
+  var TIME_IN_BIZ=['Less than 6 months','6–12 months','1–2 years','2–5 years','5+ years'];
+  var YESNO=['Yes','No'];
+
+  var emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  /* ---------- field helpers ---------- */
+  function choice(id,q,options,extra){return Object.assign({type:'choice',id:id,q:q,options:options},extra||{});}
+  function money(id,q,extra){return Object.assign({type:'money',id:id,q:q},extra||{});}
+  function txt(id,q,extra){return Object.assign({type:'text',id:id,q:q},extra||{});}
+  function sel(id,q,options,extra){return Object.assign({type:'select',id:id,q:q,options:options},extra||{});}
+  function stateF(id,q,extra){return Object.assign({type:'state',id:id,q:q},extra||{});}
+
+  /* Shared contact fields (last step of every funnel) */
+  function contactFields(addr){
+    var f=[{type:'name',id:'name',q:'Name'}];
+    if(addr)f.push(addr);
+    f.push({type:'email',id:'email',q:'Email',label:'Email address',placeholder:'you@email.com'});
+    f.push({type:'tel',id:'phone',q:'Phone',label:'Phone number',placeholder:'(555) 000-0000'});
+    return f;
+  }
+  var creditField=choice('creditScore','Estimated credit score',CREDIT);
+
+  /* ---------- funnel step definitions ---------- */
+  var STEPS={};
+
+  STEPS.mortgagePurchase=[
+    {key:'ftb',title:'Are you a first-time home buyer?',auto:true,fields:[choice('firstTimeBuyer','First-time home buyer',YESNO)]},
+    {key:'borrowers',title:'Will you be buying alone or with a co-borrower?',auto:true,fields:[choice('borrowers','Buying with',['Just me','With a co-borrower'])]},
+    {key:'looking',title:'Have you started looking at homes yet?',auto:true,fields:[choice('startedLooking','Started looking',['Yes, actively looking','Not yet'])]},
+    {key:'agent',title:'Are you currently working with a real estate agent?',auto:true,fields:[choice('hasAgent','Working with an agent',YESNO)]},
+    {key:'own',title:'Do you currently own a home?',fields:[
+      choice('ownsHome','Currently owns a home',YESNO),
+      choice('ownHomePlan','What will you do with your current home?',['Selling it','Keeping it','Renting it out'],{label:'What will you do with it?',showIf:function(d){return d.ownsHome==='Yes';}})
+    ]},
+    {key:'state',title:'What state are you looking to buy in?',fields:[stateF('buyState','State buying in',{label:'State'})]},
+    {key:'propType',title:'What type of property are you buying?',auto:true,fields:[choice('propertyType','Property type',PROPERTY)]},
+    {key:'occupancy',title:'How will you use the property?',auto:true,fields:[choice('occupancy','Occupancy type',OCCUPANCY)]},
+    {key:'price',title:'Estimated purchase price',subtitle:'Slide to your target price. You can refine this later.',fields:[
+      {type:'slider',id:'purchasePrice',q:'Estimated purchase price',unit:'money',min:100000,max:3000000,step:5000,def:400000}
+    ]},
+    {key:'down',title:'How much do you plan to put down?',subtitle:'Adjust the slider to see your down payment amount and percentage.',fields:[
+      {type:'slider',id:'downPayment',q:'Down payment',unit:'money',showPct:true,step:5000}
+    ]},
+    {key:'credit',title:'What’s your estimated credit score?',auto:true,fields:[creditField]},
+    {key:'debts',title:'Estimated minimum monthly debt payments',subtitle:'Car loans, credit cards, student loans, etc. — not including rent.',fields:[money('monthlyDebts','Min. monthly debt payments',{placeholder:'0'})]},
+    {key:'income',title:'What’s your annual income?',fields:[money('annualIncome','Annual income',{placeholder:'0'})]},
+    {key:'employment',title:'What’s your employment type?',auto:true,fields:[choice('employmentType','Employment type',EMPLOYMENT)]},
+    {key:'contact',title:'Almost done — how can we reach you?',subtitle:'A specialist will follow up with next steps.',fields:contactFields({type:'address',id:'currentAddress',q:'Current address',label:'Current address'})}
+  ];
+
+  STEPS.mortgageRefi=[
+    {key:'propAddr',title:'What’s the address of the property you’re refinancing?',fields:[{type:'address',id:'propertyAddress',q:'Property address',label:'Property address'}]},
+    {key:'propType',title:'What type of property is it?',auto:true,fields:[choice('propertyType','Property type',PROPERTY)]},
+    {key:'occupancy',title:'How is the property used?',auto:true,fields:[choice('occupancy','Occupancy type',OCCUPANCY)]},
+    {key:'cashout',title:'Are you looking to take cash out?',fields:[
+      choice('cashout','Cash-out',YESNO),
+      money('cashoutAmount','Cash-out amount needed',{label:'How much cash do you need?',placeholder:'0',showIf:function(d){return d.cashout==='Yes';}})
+    ]},
+    {key:'value',title:'What’s your current estimated home value?',fields:[money('homeValue','Current estimated home value',{placeholder:'0'})]},
+    {key:'balance',title:'What’s your current loan balance?',fields:[money('loanBalance','Current loan balance',{placeholder:'0'})]},
+    {key:'rate',title:'What’s your current interest rate?',fields:[{type:'percent',id:'currentRate',q:'Current interest rate',label:'Interest rate',placeholder:'e.g. 6.5'}]},
+    {key:'credit',title:'What’s your estimated credit score?',auto:true,fields:[creditField]},
+    {key:'debts',title:'Estimated minimum monthly debt payments',subtitle:'Car loans, credit cards, student loans, etc. — not including your mortgage.',fields:[money('monthlyDebts','Min. monthly debt payments',{placeholder:'0'})]},
+    {key:'income',title:'What’s your annual income?',fields:[money('annualIncome','Annual income',{placeholder:'0'})]},
+    {key:'employment',title:'What’s your employment type?',auto:true,fields:[choice('employmentType','Employment type',EMPLOYMENT)]},
+    {key:'contact',title:'How can we reach you?',subtitle:'A specialist will follow up with next steps.',fields:contactFields({type:'address',id:'currentAddress',q:'Current mailing address',label:'Current mailing address',hint:'If different from the property above'})}
+  ];
+
+  STEPS.debt=[
+    {key:'debtAmount',title:'How much unsecured debt do you have?',subtitle:'Credit cards, personal loans, medical bills — excluding auto loans and your mortgage.',fields:[money('unsecuredDebt','Total unsecured debt',{placeholder:'0'})]},
+    {key:'minPay',title:'What are your current minimum monthly payments?',subtitle:'Across those cards and loans combined.',fields:[money('minMonthlyPayments','Min. monthly payments',{placeholder:'0'})]},
+    {key:'credit',title:'What’s your current estimated credit score?',auto:true,fields:[creditField]},
+    {key:'behind',title:'Are you behind on any payments?',fields:[
+      choice('behind','Behind on payments',YESNO),
+      choice('behindHowFar','How far behind are you?',['Less than 30 days','30–60 days','60–90 days','90+ days'],{label:'How far behind?',showIf:function(d){return d.behind==='Yes';}})
+    ]},
+    {key:'enrolled',title:'Are you currently enrolled in a debt relief program?',fields:[
+      choice('enrolled','Enrolled in a debt relief program',YESNO),
+      money('reliefPayment','Current program monthly payment',{label:'What is your monthly payment?',placeholder:'0',showIf:function(d){return d.enrolled==='Yes';}})
+    ]},
+    {key:'state',title:'What state do you reside in?',fields:[stateF('residenceState','State of residence',{label:'State'})]},
+    {key:'contact',title:'How can we reach you?',subtitle:'A specialist will follow up with your options.',fields:contactFields(null)}
+  ];
+
+  STEPS.business=[
+    {key:'purpose',title:'What’s the purpose of the funds?',fields:[{type:'textarea',id:'fundsPurpose',q:'Purpose of funds',label:'Tell us how you plan to use the funds',placeholder:'e.g. inventory, expansion, payroll, marketing, working capital…'}]},
+    {key:'equipment',title:'Will any of the funds be used for equipment?',fields:[
+      choice('usesEquipment','Funds used for equipment',YESNO),
+      money('equipmentAmount','Amount for equipment',{label:'How much for equipment?',placeholder:'0',showIf:function(d){return d.usesEquipment==='Yes';}})
+    ]},
+    {key:'time',title:'How long have you been in business?',auto:true,fields:[choice('timeInBusiness','Time in business',TIME_IN_BIZ)]},
+    {key:'revenue',title:'What’s your current monthly business revenue?',fields:[money('monthlyRevenue','Current monthly revenue',{placeholder:'0'})]},
+    {key:'entity',title:'What’s your business entity type?',auto:true,fields:[choice('entityType','Business entity type',ENTITY)]},
+    {key:'industry',title:'What industry is the business in?',fields:[txt('industry','Industry',{label:'Industry',placeholder:'e.g. Construction, Restaurant, E-commerce'})]},
+    {key:'amount',title:'How much funding do you need?',fields:[money('fundingNeeded','Funding needed',{placeholder:'0'})]},
+    {key:'bizName',title:'What’s the name of your business?',fields:[txt('businessName','Business name',{label:'Business name',placeholder:'Legal or DBA name'})]},
+    {key:'ownership',title:'What’s your ownership percentage in the business?',subtitle:'Slide to set your ownership stake.',fields:[{type:'slider',id:'ownershipPct',q:'Ownership percentage',unit:'percent',min:0,max:100,step:1,def:100}]},
+    {key:'income',title:'Total annual income (including personal income)',fields:[money('totalAnnualIncome','Total annual income',{placeholder:'0'})]},
+    {key:'credit',title:'What’s your estimated credit score?',auto:true,fields:[creditField]},
+    {key:'state',title:'What state does the business operate in?',fields:[stateF('businessState','State of operation',{label:'State'})]},
+    {key:'contact',title:'How can we reach you?',subtitle:'A specialist will follow up with next steps.',fields:contactFields(null)}
+  ];
+
+  STEPS.solar=[
+    {key:'propAddr',title:'What’s the property address?',fields:[{type:'address',id:'propertyAddress',q:'Property address',label:'Property address'}]},
+    {key:'bill',title:'What’s your average monthly electricity bill?',subtitle:'You can optionally upload a recent statement for a more accurate estimate.',fields:[
+      money('electricBill','Avg. monthly electricity bill',{placeholder:'0'}),
+      {type:'file',id:'electricStatement',q:'Recent electric statement',label:'Recent electric statement (optional)',required:false}
+    ]},
+    {key:'ev',title:'Do you own an electric vehicle?',auto:true,fields:[choice('ownsEV','Owns an electric vehicle',YESNO)]},
+    {key:'mortgage',title:'Do you currently have a mortgage on the home?',fields:[
+      choice('hasMortgage','Has a mortgage on the home',YESNO),
+      money('mortgageBalance','Current mortgage balance',{label:'What’s the balance?',placeholder:'0',showIf:function(d){return d.hasMortgage==='Yes';}})
+    ]},
+    {key:'credit',title:'What’s your estimated FICO score?',auto:true,fields:[choice('creditScore','Estimated FICO score',CREDIT)]},
+    {key:'contact',title:'How can we reach you?',subtitle:'A specialist will follow up with your options.',fields:contactFields(null)}
+  ];
+
+  /* ---------- state ---------- */
+  var S={screen:'landing',funnel:'',subFunnel:'',stepIndex:0,data:{},attachment:null,refId:'',submitting:false};
+  var app=document.getElementById('app');
+
+  function currentSteps(){
+    if(S.funnel==='mortgage')return S.subFunnel==='refinance'?STEPS.mortgageRefi:STEPS.mortgagePurchase;
+    return STEPS[S.funnel]||[];
+  }
+  function funnelLabel(){
+    if(S.funnel==='mortgage')return 'Mortgage — '+(S.subFunnel==='refinance'?'Refinance':'Purchase');
+    return {debt:'Debt Settlement',solar:'Solar',business:'Business Funding'}[S.funnel]||'Application';
+  }
+
+  /* ---------- utilities ---------- */
+  function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function fmtMoney(v){var n=Number(String(v).replace(/[^0-9.]/g,''));return isFinite(n)?n.toLocaleString('en-US'):'';}
+  function digits(v){return String(v==null?'':v).replace(/\D/g,'');}
+  function findField(id){var steps=currentSteps();for(var i=0;i<steps.length;i++){var fs=steps[i].fields;for(var j=0;j<fs.length;j++){if(fs[j].id===id)return{step:steps[i],field:fs[j]};}}return{step:null,field:null};}
+
+  /* ---------- header / chrome ---------- */
+  function header(inFunnel){
+    return '<header class="site-head"><div class="brand"><div class="brand-mark">◆</div>'+
+      '<div class="brand-txt"><strong>Application Center</strong><span>Secure intake form</span></div></div>'+
+      '<div class="head-right">'+(inFunnel?'<button class="restart-link" onclick="restart()">Start over</button>':'')+
+      '<span class="secure">🔒 Secure &amp; confidential</span></div></header>';
+  }
+  function footerNote(){return '<p class="footer-note">Your information is kept confidential and used only to prepare your application. Submitting this form does not guarantee approval, an offer, or an obligation to lend.</p>';}
+
+  /* ---------- screens ---------- */
+  function render(){
+    if(S.screen==='landing')return renderLanding();
+    if(S.screen==='subselect')return renderSubselect();
+    if(S.screen==='steps')return renderSteps();
+    if(S.screen==='review')return renderReview();
+    if(S.screen==='success')return renderSuccess();
+  }
+
+  function optionCard(key,fn,icon,title,desc){
+    return '<button class="opt" onclick="'+fn+'(\''+key+'\')"><div class="opt-ic">'+icon+'</div>'+
+      '<div class="opt-title">'+esc(title)+'</div><div class="opt-desc">'+esc(desc)+'</div><div class="opt-arrow">→</div></button>';
+  }
+
+  function renderLanding(){
+    app.innerHTML=header(false)+'<div class="wrap">'+
+      '<div class="hero"><h1>What can we help you with?</h1><p>Choose an option below to get started. It only takes a couple of minutes.</p></div>'+
+      '<div class="options">'+
+        optionCard('mortgage','chooseFunnel','🏠','Mortgage','Purchase a home or refinance your current loan')+
+        optionCard('debt','chooseFunnel','💳','Debt Settlement','Reduce and resolve your unsecured debt')+
+        optionCard('solar','chooseFunnel','☀️','Solar','Finance a solar installation for your home')+
+        optionCard('business','chooseFunnel','📈','Business Funding','Working capital and equipment financing')+
+      '</div>'+footerNote()+'</div>';
+  }
+
+  function renderSubselect(){
+    app.innerHTML=header(true)+'<div class="wrap">'+
+      '<div class="hero"><h1>Mortgage</h1><p>Are you buying a home or refinancing your current one?</p></div>'+
+      '<div class="options two">'+
+        optionCard('purchase','chooseSub','🔑','Purchase','I’m buying a home')+
+        optionCard('refinance','chooseSub','♻️','Refinance','I want to refinance my current mortgage')+
+      '</div>'+
+      '<button class="btn ghost wide" onclick="restart()">← Back to all options</button></div>';
+  }
+
+  function renderSteps(){
+    var steps=currentSteps(),step=steps[S.stepIndex];
+    var pct=Math.round(((S.stepIndex+1)/steps.length)*100);
+    var last=S.stepIndex===steps.length-1;
+    app.innerHTML=header(true)+'<div class="wrap">'+
+      '<div class="progress"><div class="progress-top"><span>'+esc(funnelLabel())+'</span><span>Step '+(S.stepIndex+1)+' of '+steps.length+'</span></div>'+
+      '<div class="track"><div class="fill" style="width:'+pct+'%"></div></div></div>'+
+      '<div class="qcard"><div class="alert" id="alert"></div>'+
+      '<h2 class="q-title">'+esc(step.title)+'</h2>'+
+      (step.subtitle?'<p class="q-sub">'+esc(step.subtitle)+'</p>':'')+
+      '<div class="q-fields">'+step.fields.map(fieldHtml).join('')+'</div>'+
+      '<div class="nav"><button class="btn ghost" onclick="backStep()">← Back</button>'+
+      '<button class="btn primary" onclick="nextStep()">'+(last?'Review →':'Continue →')+'</button></div>'+
+      '</div>'+footerNote()+'</div>';
+    bindStep(step);
+  }
+
+  /* ---------- field rendering ---------- */
+  function fieldHtml(f){
+    if(f.showIf && !f.showIf(S.data))return '';
+    var composite=f.type==='name'||f.type==='address';
+    var lbl=f.label?('<label class="q-label">'+esc(f.label)+(f.required!==false?' <span class="req">*</span>':'')+(f.hint?' <span style="color:var(--muted);font-weight:500">— '+esc(f.hint)+'</span>':'')+'</label>'):'';
+    return '<div class="qfield" id="fld-'+f.id+'">'+lbl+control(f)+(composite?'':'<div class="fld-err">'+esc(errMsg(f))+'</div>')+'</div>';
+  }
+  function control(f){
+    switch(f.type){
+      case 'choice':return choiceHtml(f);
+      case 'select':return selectHtml(f.id,f.options);
+      case 'state':return selectHtml(f.id,US_STATES,'— Select state —');
+      case 'money':return moneyHtml(f);
+      case 'percent':return percentHtml(f);
+      case 'slider':return sliderHtml(f);
+      case 'textarea':return '<textarea id="in-'+f.id+'" class="in" rows="4" placeholder="'+esc(f.placeholder||'')+'">'+esc(S.data[f.id]||'')+'</textarea>';
+      case 'file':return fileHtml(f);
+      case 'name':return nameHtml();
+      case 'address':return addressHtml(f);
+      case 'email':return inputHtml(f,'email','email');
+      case 'tel':return inputHtml(f,'tel','tel');
+      default:return inputHtml(f,'text',f.autocomplete||'');
+    }
+  }
+  function inputHtml(f,type,ac){
+    return '<input id="in-'+f.id+'" class="in" type="'+type+'" '+(ac?'autocomplete="'+ac+'" ':'')+'placeholder="'+esc(f.placeholder||'')+'" value="'+esc(S.data[f.id]||'')+'">';
+  }
+  function choiceHtml(f){
+    var two=f.options.length===2;
+    var btns=f.options.map(function(o,i){
+      var s=S.data[f.id]===o;
+      return '<button type="button" class="choice'+(s?' sel':'')+'" onclick="pick(\''+f.id+'\','+i+')"><span>'+esc(o)+'</span><span class="ck">✓</span></button>';
+    }).join('');
+    return '<div class="choice-grid '+(two?'two':'one')+'">'+btns+'</div>';
+  }
+  function selectHtml(id,options,ph){
+    var opts='<option value="">'+(ph||'— Select —')+'</option>'+options.map(function(o){
+      return '<option'+(S.data[id]===o?' selected':'')+'>'+esc(o)+'</option>';
+    }).join('');
+    return '<select id="in-'+id+'" class="in">'+opts+'</select>';
+  }
+  function moneyHtml(f){
+    var v=S.data[f.id]||'';var disp=v!==''?fmtMoney(v):'';
+    return '<div class="money"><span class="pfx">$</span><input id="in-'+f.id+'" class="in" inputmode="numeric" placeholder="'+esc(f.placeholder||'0')+'" value="'+esc(disp)+'"></div>';
+  }
+  function percentHtml(f){
+    var v=S.data[f.id]||'';
+    return '<div class="money pct"><input id="in-'+f.id+'" class="in" inputmode="decimal" placeholder="'+esc(f.placeholder||'0')+'" value="'+esc(v)+'"><span class="sfx">%</span></div>';
+  }
+  function sliderRange(f){
+    var min=f.min,max=f.max,step=f.step||1;
+    if(f.id==='downPayment'){var price=Number(S.data.purchasePrice||0)||400000;min=0;max=price;step=f.step||5000;}
+    return {min:min,max:max,step:step};
+  }
+  function sliderVal(f){
+    var r=sliderRange(f);var v=S.data[f.id];
+    if(v===undefined||v===''||isNaN(Number(v))){
+      if(f.id==='downPayment'){var price=Number(S.data.purchasePrice||0)||400000;v=Math.round(price*0.2/r.step)*r.step;}
+      else v=(f.def!=null?f.def:r.min);
+      if(v>r.max)v=r.max;if(v<r.min)v=r.min;
+      S.data[f.id]=String(v);
+    }
+    return Number(S.data[f.id]);
+  }
+  function sliderDisplay(f,v){
+    if(f.unit==='money'){
+      if(f.showPct){var price=Number(S.data.purchasePrice||0);var pct=price?Math.round(v/price*100):0;return '$'+fmtMoney(v)+' <small>('+pct+'% of price)</small>';}
+      return '$'+fmtMoney(v);
+    }
+    if(f.unit==='percent')return v+'%';
+    return String(v);
+  }
+  function sliderEnd(f,x){if(f.unit==='money')return '$'+fmtMoney(x);if(f.unit==='percent')return x+'%';return String(x);}
+  function sliderHtml(f){
+    var r=sliderRange(f);var v=sliderVal(f);
+    return '<div class="slider"><div class="slider-val" id="sv-'+f.id+'">'+sliderDisplay(f,v)+'</div>'+
+      '<input id="in-'+f.id+'" class="range" type="range" min="'+r.min+'" max="'+r.max+'" step="'+r.step+'" value="'+v+'">'+
+      '<div class="slider-ends"><span>'+sliderEnd(f,r.min)+'</span><span>'+sliderEnd(f,r.max)+'</span></div></div>';
+  }
+  function fileHtml(f){
+    var has=S.attachment&&S.attachment.field===f.id;
+    return '<div class="file"><input id="in-'+f.id+'" class="file-in" type="file" accept="image/*,application/pdf" onchange="onFile(this,\''+f.id+'\')">'+
+      '<label for="in-'+f.id+'" class="file-btn">'+(has?'📎 '+esc(S.attachment.filename):'⬆ Choose file (image or PDF)')+'</label>'+
+      '<div class="file-note" id="fnote-'+f.id+'">'+(has?fileNote(S.attachment):'Optional — a recent statement helps us give an accurate estimate.')+'</div></div>';
+  }
+  function fileNote(a){var kb=a.size/1024;var sz=kb>1024?(kb/1024).toFixed(1)+' MB':Math.round(kb)+' KB';return 'Attached: '+esc(a.filename)+' ('+sz+')'+(a.tooBig?' — too large to email; a specialist may request it directly.':'');}
+  function nameHtml(){
+    return '<div class="grid2">'+
+      '<div class="qfield-sub" id="fld-firstName"><label class="q-label">First name <span class="req">*</span></label><input id="in-firstName" class="in" type="text" autocomplete="given-name" value="'+esc(S.data.firstName||'')+'"><div class="fld-err">Enter your first name</div></div>'+
+      '<div class="qfield-sub" id="fld-lastName"><label class="q-label">Last name <span class="req">*</span></label><input id="in-lastName" class="in" type="text" autocomplete="family-name" value="'+esc(S.data.lastName||'')+'"><div class="fld-err">Enter your last name</div></div>'+
+      '</div>';
+  }
+  function addressHtml(f){
+    var id=f.id;
+    return '<div class="addr-grid">'+
+      '<div class="qfield-sub full" id="fld-'+id+'_street"><label class="q-label">Street address <span class="req">*</span></label><input id="in-'+id+'_street" class="in" type="text" autocomplete="street-address" value="'+esc(S.data[id+'_street']||'')+'"><div class="fld-err">Enter the street address</div></div>'+
+      '<div class="qfield-sub full" id="fld-'+id+'_city"><label class="q-label">City <span class="req">*</span></label><input id="in-'+id+'_city" class="in" type="text" value="'+esc(S.data[id+'_city']||'')+'"><div class="fld-err">Enter the city</div></div>'+
+      '<div class="qfield-sub" id="fld-'+id+'_state"><label class="q-label">State <span class="req">*</span></label>'+selectHtml(id+'_state',US_STATES,'— State —')+'<div class="fld-err">Select a state</div></div>'+
+      '<div class="qfield-sub" id="fld-'+id+'_zip"><label class="q-label">ZIP <span class="req">*</span></label><input id="in-'+id+'_zip" class="in" inputmode="numeric" maxlength="5" value="'+esc(S.data[id+'_zip']||'')+'"><div class="fld-err">Enter a 5-digit ZIP</div></div>'+
+      '</div>';
+  }
+  function errMsg(f){
+    if(f.type==='email')return 'Enter a valid email address';
+    if(f.type==='tel')return 'Enter a 10-digit phone number';
+    if(f.type==='money'||f.type==='percent')return 'Enter an amount';
+    if(f.type==='choice')return 'Please select an option';
+    if(f.type==='select'||f.type==='state')return 'Please make a selection';
+    return 'This field is required';
+  }
+
+  /* ---------- binding ---------- */
+  function clearInvalid(el){var w=el.closest('.qfield,.qfield-sub');if(w)w.classList.remove('invalid');}
+  function bindText(key){var el=document.getElementById('in-'+key);if(!el)return;el.addEventListener('input',function(){S.data[key]=el.value;clearInvalid(el);});}
+  function bindSelect(key){var el=document.getElementById('in-'+key);if(!el)return;el.addEventListener('change',function(){S.data[key]=el.value;clearInvalid(el);});}
+  function bindMoney(key){var el=document.getElementById('in-'+key);if(!el)return;el.addEventListener('input',function(){var d=el.value.replace(/\D/g,'');S.data[key]=d;el.value=d?fmtMoney(d):'';clearInvalid(el);});}
+  function bindPercent(key){var el=document.getElementById('in-'+key);if(!el)return;el.addEventListener('input',function(){var v=el.value.replace(/[^0-9.]/g,'');var p=v.split('.');if(p.length>2)v=p[0]+'.'+p.slice(1).join('');S.data[key]=v;el.value=v;clearInvalid(el);});}
+  function bindZip(key){var el=document.getElementById('in-'+key);if(!el)return;el.addEventListener('input',function(){var d=el.value.replace(/\D/g,'').slice(0,5);S.data[key]=d;el.value=d;clearInvalid(el);});}
+  function bindPhone(key){var el=document.getElementById('in-'+key);if(!el)return;el.addEventListener('input',function(){var d=el.value.replace(/\D/g,'').slice(0,10);var out=d;if(d.length>6)out='('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6);else if(d.length>3)out='('+d.slice(0,3)+') '+d.slice(3);else if(d.length>0)out='('+d;S.data[key]=out;el.value=out;clearInvalid(el);});}
+  function bindSlider(f){var el=document.getElementById('in-'+f.id);if(!el)return;el.addEventListener('input',function(){S.data[f.id]=el.value;var sv=document.getElementById('sv-'+f.id);if(sv)sv.innerHTML=sliderDisplay(f,Number(el.value));});}
+  function bindStep(step){
+    step.fields.forEach(function(f){
+      if(f.showIf && !f.showIf(S.data))return;
+      switch(f.type){
+        case 'name':bindText('firstName');bindText('lastName');break;
+        case 'address':bindText(f.id+'_street');bindText(f.id+'_city');bindSelect(f.id+'_state');bindZip(f.id+'_zip');break;
+        case 'money':bindMoney(f.id);break;
+        case 'percent':bindPercent(f.id);break;
+        case 'slider':bindSlider(f);break;
+        case 'select':case 'state':bindSelect(f.id);break;
+        case 'tel':bindPhone(f.id);break;
+        case 'textarea':case 'text':case 'email':bindText(f.id);break;
+        case 'choice':case 'file':break;
+      }
+    });
+  }
+
+  /* ---------- interactions ---------- */
+  window.chooseFunnel=function(k){S.funnel=k;S.subFunnel='';S.stepIndex=0;S.screen=(k==='mortgage'?'subselect':'steps');render();window.scrollTo(0,0);};
+  window.chooseSub=function(s){S.subFunnel=s;S.stepIndex=0;S.screen='steps';render();window.scrollTo(0,0);};
+  window.pick=function(id,i){
+    var loc=findField(id);if(!loc.field)return;
+    S.data[id]=loc.field.options[i];
+    var auto=!!loc.step.auto && loc.step.fields.length===1;
+    if(auto){
+      var w=document.getElementById('fld-'+id);
+      if(w){var bs=w.querySelectorAll('.choice');for(var k=0;k<bs.length;k++)bs[k].classList.toggle('sel',k===i);w.classList.remove('invalid');}
+      setTimeout(function(){go(1);},230);
+    }else{
+      renderSteps();
+    }
+  };
+  window.onFile=function(input,id){
+    var file=input.files&&input.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(){
+      var tooBig=file.size>4.3*1024*1024;
+      S.attachment={field:id,filename:file.name,content:reader.result,size:file.size,tooBig:tooBig};
+      var lab=document.querySelector('label[for="in-'+id+'"]');if(lab)lab.innerHTML='📎 '+esc(file.name);
+      var note=document.getElementById('fnote-'+id);if(note)note.innerHTML=fileNote(S.attachment);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  function go(dir){
+    var steps=currentSteps();
+    if(dir>0 && !validateStep(steps[S.stepIndex]))return;
+    var ni=S.stepIndex+dir;
+    if(ni<0){if(S.funnel==='mortgage'){S.screen='subselect';}else{S.screen='landing';S.funnel='';}render();window.scrollTo(0,0);return;}
+    if(ni>=steps.length){S.screen='review';render();window.scrollTo(0,0);return;}
+    S.stepIndex=ni;render();window.scrollTo(0,0);
+  }
+  window.nextStep=function(){go(1);};
+  window.backStep=function(){go(-1);};
+
+  function mark(key,first){var el=document.getElementById('fld-'+key);if(el)el.classList.add('invalid');return first||('fld-'+key);}
+  function validateStep(step){
+    var alertEl=document.getElementById('alert');if(alertEl)alertEl.classList.remove('show');
+    var first=null;var d=S.data;
+    step.fields.forEach(function(f){
+      if(f.showIf && !f.showIf(S.data))return;
+      var req=f.required!==false;
+      if(f.type==='name'){if(req){if(!String(d.firstName||'').trim())first=mark('firstName',first);if(!String(d.lastName||'').trim())first=mark('lastName',first);}return;}
+      if(f.type==='address'){if(req){['_street','_city','_state'].forEach(function(s){if(!String(d[f.id+s]||'').trim())first=mark(f.id+s,first);});if(!/^\d{5}$/.test(d[f.id+'_zip']||''))first=mark(f.id+'_zip',first);}return;}
+      if(f.type==='email'){if(req&&!emailRe.test(d[f.id]||''))first=mark(f.id,first);return;}
+      if(f.type==='tel'){if(req&&digits(d[f.id]).length!==10)first=mark(f.id,first);return;}
+      if(f.type==='money'||f.type==='percent'){if(req&&(!(d[f.id])||Number(d[f.id])<=0))first=mark(f.id,first);return;}
+      if(f.type==='slider'||f.type==='file')return;
+      if(f.type==='choice'||f.type==='select'||f.type==='state'){if(req&&!d[f.id])first=mark(f.id,first);return;}
+      if(req&&!String(d[f.id]||'').trim())first=mark(f.id,first);
+    });
+    if(first){if(alertEl){alertEl.textContent='Please complete the highlighted field(s) to continue.';alertEl.classList.add('show');}var e=document.getElementById(first);if(e&&e.scrollIntoView)e.scrollIntoView({block:'center',behavior:'smooth'});return false;}
+    return true;
+  }
+
+  /* ---------- summaries ---------- */
+  function fieldSummary(f){
+    var d=S.data;
+    if(f.type==='name')return[{label:f.q||'Name',value:((d.firstName||'')+' '+(d.lastName||'')).trim()}];
+    if(f.type==='address'){var v=[d[f.id+'_street'],d[f.id+'_city'],d[f.id+'_state'],d[f.id+'_zip']].filter(Boolean).join(', ');return[{label:f.q||f.label||'Address',value:v}];}
+    var raw=d[f.id];var val=raw==null?'':String(raw);
+    if(f.type==='money')val=val!==''?'$'+fmtMoney(val):'';
+    else if(f.type==='percent')val=val!==''?val+'%':'';
+    else if(f.type==='slider'){
+      if(f.unit==='money'){if(f.showPct){var price=Number(d.purchasePrice||0);var pct=price?Math.round(Number(val)/price*100):0;val=val!==''?'$'+fmtMoney(val)+' ('+pct+'%)':'';}else val=val!==''?'$'+fmtMoney(val):'';}
+      else if(f.unit==='percent')val=val!==''?val+'%':'';
+    }
+    else if(f.type==='file')val=S.attachment?S.attachment.filename:'Not provided';
+    return[{label:f.q||f.label||f.id,value:val}];
+  }
+  function summaryItems(){
+    var out=[],steps=currentSteps();
+    steps.forEach(function(step){
+      step.fields.forEach(function(f){
+        if(f.showIf && !f.showIf(S.data))return;
+        fieldSummary(f).forEach(function(p){if(p)out.push({label:p.label,value:p.value,contact:step.key==='contact'});});
+      });
+    });
+    return out;
+  }
+  function buildSections(){
+    var items=summaryItems();
+    var details={heading:funnelLabel()+' — Details',items:[]};
+    var contact={heading:'Contact & Applicant',items:[]};
+    items.forEach(function(it){(it.contact?contact:details).items.push({label:it.label,value:it.value});});
+    var secs=[];if(details.items.length)secs.push(details);if(contact.items.length)secs.push(contact);return secs;
+  }
+  function copyText(){
+    var items=summaryItems(),L=[];
+    L.push(funnelLabel()+' — Application Summary');
+    L.push('Submitted: '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}));
+    if(S.refId)L.push('Reference: '+S.refId);
+    L.push('');
+    items.forEach(function(it){L.push(it.label);L.push('   '+(it.value||'—'));L.push('');});
+    L.push('Submitted via form.mtgikhan.com');
+    return L.join('\n');
+  }
+
+  /* ---------- review + submit ---------- */
+  function renderReview(){
+    var items=summaryItems();
+    app.innerHTML=header(true)+'<div class="wrap">'+
+      '<div class="qcard"><div class="alert" id="alert"></div>'+
+      '<h2 class="q-title">Review your answers</h2>'+
+      '<p class="q-sub">Make sure everything looks right, then submit. A specialist will reach out shortly.</p>'+
+      '<div class="review">'+items.map(function(it){return '<div class="rev-row"><div class="rev-q">'+esc(it.label)+'</div><div class="rev-a">'+(esc(it.value)||'—')+'</div></div>';}).join('')+'</div>'+
+      '<label class="consent"><input type="checkbox" id="consent"><span>I agree to be contacted by phone, text, and email about my inquiry. I understand submitting this form does not guarantee approval or an offer.</span></label>'+
+      '<div class="nav"><button class="btn ghost" onclick="editReview()">← Edit</button>'+
+      '<button class="btn primary" id="submitBtn" onclick="submitApp()">Submit application ✓</button></div>'+
+      '</div>'+footerNote()+'</div>';
+  }
+  window.editReview=function(){S.screen='steps';S.stepIndex=currentSteps().length-1;render();window.scrollTo(0,0);};
+
+  window.submitApp=function(){
+    if(S.submitting)return;
+    var consent=document.getElementById('consent');
+    var alertEl=document.getElementById('alert');
+    if(consent && !consent.checked){if(alertEl){alertEl.textContent='Please agree to be contacted so we can follow up on your inquiry.';alertEl.classList.add('show');}consent.parentElement.scrollIntoView({block:'center',behavior:'smooth'});return;}
+    S.submitting=true;
+    var btn=document.getElementById('submitBtn');if(btn){btn.disabled=true;btn.textContent='Submitting…';}
+
+    var payload={
+      appDate:new Date().toISOString().slice(0,10),
+      funnel:S.funnel,
+      funnelLabel:funnelLabel(),
+      contactName:((S.data.firstName||'')+' '+(S.data.lastName||'')).trim(),
+      contactEmail:S.data.email||'',
+      contactPhone:S.data.phone||'',
+      sections:buildSections()
+    };
+    if(S.attachment && !S.attachment.tooBig){payload.attachment={filename:S.attachment.filename,content:S.attachment.content};}
+
+    fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+      .then(function(res){if(!res.ok)throw new Error('bad');return res.json();})
+      .then(function(json){S.refId=(json&&json.refId)||'';S.submitting=false;S.screen='success';render();window.scrollTo(0,0);})
+      .catch(function(){
+        S.submitting=false;
+        if(btn){btn.disabled=false;btn.textContent='Submit application ✓';}
+        if(alertEl){alertEl.textContent='We couldn’t submit your application. Please check your connection and try again.';alertEl.classList.add('show');}
+      });
+  };
+
+  /* ---------- success ---------- */
+  function renderSuccess(){
+    var text=copyText();
+    var first=S.data.firstName?', '+esc(S.data.firstName):'';
+    app.innerHTML=header(false)+'<div class="wrap"><div class="qcard success">'+
+      '<div class="succ-badge">✓</div>'+
+      '<h2 class="q-title" style="text-align:center">Application received</h2>'+
+      '<p class="q-sub" style="text-align:center">Thank you'+first+' — your '+esc(funnelLabel())+' inquiry has been submitted and our team has been notified. A specialist will reach out to you soon.</p>'+
+      (S.refId?'<div style="text-align:center"><span class="ref">Reference '+esc(S.refId)+'</span></div>':'')+
+      '<div class="copy-wrap"><div class="copy-head"><span>Your questions &amp; answers</span><button class="btn primary small" id="copyBtn" onclick="copyAnswers()">Copy to clipboard</button></div>'+
+      '<textarea id="copyArea" class="copy-area" readonly>'+esc(text)+'</textarea>'+
+      '<p class="copy-note">Copy this and paste it into an email for your own records or to share with your specialist.</p></div>'+
+      '<button class="btn ghost wide" onclick="restart()">Start a new application</button>'+
+      '</div></div>';
+  }
+  window.copyAnswers=function(){
+    var ta=document.getElementById('copyArea');if(!ta)return;
+    ta.focus();ta.select();ta.setSelectionRange(0,999999);
+    function done(){var b=document.getElementById('copyBtn');if(b){var t=b.textContent;b.textContent='Copied ✓';setTimeout(function(){b.textContent=t;},1800);}}
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).then(done).catch(function(){if(ok)done();});}
+    else if(ok)done();
+  };
+
+  window.restart=function(){
+    S.screen='landing';S.funnel='';S.subFunnel='';S.stepIndex=0;S.data={};S.attachment=null;S.refId='';S.submitting=false;
+    render();window.scrollTo(0,0);
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
