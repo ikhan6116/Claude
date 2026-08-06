@@ -204,7 +204,7 @@
   /* ---------- constants ---------- */
   var US_STATES=['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
   var CREDIT=['800+ (Excellent)','740–799 (Very good)','670–739 (Good)','580–669 (Fair)','Below 580 (Poor)','Not sure'];
-  var PROPERTY=['Single-family (SFR)','Duplex','Multi-family (3–4 units)'];
+  var PROPERTY=['Single-family (SFR)','Condo / Townhome','Duplex','Multi-family (3–4 units)'];
   var OCCUPANCY=['Primary residence','Investment','Vacation / second home'];
   var EMPLOYMENT=['W-2 employee','1099 contractor','Self-employed'];
   var ENTITY=['Sole proprietorship','Partnership','LLC','S-Corporation','C-Corporation'];
@@ -287,6 +287,10 @@
     {key:'enrolled',title:'Are you currently enrolled in a debt relief program?',fields:[
       choice('enrolled','Enrolled in a debt relief program',YESNO),
       money('reliefPayment','Current program monthly payment',{label:'What is your monthly payment?',placeholder:'0',showIf:function(d){return d.enrolled==='Yes';}})
+    ]},
+    {key:'payday',title:'Do you currently have any payday loans?',fields:[
+      choice('paydayLoans','Has payday loans',YESNO),
+      money('paydayBalance','Total payday loan balance',{label:'Roughly how much do you owe on payday loans?',placeholder:'0',showIf:function(d){return d.paydayLoans==='Yes';}})
     ]},
     {key:'state',title:'What state do you reside in?',fields:[stateF('residenceState','State of residence',{label:'State'})]},
     {key:'contact',title:'How can we reach you?',subtitle:'A specialist will follow up with your options.',fields:contactFields(null)}
