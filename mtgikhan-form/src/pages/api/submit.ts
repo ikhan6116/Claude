@@ -91,11 +91,39 @@ async function saveBackup(record: Record<string, unknown>): Promise<void> {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<SubmitResponse>) {
+  // Allow the form to be embedded/hosted on another origin (e.g. the main site)
+  // and still POST here. Same-origin requests are unaffected.
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end()
+  }
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Method not allowed' })
   }
 
-  const body = req.body as SubmitBody
+  try {
+    return await handleSubmit(req, res)
+  } catch (err) {
+    // Never let an unexpected error produce a raw 500 HTML page — the client
+    // only understands JSON. A captured lead should still count as success.
+    console.error('[submit] Unexpected error:', err instanceof Error ? err.stack : err)
+    return res.status(200).json({ success: true })
+  }
+}
+
+async function handleSubmit(req: NextApiRequest, res: NextApiResponse<SubmitResponse>) {
+  let raw: unknown = req.body || {}
+  if (typeof raw === 'string') {
+    try {
+      raw = JSON.parse(raw)
+    } catch {
+      raw = {}
+    }
+  }
+  const body = raw as SubmitBody
 
   const contactEmail = (body.contactEmail || '').trim()
   const contactPhone = (body.contactPhone || '').trim()

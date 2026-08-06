@@ -180,6 +180,8 @@
   .qcard.success{text-align:left;}
   .succ-badge{width:64px;height:64px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;
     background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:32px;box-shadow:0 12px 26px rgba(22,163,74,.36);}
+  .warn-badge{width:60px;height:60px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;font-size:32px;font-weight:800;box-shadow:0 12px 26px rgba(245,158,11,.34);}
   .ref{margin:14px 0 4px;font-size:12.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-mid);
     background:var(--pale);border:1px solid var(--line);border-radius:99px;padding:8px 16px;display:inline-block;}
   .copy-wrap{margin-top:24px;border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;background:#f9fbfe;}
@@ -358,6 +360,7 @@
     if(S.screen==='subselect')return renderSubselect();
     if(S.screen==='steps')return renderSteps();
     if(S.screen==='review')return renderReview();
+    if(S.screen==='submitError')return renderSubmitError();
     if(S.screen==='success')return renderSuccess();
   }
 
@@ -661,10 +664,13 @@
     var consent=document.getElementById('consent');
     var alertEl=document.getElementById('alert');
     if(consent && !consent.checked){if(alertEl){alertEl.textContent='Please agree to be contacted so we can follow up on your inquiry.';alertEl.classList.add('show');}consent.parentElement.scrollIntoView({block:'center',behavior:'smooth'});return;}
-    S.submitting=true;
-    var btn=document.getElementById('submitBtn');if(btn){btn.disabled=true;btn.textContent='Submitting…';}
+    S.consent=true;
+    doSubmit();
+  };
+  window.retrySubmit=function(){if(!S.submitting)doSubmit();};
 
-    var payload={
+  function submitPayload(){
+    var p={
       appDate:new Date().toISOString().slice(0,10),
       funnel:S.funnel,
       funnelLabel:funnelLabel(),
@@ -673,17 +679,44 @@
       contactPhone:S.data.phone||'',
       sections:buildSections()
     };
-    if(S.attachment && !S.attachment.tooBig){payload.attachment={filename:S.attachment.filename,content:S.attachment.content};}
-
-    fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-      .then(function(res){if(!res.ok)throw new Error('bad');return res.json();})
+    if(S.attachment && !S.attachment.tooBig){p.attachment={filename:S.attachment.filename,content:S.attachment.content};}
+    return p;
+  }
+  function doSubmit(){
+    S.submitting=true;
+    var btn=document.getElementById('submitBtn')||document.getElementById('retryBtn');
+    if(btn){btn.disabled=true;btn.textContent='Submitting…';}
+    var status=0;
+    fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(submitPayload())})
+      .then(function(res){status=res.status;if(!res.ok)throw new Error('HTTP '+res.status);return res.json().catch(function(){return {};});})
       .then(function(json){S.refId=(json&&json.refId)||'';S.submitting=false;S.screen='success';render();window.scrollTo(0,0);})
-      .catch(function(){
+      .catch(function(err){
         S.submitting=false;
-        if(btn){btn.disabled=false;btn.textContent='Submit application ✓';}
-        if(alertEl){alertEl.textContent='We couldn’t submit your application. Please check your connection and try again.';alertEl.classList.add('show');}
+        S.submitError=status?('Server responded with HTTP '+status+'.'):'Could not reach the server (network error).';
+        S.screen='submitError';render();window.scrollTo(0,0);
       });
-  };
+  }
+
+  function mailtoHref(){
+    var name=((S.data.firstName||'')+' '+(S.data.lastName||'')).trim();
+    var subject=funnelLabel()+' Application'+(name?' — '+name:'');
+    return 'mailto:team@brightpath-fin.com,contact@brightpathfinance.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(copyText());
+  }
+  function renderSubmitError(){
+    var text=copyText();
+    app.innerHTML=header(true)+'<div class="wrap"><div class="qcard">'+
+      '<div class="warn-badge">!</div>'+
+      '<h2 class="q-title" style="text-align:center">Let’s get your answers to the team</h2>'+
+      '<p class="q-sub" style="text-align:center">We couldn’t reach our server automatically, so nothing was lost. Send your answers straight to our team with the button below — or copy them into an email yourself. You can also try submitting again.</p>'+
+      '<div style="text-align:center;margin-top:20px"><a class="btn primary" style="display:inline-block;text-decoration:none" href="'+mailtoHref()+'">📧 Email my answers to the team</a></div>'+
+      '<div class="copy-wrap"><div class="copy-head"><span>Your questions &amp; answers</span><button class="btn primary small" id="copyBtn" onclick="copyAnswers()">Copy to clipboard</button></div>'+
+      '<textarea id="copyArea" class="copy-area" readonly>'+esc(text)+'</textarea>'+
+      '<p class="copy-note">Paste this into an email to team@brightpath-fin.com and contact@brightpathfinance.com.</p></div>'+
+      '<div class="nav"><button class="btn ghost" onclick="editReview()">← Back</button>'+
+      '<button class="btn primary" id="retryBtn" onclick="retrySubmit()">Try submitting again</button></div>'+
+      '<p class="footer-note" style="margin-top:16px">Technical detail (for support): '+esc(S.submitError||'')+'</p>'+
+      '</div></div>';
+  }
 
   /* ---------- success ---------- */
   function renderSuccess(){

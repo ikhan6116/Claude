@@ -153,7 +153,10 @@ export async function sendApplicationNotification(app: ApplicationEmailData): Pr
   const attachments = app.attachments && app.attachments.length ? app.attachments : undefined
 
   // Send a single email with both recipients on the "to" line so the team
-  // sees each other. Fall back to per-address sends only if that fails.
+  // sees each other. A hard timeout guarantees a slow/blocked Resend call can
+  // never hang the serverless function past the platform limit.
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 8000)
   try {
     const res = await fetch(RESEND_API, {
       method: 'POST',
@@ -169,14 +172,17 @@ export async function sendApplicationNotification(app: ApplicationEmailData): Pr
         text,
         ...(attachments ? { attachments } : {}),
       }),
+      signal: controller.signal,
     })
-    const json = (await res.json()) as Record<string, unknown>
+    const json = (await res.json().catch(() => ({}))) as Record<string, unknown>
     if (!res.ok) {
-      console.error('[Email] Failed to send application notification:', json)
+      console.error('[Email] Failed to send application notification:', res.status, json)
     } else {
       console.log(`[Email] Application notification sent (id=${json.id})`)
     }
   } catch (err) {
     console.error('[Email] Error sending application notification:', err instanceof Error ? err.message : err)
+  } finally {
+    clearTimeout(timeout)
   }
 }
