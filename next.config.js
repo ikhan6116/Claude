@@ -4,6 +4,12 @@ const nextConfig = {
   images: {
     domains: [],
   },
+  async redirects() {
+    return [
+      // Make MEGHAN the front door of this deployment.
+      { source: '/', destination: '/meghan', permanent: false },
+    ];
+  },
   async headers() {
     return [
       {
