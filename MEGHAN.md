@@ -14,6 +14,9 @@ the rest of the app (community, resources, rescues, and the social feed).
 - **App / chat UI:** `/meghan`
 - **Feature sections:** `/meghan/community`, `/meghan/resources`, `/meghan/rescues`, `/meghan/petstagram`
 - **Chat API:** `POST /api/meghan/chat`
+- **Health/config check:** `GET /api/meghan/health` — reports whether the API key
+  is detected (never exposes it), e.g. `{ "configured": true, "mode": "live", "model": "claude-sonnet-5" }`.
+  Use it to confirm env-var setup in each environment.
 
 ```bash
 npm install

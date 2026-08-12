@@ -50,6 +50,11 @@ export class AnthropicClient {
     return this.apiKey.length > 0;
   }
 
+  /** The model id in use (safe to expose — not a secret). */
+  get modelName(): string {
+    return this.model;
+  }
+
   /**
    * Stream a completion, yielding text chunks as they arrive.
    * Throws AnthropicApiError on a non-2xx response or an API-level error event.
