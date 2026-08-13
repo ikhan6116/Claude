@@ -79,10 +79,13 @@ export class AnthropicClient {
         model: opts.model ?? this.model,
         // Roomy enough for MEGHAN's multi-section replies without runaway cost.
         max_tokens: opts.maxTokens ?? 1500,
-        temperature: opts.temperature ?? 0.6,
         system: opts.system,
         stream: true,
         messages: opts.messages.map((m) => ({ role: m.role, content: m.content })),
+        // Only send temperature when explicitly requested. Some newer models
+        // deprecate/reject it ("`temperature` is deprecated for this model"),
+        // and their default sampling is already well-tuned.
+        ...(opts.temperature !== undefined ? { temperature: opts.temperature } : {}),
       }),
       signal: opts.signal,
     });
