@@ -1,9 +1,13 @@
-# 🐾 MEGHAN — AI Veterinary Agent
+# 🐕 MyKobe — pet-care app, guided by MEGHAN
 
-MEGHAN is an empathetic, knowledgeable AI veterinary companion and the central
-guide for a pet-care app. She triages symptoms, gives **evidence-based** guidance
-plus an honest **"Real Talk"** read on products/supplements, and points users to
-the rest of the app (community, resources, rescues, and the social feed).
+**MyKobe** is the pet-care app; **MEGHAN** is the AI veterinary companion inside it —
+written to feel like the friend who became your vet. She runs a quick pet-profile
+intake (name/breed/age/weight/history), gives **breed-aware, preventive** guidance,
+evidence-based advice plus an honest **"Real Talk"** read on products/supplements
+(including emerging options like peptides), and points users to the rest of the app
+(community, resources, rescues, pet-friendly places, and the social feed).
+
+Brand names live in `src/lib/meghan/brand.ts` (`APP_NAME`, `BOT_NAME`).
 
 > ⚠️ MEGHAN is an AI assistant, **not** a licensed veterinarian and not a
 > substitute for a hands-on exam. She is built to escalate real emergencies to an
@@ -12,7 +16,7 @@ the rest of the app (community, resources, rescues, and the social feed).
 ## Try it
 
 - **App / chat UI:** `/meghan`
-- **Feature sections:** `/meghan/community`, `/meghan/resources`, `/meghan/rescues`, `/meghan/petstagram`
+- **Feature sections:** `/meghan/community`, `/meghan/resources`, `/meghan/rescues`, `/meghan/places` (pet-friendly map), `/meghan/petstagram` (with live-camera pet verification)
 - **Chat API:** `POST /api/meghan/chat`
 - **Health/config check:** `GET /api/meghan/health` — reports whether the API key
   is detected (never exposes it), e.g. `{ "configured": true, "mode": "live", "model": "claude-sonnet-5" }`.

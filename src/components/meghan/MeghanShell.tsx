@@ -2,6 +2,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 import { APP_FEATURES } from '@/lib/meghan/appFeatures';
+import { APP_NAME, BOT_NAME } from '@/lib/meghan/brand';
+import DogLogo from './DogLogo';
 
 interface MeghanShellProps {
   children: ReactNode;
@@ -13,8 +15,8 @@ interface MeghanShellProps {
 
 export default function MeghanShell({
   children,
-  title = 'MEGHAN | Your AI Vet & Pet-Care Companion',
-  description = 'MEGHAN is an empathetic AI veterinary companion: symptom triage, honest "Real Talk" product reviews, community, rescues, and more — all in one pet-care app.',
+  title = `${APP_NAME} | Your AI Vet & Pet-Care Companion`,
+  description = `${APP_NAME} is your pet-care home base, guided by ${BOT_NAME} — an empathetic AI vet for symptom triage, honest "Real Talk" product reviews, community, rescues, pet-friendly places, and more.`,
   narrow = false,
 }: MeghanShellProps) {
   return (
@@ -32,11 +34,11 @@ export default function MeghanShell({
         <header className="sticky top-0 z-40 border-b border-emerald-100 bg-white/90 backdrop-blur">
           <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
             <Link href="/meghan" className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-lg shadow-sm">
-                🐾
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
+                <DogLogo className="h-6 w-6 text-white" />
               </span>
               <span className="text-lg font-extrabold tracking-tight text-emerald-900">
-                MEGHAN
+                {APP_NAME}
               </span>
             </Link>
 
@@ -47,14 +49,14 @@ export default function MeghanShell({
                   href={f.href}
                   className="text-sm font-medium text-gray-600 transition-colors hover:text-emerald-700"
                 >
-                  {f.name.split(' ')[0]}
+                  {f.name.split(' ')[0].replace('Pet-Friendly', 'Places').replace(/,$/, '')}
                 </Link>
               ))}
               <Link
                 href="/meghan#chat"
                 className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600"
               >
-                Ask MEGHAN
+                Ask {BOT_NAME}
               </Link>
             </div>
 
@@ -62,7 +64,7 @@ export default function MeghanShell({
               href="/meghan#chat"
               className="rounded-full bg-emerald-500 px-3 py-1.5 text-sm font-semibold text-white md:hidden"
             >
-              Ask MEGHAN
+              Ask {BOT_NAME}
             </Link>
           </nav>
         </header>
@@ -76,18 +78,19 @@ export default function MeghanShell({
             <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-base">
-                    🐾
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500">
+                    <DogLogo className="h-5 w-5 text-white" />
                   </span>
-                  <span className="font-extrabold text-emerald-900">MEGHAN</span>
+                  <span className="font-extrabold text-emerald-900">{APP_NAME}</span>
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-gray-500">
-                  Your empathetic AI vet companion for everyday pet-care questions,
-                  honest product talk, and a community that gets it.
+                  Your pet-care home base, with {BOT_NAME} — the friend who became a vet —
+                  in your pocket for everyday questions, honest product talk, and a community
+                  that gets it.
                 </p>
               </div>
               <div className="md:col-span-2">
-                <h4 className="mb-3 text-sm font-semibold text-gray-900">Explore the app</h4>
+                <h4 className="mb-3 text-sm font-semibold text-gray-900">Explore {APP_NAME}</h4>
                 <ul className="grid grid-cols-2 gap-2 text-sm text-gray-600">
                   {APP_FEATURES.map((f) => (
                     <li key={f.id}>
@@ -104,19 +107,19 @@ export default function MeghanShell({
                   href="/meghan#chat"
                   className="inline-block rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
                 >
-                  Chat with MEGHAN
+                  Chat with {BOT_NAME}
                 </Link>
               </div>
             </div>
 
             <div className="mt-8 border-t border-gray-100 pt-6 text-center text-xs leading-relaxed text-gray-400">
               <p className="mx-auto max-w-3xl">
-                MEGHAN is an AI assistant and <strong>not a substitute for a licensed
+                {BOT_NAME} is an AI assistant and <strong>not a substitute for a licensed
                 veterinarian</strong> or a hands-on physical exam. In an emergency, contact
                 your nearest emergency vet immediately. For suspected poisoning, call the
                 ASPCA Animal Poison Control Center at (888) 426-4435.
               </p>
-              <p className="mt-3">&copy; {new Date().getFullYear()} MEGHAN Pet Care.</p>
+              <p className="mt-3">&copy; {new Date().getFullYear()} {APP_NAME}.</p>
             </div>
           </div>
         </footer>

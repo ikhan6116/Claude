@@ -17,9 +17,9 @@ export default function MeghanHome() {
               Your empathetic AI vet, available 24/7.
             </h1>
             <p className="mt-4 max-w-xl text-lg leading-relaxed text-gray-600">
-              Symptom triage, honest <strong>&ldquo;Real Talk&rdquo;</strong> reviews of pet
-              products and supplements, and a whole community behind you — MEGHAN helps you make
-              calm, confident decisions for the pet you love.
+              Meet MEGHAN — the friend who became a vet, always on call. Symptom triage, honest{' '}
+              <strong>&ldquo;Real Talk&rdquo;</strong> on products and supplements, breed-smart
+              preventive advice, and a whole community behind you.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link

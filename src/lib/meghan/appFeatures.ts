@@ -39,6 +39,16 @@ export const APP_FEATURES: AppFeature[] = [
       'the user wants a new pet, wants to help animals, or needs financial help with a vet bill (crowdfunding).',
   },
   {
+    id: 'places',
+    name: 'Pet-Friendly Places',
+    description:
+      'A map of dog-friendly stores, restaurants, hotels, and parks near you — BringFido-style.',
+    href: '/meghan/places',
+    icon: '📍',
+    promptFor:
+      'the user wants to go out with their pet — travel, dining, shopping, hotels, or finding a dog park.',
+  },
+  {
     id: 'petstagram',
     name: 'Pet-stagram',
     description:

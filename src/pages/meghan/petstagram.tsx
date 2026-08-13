@@ -1,4 +1,5 @@
 import FeaturePage from '@/components/meghan/FeaturePage';
+import PetVerification from '@/components/meghan/PetVerification';
 
 const POSTS = [
   { pet: 'Waffles', handle: '@waffles_thecorgi', emoji: '🐶', caption: 'Day 14 post-op and back to the zoomies! Thank you all for the support 💚', likes: 1284 },
@@ -16,24 +17,7 @@ export default function Petstagram() {
       title="Pet-stagram"
       subtitle="Share your pet's milestones, recovery wins, and cutest moments. Build a following — some pet creators here even land brand sponsorships."
     >
-      <div className="mb-8 flex flex-col items-center gap-3 rounded-2xl border border-emerald-100 bg-white p-6 text-center shadow-sm sm:flex-row sm:text-left">
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-3xl">
-          ✨
-        </span>
-        <div className="flex-1">
-          <h3 className="font-bold text-emerald-950">Share a milestone</h3>
-          <p className="text-sm text-gray-600">
-            Post a recovery update, a gotcha-day photo, or just a very good boy. Your community
-            loves a happy ending.
-          </p>
-        </div>
-        <button
-          type="button"
-          className="rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-600"
-        >
-          + New post
-        </button>
-      </div>
+      <PetVerification />
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {POSTS.map((p) => (

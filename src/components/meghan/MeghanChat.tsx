@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Markdown from './Markdown';
+import DogLogo from './DogLogo';
 import type { ChatMessage } from '@/lib/meghan/types';
+import { BOT_NAME } from '@/lib/meghan/brand';
 
 const SUGGESTIONS: string[] = [
-  "My golden retriever has a hot spot that won't heal — does that holistic TikTok spray actually work?",
-  "My cat has been sneezing for two days. Should I worry?",
-  "What's the real deal on glucosamine joint supplements for senior dogs?",
-  "I just lost my dog and I'm devastated. 💔",
+  'My 13-year-old German Shepherd has a growth on his gums — what should I do?',
+  'What preventive supplements should I start for a young German Shepherd?',
+  'Is ivermectin safe for my German Shepherd?',
+  'Are peptides like BPC-157 legit for muscle and joint recovery in dogs?',
 ];
 
 const GREETING: ChatMessage = {
   role: 'assistant',
   content:
-    "Hi, I'm **MEGHAN** — think of me as your friendly vet tech in your pocket. 🐾\n\nTell me what's going on with your pet and I'll help you figure out the next step. I can talk through symptoms, give you the honest **\"Real Talk\"** on products and supplements, and point you to the right corner of the app.\n\nWhat can I help you with today?",
+    "Hey, it's **MEGHAN**! 🐾 So good to see you. You know me — same old friend, just with a vet degree now and always on call for you and your furry family.\n\nBefore I put my vet hat on, catch me up on who we're talking about: what's their **name, breed, age, and rough weight**? And anything I should know health-wise — any **conditions, meds, allergies, or past surgeries**? The more I know, the better I can look out for them.\n\nAnd of course — what's on your mind today?",
 };
 
 function EmergencyBanner() {
@@ -54,8 +56,8 @@ function TypingDots() {
 
 function Avatar() {
   return (
-    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-base shadow-sm">
-      🐾
+    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
+      <DogLogo className="h-5 w-5 text-white" />
     </span>
   );
 }
@@ -172,12 +174,12 @@ export default function MeghanChat() {
     <div className="flex h-[70vh] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-lg">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-emerald-100 bg-emerald-500 px-4 py-3 text-white">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-lg">
-          🐾
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
+          <DogLogo className="h-6 w-6 text-white" />
         </span>
         <div>
-          <p className="font-bold leading-tight">MEGHAN</p>
-          <p className="text-xs text-emerald-50">AI Veterinary Companion</p>
+          <p className="font-bold leading-tight">{BOT_NAME}</p>
+          <p className="text-xs text-emerald-50">The friend who became your vet</p>
         </div>
         <span className="ml-auto flex items-center gap-1.5 text-xs text-emerald-50">
           <span className="h-2 w-2 rounded-full bg-emerald-200" />

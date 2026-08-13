@@ -41,8 +41,12 @@ export class AnthropicClient {
   private readonly model: string;
 
   constructor(apiKey?: string, model?: string) {
-    this.apiKey = apiKey ?? process.env.ANTHROPIC_API_KEY ?? '';
-    this.model = model ?? process.env.MEGHAN_MODEL ?? DEFAULT_MODEL;
+    this.apiKey = (apiKey ?? process.env.ANTHROPIC_API_KEY ?? '').trim();
+    // Use || (not ??) so an empty/blank value (e.g. MEGHAN_MODEL="" set in the
+    // hosting env) still falls back to the default instead of sending an empty
+    // model id, which the API rejects ("model: String should have at least 1
+    // character").
+    this.model = (model || process.env.MEGHAN_MODEL || DEFAULT_MODEL).trim() || DEFAULT_MODEL;
   }
 
   /** Whether an API key is configured. */
