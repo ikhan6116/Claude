@@ -6,6 +6,7 @@ import { sendLeadNotificationEmail } from '@/lib/email';
 import { sendLeadEvent } from '@/lib/meta-capi';
 import { sendLeadToRelintex } from '@/lib/relintex';
 import { sendLeadToMeera } from '@/lib/meera';
+import { computeLeadValue, LEAD_CURRENCY } from '@/lib/leadValue';
 
 interface LoanSubmission {
   firstName: string;
@@ -162,6 +163,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       fbc: req.cookies._fbc,
       fbp: req.cookies._fbp,
       eventId: (req.body?.metaEventId as string) || undefined,
+      value: computeLeadValue(data.loanRequestAmount),
+      currency: LEAD_CURRENCY,
     }).catch(err => { console.error('[Loans] Meta CAPI failed:', err); return false; });
 
     const emailPromise = sendLeadNotificationEmail({

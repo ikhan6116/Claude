@@ -5,6 +5,7 @@ import { hubspotClient } from '@/lib/hubspot';
 import { sendLeadEvent } from '@/lib/meta-capi';
 import { sendLeadToRelintex } from '@/lib/relintex';
 import { sendLeadToMeera } from '@/lib/meera';
+import { computeLeadValue, LEAD_CURRENCY } from '@/lib/leadValue';
 
 function parseAmount(rangeStr: string): number | null {
   if (!rangeStr) return null;
@@ -84,6 +85,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     fbc: req.cookies._fbc,
     fbp: req.cookies._fbp,
     eventId: (req.body?.metaEventId as string) || undefined,
+    value: computeLeadValue(loanAmount),
+    currency: LEAD_CURRENCY,
   }).catch(err => { console.error('[ChatSubmit] Meta CAPI failed:', err); return false; });
 
   const relintexPromise = sendLeadToRelintex({

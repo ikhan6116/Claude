@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAbandonedLead } from '@/lib/useAbandonedLead';
 import { toStateCode, zipToStateCode } from '@/lib/usStates';
+import { computeLeadValue, LEAD_CURRENCY } from '@/lib/leadValue';
 
 interface Message {
   role: 'bot' | 'user';
@@ -306,7 +307,9 @@ export default function ChatWidget({
           body: JSON.stringify({ ...data, metaEventId }),
         }).catch(() => {});
         if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
-          (window as any).fbq('track', 'Lead', {}, { eventID: metaEventId });
+          (window as any).fbq('track', 'Lead',
+            { value: computeLeadValue(data.loanAmount), currency: LEAD_CURRENCY },
+            { eventID: metaEventId });
         }
         setSending(false);
       } catch {

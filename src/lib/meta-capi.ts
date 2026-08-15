@@ -25,6 +25,9 @@ interface LeadEventData {
   fbp?: string;
   /** Shared with the browser pixel's fbq eventID so Meta deduplicates the pair. */
   eventId?: string;
+  /** Monetary value of the lead (scaled by loan amount). */
+  value?: number;
+  currency?: string;
 }
 
 export async function sendLeadEvent(data: LeadEventData): Promise<boolean> {
@@ -60,6 +63,10 @@ export async function sendLeadEvent(data: LeadEventData): Promise<boolean> {
   };
   // Shared id lets Meta dedupe this server event against the browser pixel's Lead.
   if (data.eventId) event.event_id = data.eventId;
+  // value/currency mirror the browser pixel's Lead so Meta reports one valued conversion.
+  if (typeof data.value === 'number' && data.value > 0) {
+    event.custom_data = { value: data.value, currency: data.currency || 'USD' };
+  }
 
   try {
     // test_event_code makes events appear in Events Manager → Test Events.
