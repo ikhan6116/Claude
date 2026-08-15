@@ -4,6 +4,7 @@ import { isBusinessHours, smsClient } from '@/lib/sms';
 import { hubspotClient } from '@/lib/hubspot';
 import { sendLeadEvent } from '@/lib/meta-capi';
 import { sendLeadToRelintex } from '@/lib/relintex';
+import { sendLeadToMeera } from '@/lib/meera';
 
 function parseAmount(rangeStr: string): number | null {
   if (!rangeStr) return null;
@@ -106,7 +107,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     userAgent: req.headers['user-agent'],
   }).catch(err => { console.error('[ChatSubmit] Relintex failed:', err); return { ok: false }; });
 
-  const [emailResult, hubspotResult, smsResult] = await Promise.all([emailPromise, hubspotPromise, smsPromise, capiPromise, relintexPromise]);
+  const meeraPromise = sendLeadToMeera({
+    firstName: firstName || '',
+    lastName: lastName || '',
+    email: email || '',
+    phone: phone || '',
+    address: streetAddress || '',
+    city: city || '',
+    state: state || '',
+    zip: zipCode || '',
+    loanPurpose: loanPurpose || '',
+    unsecuredDebtBalance: debtAmount || '',
+    monthlyDebtPayment: monthlyPayment || '',
+    loanRequestAmount: loanAmount || '',
+    estimatedFico: creditScore || '',
+    leadSource: 'BrightPath - Chatbot',
+  }).catch(err => { console.error('[ChatSubmit] Meera failed:', err); return { ok: false }; });
+
+  const [emailResult, hubspotResult, smsResult] = await Promise.all([emailPromise, hubspotPromise, smsPromise, capiPromise, relintexPromise, meeraPromise]);
 
   console.log('[ChatSubmit] Email sent:', emailResult);
   console.log('[ChatSubmit] HubSpot result:', hubspotResult);
