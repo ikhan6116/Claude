@@ -113,6 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     email: email || '',
     phone: phone || '',
     state: state || '',
+    zip: zipCode || '',
     loanPurpose: loanPurpose || '',
     leadSource: 'BrightPath - Chatbot',
   }).catch(err => { console.error('[ChatSubmit] Meera failed:', err); return { ok: false }; });

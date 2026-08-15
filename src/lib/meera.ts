@@ -21,7 +21,7 @@
  * Docs: https://chatbot.meera.ai/api-docs-v4
  */
 
-import { toStateCode } from '@/lib/usStates';
+import { toStateCode, zipToStateCode } from '@/lib/usStates';
 
 const DEFAULT_URL = 'https://chatbot.meera.ai/api/v4/campaign-leads/import';
 
@@ -31,6 +31,7 @@ export interface MeeraLead {
   email?: string;
   phone: string;
   state?: string;
+  zip?: string;
   loanPurpose?: string;
   leadSource?: string;
   externalId?: string;
@@ -80,7 +81,9 @@ function buildPayload(lead: MeeraLead, campaignId: number): Record<string, unkno
     external_system_id: lead.externalId || `BP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     registration_date: formatRegistrationDate(lead.submittedAt),
     country_code: process.env.MEERA_COUNTRY_CODE || 'US',
-    state_code: toStateCode(lead.state),
+    // Meera requires state_code; fall back to deriving it from the ZIP when a
+    // free-typed address didn't yield a clean 2-letter state.
+    state_code: toStateCode(lead.state) || zipToStateCode(lead.zip),
   };
   if (lead.email) payload.email = lead.email;
   if (lead.leadSource) payload.source = lead.leadSource;
@@ -120,6 +123,14 @@ export async function sendLeadToMeera(lead: MeeraLead): Promise<MeeraResult> {
     }).finally(() => clearTimeout(timeout));
 
     const respText = await response.text().catch(() => '');
+
+    // A duplicate (409 / "Duplicate lead found") means Meera already has this
+    // person and has already started the conversation — treat it as a soft
+    // success rather than an error (e.g. the partial imported, then completion).
+    if (response.status === 409 || /duplicate/i.test(respText)) {
+      console.log('[Meera] Lead already exists (duplicate) — treated as success:', respText);
+      return { ok: true, status: response.status, detail: respText };
+    }
 
     if (!response.ok) {
       console.error(`[Meera] Lead import failed HTTP ${response.status}:`, respText);

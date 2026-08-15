@@ -139,6 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: data.email,
       phone: data.phone,
       state: data.state,
+      zip: data.zipCode,
       loanPurpose: data.loanPurpose,
       leadSource: `BrightPath - ${data.source}`,
       submittedAt: data.submittedAt,

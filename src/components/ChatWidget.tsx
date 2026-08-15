@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAbandonedLead } from '@/lib/useAbandonedLead';
-import { toStateCode } from '@/lib/usStates';
+import { toStateCode, zipToStateCode } from '@/lib/usStates';
 
 interface Message {
   role: 'bot' | 'user';
@@ -194,7 +194,9 @@ export default function ChatWidget({
         if (addr) {
           newData.streetAddress = addr.street;
           newData.city = addr.city;
-          newData.state = addr.state;
+          // Fall back to deriving the state from the ZIP if it wasn't parsed —
+          // the CRMs (Meera especially) require a 2-letter state code.
+          newData.state = addr.state || zipToStateCode(addr.zip);
           newData.zipCode = addr.zip;
         }
         break;

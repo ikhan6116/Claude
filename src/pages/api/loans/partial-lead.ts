@@ -73,6 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: email || '',
         phone,
         state: state || '',
+        zip: zipCode || '',
         loanPurpose: loanPurpose || '',
         leadSource: `${src} (Incomplete${lastStep ? ` — ${lastStep}` : ''})`,
         campaignId: partialCampaign,
