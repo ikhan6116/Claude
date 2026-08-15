@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { sendPartialLeadEmail } from '@/lib/email';
 import { hubspotClient } from '@/lib/hubspot';
+import { sendLeadToMeera } from '@/lib/meera';
 
 function parseAmount(rangeStr?: string): number | null {
   if (!rangeStr) return null;
@@ -62,8 +63,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }).catch(err => { console.error('[PartialLead] HubSpot failed:', err); return { contactId: '' }; })
     : Promise.resolve({ contactId: '' });
 
-  const [emailOk, hubspotResult] = await Promise.all([emailPromise, hubspotPromise]);
-  console.log('[PartialLead] captured — email:', emailOk, 'hubspot:', hubspotResult.contactId || 'skipped', 'source:', src, 'step:', lastStep);
+  // Send abandoners to Meera for SMS re-engagement (needs a phone to text).
+  // Uses MEERA_PARTIAL_CAMPAIGN_ID if set, else falls back to MEERA_CAMPAIGN_ID.
+  const partialCampaign = parseInt(process.env.MEERA_PARTIAL_CAMPAIGN_ID || '', 10) || undefined;
+  const meeraPromise = phone
+    ? sendLeadToMeera({
+        firstName: firstName || '',
+        lastName: lastName || '',
+        email: email || '',
+        phone,
+        state: state || '',
+        loanPurpose: loanPurpose || '',
+        leadSource: `${src} (Incomplete${lastStep ? ` — ${lastStep}` : ''})`,
+        campaignId: partialCampaign,
+      }).catch(err => { console.error('[PartialLead] Meera failed:', err); return { ok: false }; })
+    : Promise.resolve({ ok: false });
+
+  const [emailOk, hubspotResult, meeraResult] = await Promise.all([emailPromise, hubspotPromise, meeraPromise]);
+  console.log('[PartialLead] captured — email:', emailOk, 'hubspot:', hubspotResult.contactId || 'skipped', 'meera:', meeraResult.ok, 'source:', src, 'step:', lastStep);
 
   return res.status(200).json({ ok: true });
 }

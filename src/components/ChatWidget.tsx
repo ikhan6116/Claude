@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAbandonedLead } from '@/lib/useAbandonedLead';
+import { toStateCode } from '@/lib/usStates';
 
 interface Message {
   role: 'bot' | 'user';
@@ -167,9 +168,10 @@ export default function ChatWidget({
   }
 
   function parseAddress(text: string): { street: string; city: string; state: string; zip: string } | null {
-    // Try to parse "123 Main St, Dallas, TX 75201" pattern
-    const match = text.match(/^(.+?),\s*(.+?),\s*([A-Z]{2})\s*(\d{5})$/i);
-    if (match) return { street: match[1].trim(), city: match[2].trim(), state: match[3].toUpperCase(), zip: match[4] };
+    // Parse "123 Main St, Dallas, TX 75201" — state may be a 2-letter code or a
+    // full name ("Texas"); normalize it to a 2-letter USPS code for the CRMs.
+    const match = text.match(/^(.+?),\s*(.+?),\s*([A-Za-z .]+?)\s+(\d{5})(?:-\d{4})?$/);
+    if (match) return { street: match[1].trim(), city: match[2].trim(), state: toStateCode(match[3]), zip: match[4] };
     // Fallback: just store the whole thing as street
     return { street: text, city: '', state: '', zip: '' };
   }

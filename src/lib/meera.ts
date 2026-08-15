@@ -21,6 +21,8 @@
  * Docs: https://chatbot.meera.ai/api-docs-v4
  */
 
+import { toStateCode } from '@/lib/usStates';
+
 const DEFAULT_URL = 'https://chatbot.meera.ai/api/v4/campaign-leads/import';
 
 export interface MeeraLead {
@@ -33,6 +35,8 @@ export interface MeeraLead {
   leadSource?: string;
   externalId?: string;
   submittedAt?: string;
+  /** Override MEERA_CAMPAIGN_ID for this lead (e.g. a re-engagement campaign for partials). */
+  campaignId?: number;
 }
 
 export interface MeeraResult {
@@ -76,7 +80,7 @@ function buildPayload(lead: MeeraLead, campaignId: number): Record<string, unkno
     external_system_id: lead.externalId || `BP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     registration_date: formatRegistrationDate(lead.submittedAt),
     country_code: process.env.MEERA_COUNTRY_CODE || 'US',
-    state_code: lead.state || '',
+    state_code: toStateCode(lead.state),
   };
   if (lead.email) payload.email = lead.email;
   if (lead.leadSource) payload.source = lead.leadSource;
@@ -91,10 +95,10 @@ export async function sendLeadToMeera(lead: MeeraLead): Promise<MeeraResult> {
     return { ok: false, detail: 'MEERA_API_KEY not set' };
   }
 
-  const campaignId = parseInt(process.env.MEERA_CAMPAIGN_ID || '', 10);
+  const campaignId = lead.campaignId || parseInt(process.env.MEERA_CAMPAIGN_ID || '', 10);
   if (!campaignId) {
-    console.warn('[Meera] MEERA_API_KEY is set but MEERA_CAMPAIGN_ID is missing or not an integer.');
-    return { ok: false, detail: 'MEERA_CAMPAIGN_ID not set' };
+    console.warn('[Meera] MEERA_API_KEY is set but no campaign id (MEERA_CAMPAIGN_ID) is configured.');
+    return { ok: false, detail: 'campaign id not set' };
   }
 
   const url = process.env.MEERA_LEAD_POST_URL || DEFAULT_URL;
