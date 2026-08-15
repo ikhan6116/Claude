@@ -1,43 +1,38 @@
 /**
- * Meera CRM lead integration.
+ * Meera CRM lead integration — POST /api/v4/campaign-leads/import.
  *
  * Posts each completed lead to Meera (chatbot.meera.ai) so Meera can start an
  * SMS conversation with the new lead immediately. Fully gated on environment
- * variables — if they aren't set, sendLeadToMeera is a no-op, so nothing breaks
- * until configuration is finished.
+ * variables — inert until both the API key and campaign id are set.
  *
  * Required env:
- *   MEERA_LEAD_POST_URL   Full Meera "add lead / contact" endpoint URL from the
- *                         Meera API v4 docs (https://chatbot.meera.ai/api-docs-v4)
- *   MEERA_API_KEY         Your Meera API key / token
+ *   MEERA_API_KEY       Your Meera API token (sent raw in the Authorization
+ *                       header — NO "Bearer " prefix, per the v4 docs)
+ *   MEERA_CAMPAIGN_ID   Integer campaign id that should engage the lead (e.g. 4)
  *
  * Optional:
- *   MEERA_AUTH_HEADER     Header the key is sent under (default 'Authorization';
- *                         when it's Authorization the key is sent as `Bearer <key>`).
- *                         Set to e.g. 'x-api-key' or 'api_key' if Meera documents that.
- *   MEERA_CAMPAIGN_ID     Meera campaign/agent id that should engage the lead
- *   MEERA_LIST_ID         Meera list/audience id to add the lead to
+ *   MEERA_LEAD_POST_URL  Override the import endpoint (defaults to the v4 URL below)
+ *   MEERA_AUTH_SCHEME    Prefix for the Authorization value. Default none (raw
+ *                        token). Set to 'Bearer' only if you use an OAuth2 access
+ *                        token instead of a static API key.
+ *   MEERA_AUTH_HEADER    Header name for the token (default 'Authorization')
+ *   MEERA_COUNTRY_CODE   Two-letter country code sent as country_code (default 'US')
  *
- * NOTE: The payload keys below are a best-guess mapping. Confirm the exact
- * field names Meera's v4 API expects and adjust buildPayload accordingly — the
- * full Meera response is logged on every send to make that easy to verify.
+ * Docs: https://chatbot.meera.ai/api-docs-v4
  */
+
+const DEFAULT_URL = 'https://chatbot.meera.ai/api/v4/campaign-leads/import';
 
 export interface MeeraLead {
   firstName: string;
   lastName: string;
   email?: string;
   phone: string;
-  address?: string;
-  city?: string;
   state?: string;
-  zip?: string;
   loanPurpose?: string;
-  unsecuredDebtBalance?: string;
-  monthlyDebtPayment?: string;
-  loanRequestAmount?: string;
-  estimatedFico?: string;
   leadSource?: string;
+  externalId?: string;
+  submittedAt?: string;
 }
 
 export interface MeeraResult {
@@ -46,7 +41,7 @@ export interface MeeraResult {
   detail?: string;
 }
 
-/** Normalize a US phone to E.164 (+1XXXXXXXXXX) — Meera sends SMS, so it needs a clean number. */
+/** Normalize a US phone to E.164 (+1XXXXXXXXXX) — Meera requires a country code for SMS. */
 function normalizePhone(phone: string): string {
   const d = phone.replace(/\D/g, '');
   if (d.length === 10) return `+1${d}`;
@@ -54,57 +49,59 @@ function normalizePhone(phone: string): string {
   return phone.startsWith('+') ? phone : `+${d}`;
 }
 
+/** Format a date as MM/DD/YYYY (Meera's required registration_date format). */
+function formatRegistrationDate(iso?: string): string {
+  const d = iso ? new Date(iso) : new Date();
+  const dt = isNaN(d.getTime()) ? new Date() : d;
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getUTCDate()).padStart(2, '0');
+  return `${mm}/${dd}/${dt.getUTCFullYear()}`;
+}
+
 function authHeader(): { name: string; value: string } | null {
   const key = process.env.MEERA_API_KEY;
   if (!key) return null;
   const name = process.env.MEERA_AUTH_HEADER || 'Authorization';
-  const value = name.toLowerCase() === 'authorization' ? `Bearer ${key}` : key;
+  const scheme = process.env.MEERA_AUTH_SCHEME; // default: none (raw token)
+  const value = scheme ? `${scheme} ${key}` : key;
   return { name, value };
 }
 
-function buildPayload(lead: MeeraLead): Record<string, unknown> {
+function buildPayload(lead: MeeraLead, campaignId: number): Record<string, unknown> {
   const payload: Record<string, unknown> = {
-    first_name: lead.firstName,
-    last_name: lead.lastName,
-    email: lead.email || '',
-    phone: normalizePhone(lead.phone),
-    address: lead.address || '',
-    city: lead.city || '',
-    state: lead.state || '',
-    zip: lead.zip || '',
-    lead_source: lead.leadSource || 'BrightPath Finance',
-    // Loan detail as custom fields — rename to match Meera's expected keys.
-    loan_purpose: lead.loanPurpose || '',
-    unsecured_debt: lead.unsecuredDebtBalance || '',
-    monthly_payment: lead.monthlyDebtPayment || '',
-    loan_amount: lead.loanRequestAmount || '',
-    estimated_fico: lead.estimatedFico || '',
+    campaign_id: campaignId,
+    first_name: lead.firstName || '',
+    last_name: lead.lastName || '',
+    mobile_number: normalizePhone(lead.phone),
+    external_system_id: lead.externalId || `BP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    registration_date: formatRegistrationDate(lead.submittedAt),
+    country_code: process.env.MEERA_COUNTRY_CODE || 'US',
+    state_code: lead.state || '',
   };
-
-  const campaignId = process.env.MEERA_CAMPAIGN_ID;
-  if (campaignId) payload.campaign_id = campaignId;
-  const listId = process.env.MEERA_LIST_ID;
-  if (listId) payload.list_id = listId;
-
+  if (lead.email) payload.email = lead.email;
+  if (lead.leadSource) payload.source = lead.leadSource;
+  if (lead.loanPurpose) payload.program_name = lead.loanPurpose;
   return payload;
 }
 
 export async function sendLeadToMeera(lead: MeeraLead): Promise<MeeraResult> {
-  const url = process.env.MEERA_LEAD_POST_URL;
-  if (!url) {
-    // Not configured yet — silently skip.
-    return { ok: false, detail: 'MEERA_LEAD_POST_URL not set' };
-  }
-
   const auth = authHeader();
   if (!auth) {
-    console.warn('[Meera] MEERA_LEAD_POST_URL is set but MEERA_API_KEY is missing.');
+    // Not configured yet — silently skip.
     return { ok: false, detail: 'MEERA_API_KEY not set' };
   }
 
+  const campaignId = parseInt(process.env.MEERA_CAMPAIGN_ID || '', 10);
+  if (!campaignId) {
+    console.warn('[Meera] MEERA_API_KEY is set but MEERA_CAMPAIGN_ID is missing or not an integer.');
+    return { ok: false, detail: 'MEERA_CAMPAIGN_ID not set' };
+  }
+
+  const url = process.env.MEERA_LEAD_POST_URL || DEFAULT_URL;
   const headers: Record<string, string> = {
     [auth.name]: auth.value,
     'Content-Type': 'application/json',
+    Accept: 'application/json',
   };
 
   try {
@@ -114,30 +111,30 @@ export async function sendLeadToMeera(lead: MeeraLead): Promise<MeeraResult> {
     const response = await fetch(url, {
       method: 'POST',
       headers,
-      body: JSON.stringify(buildPayload(lead)),
+      body: JSON.stringify(buildPayload(lead, campaignId)),
       signal: controller.signal,
     }).finally(() => clearTimeout(timeout));
 
     const respText = await response.text().catch(() => '');
 
     if (!response.ok) {
-      console.error(`[Meera] Lead post failed HTTP ${response.status}:`, respText);
+      console.error(`[Meera] Lead import failed HTTP ${response.status}:`, respText);
       return { ok: false, status: response.status, detail: respText };
     }
 
-    // Some APIs return HTTP 200 with an error/success flag in the body.
-    let parsed: { success?: boolean; error?: unknown; status?: string } | null = null;
+    // Success response is {"status": true, "message": "Lead imported successfully."}
+    let parsed: { status?: boolean; message?: string } | null = null;
     try { parsed = JSON.parse(respText); } catch { /* non-JSON — treat 2xx as success */ }
 
-    if (parsed && (parsed.success === false || parsed.error)) {
+    if (parsed && parsed.status === false) {
       console.warn('[Meera] Lead rejected:', respText);
       return { ok: false, status: response.status, detail: respText };
     }
 
-    console.log('[Meera] Lead posted successfully:', respText);
+    console.log('[Meera] Lead imported successfully:', respText);
     return { ok: true, status: response.status, detail: respText };
   } catch (err) {
-    console.error('[Meera] Lead post error:', err);
+    console.error('[Meera] Lead import error:', err);
     return { ok: false, detail: String(err) };
   }
 }

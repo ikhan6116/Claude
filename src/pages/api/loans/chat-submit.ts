@@ -112,15 +112,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     lastName: lastName || '',
     email: email || '',
     phone: phone || '',
-    address: streetAddress || '',
-    city: city || '',
     state: state || '',
-    zip: zipCode || '',
     loanPurpose: loanPurpose || '',
-    unsecuredDebtBalance: debtAmount || '',
-    monthlyDebtPayment: monthlyPayment || '',
-    loanRequestAmount: loanAmount || '',
-    estimatedFico: creditScore || '',
     leadSource: 'BrightPath - Chatbot',
   }).catch(err => { console.error('[ChatSubmit] Meera failed:', err); return { ok: false }; });
 

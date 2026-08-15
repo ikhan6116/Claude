@@ -138,16 +138,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       lastName: data.lastName,
       email: data.email,
       phone: data.phone,
-      address: data.streetAddress,
-      city: data.city,
       state: data.state,
-      zip: data.zipCode,
       loanPurpose: data.loanPurpose,
-      unsecuredDebtBalance: data.unsecuredDebtBalance,
-      monthlyDebtPayment: data.monthlyDebtPayment,
-      loanRequestAmount: data.loanRequestAmount,
-      estimatedFico: data.estimatedFico,
       leadSource: `BrightPath - ${data.source}`,
+      submittedAt: data.submittedAt,
     }).catch(err => { console.error('[Loans] Meera failed:', err); return { ok: false }; });
 
     const smsPromise = data.tcpaConsent
