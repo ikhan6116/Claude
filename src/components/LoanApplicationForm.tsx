@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
+import { useAbandonedLead } from '@/lib/useAbandonedLead';
 
 interface LoanFormData {
   firstName: string;
@@ -66,25 +67,20 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
   const [checkingPhone, setCheckingPhone] = useState(false);
   const [result, setResult]               = useState<LoanResult | null>(null);
   const [error, setError]                 = useState('');
-  const partialSentRef                    = useRef(false);
+  const { schedule: scheduleAbandoned, cancel: cancelAbandoned } = useAbandonedLead();
 
-  // Capture an abandoned-lead record once we have contact info, so a drop-off
-  // at the verification step still notifies us. Fires at most once per session.
-  const capturePartialLead = () => {
-    if (partialSentRef.current) return;
-    partialSentRef.current = true;
+  // Schedule an abandoned-lead capture once we have contact info. Held 30s so a
+  // lead who finishes phone verification doesn't trigger a false alert; sends
+  // early if they leave the page first. Cancelled on successful submission.
+  const scheduleAbandonedLead = () => {
     const v = getValues();
-    fetch('/api/loans/partial-lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        firstName: v.firstName, lastName: v.lastName, email: v.email, phone: v.phone,
-        streetAddress: v.streetAddress, city: v.city, state: v.state, zipCode: v.zipCode,
-        unsecuredDebtBalance: v.unsecuredDebtBalance, monthlyDebtPayment: v.monthlyDebtPayment,
-        loanRequestAmount: v.loanRequestAmount, estimatedFico: v.estimatedFico, loanPurpose: v.loanPurpose,
-        source, lastStep: 'phone verification',
-      }),
-    }).catch(() => {});
+    scheduleAbandoned({
+      firstName: v.firstName, lastName: v.lastName, email: v.email, phone: v.phone,
+      streetAddress: v.streetAddress, city: v.city, state: v.state, zipCode: v.zipCode,
+      unsecuredDebtBalance: v.unsecuredDebtBalance, monthlyDebtPayment: v.monthlyDebtPayment,
+      loanRequestAmount: v.loanRequestAmount, estimatedFico: v.estimatedFico, loanPurpose: v.loanPurpose,
+      source, lastStep: 'phone verification',
+    });
   };
 
   const { register, handleSubmit, watch, trigger, getValues, formState: { errors } } =
@@ -186,6 +182,7 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
       });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Submission failed'); }
       const d = await r.json();
+      cancelAbandoned(); // completed — suppress the pending abandoned-lead alert
       setResult({ approved: d.approved, score: d.creditScore, totalDebt: d.totalDebtBalance, message: d.message, offerId: d.offerId });
       setStep('result');
       if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
@@ -451,7 +448,7 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
                     if (!getValues('phone') || phoneError) return;
                   }
                   const ok = await sendCode();
-                  if (ok) { capturePartialLead(); setStep('verify'); }
+                  if (ok) { scheduleAbandonedLead(); setStep('verify'); }
                 }}>
                 {sendingCode ? 'Sending Code…' : checkingPhone ? 'Validating…' : 'Verify Phone'}
               </button>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useAbandonedLead } from '@/lib/useAbandonedLead';
 
 interface Message {
   role: 'bot' | 'user';
@@ -112,24 +113,19 @@ export default function ChatWidget({
   const [validating, setValidating] = useState(false);
   const bottomRef                 = useRef<HTMLDivElement>(null);
   const inputRef                  = useRef<HTMLInputElement>(null);
-  const partialSentRef            = useRef(false);
+  const { schedule: scheduleAbandoned, cancel: cancelAbandoned } = useAbandonedLead();
 
-  // Capture an abandoned-lead record once the visitor's phone passes validation,
-  // so a drop-off at the OTP step still notifies us. Fires at most once.
-  function capturePartialLead(d: ChatData) {
-    if (partialSentRef.current) return;
-    partialSentRef.current = true;
-    fetch('/api/loans/partial-lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        firstName: d.firstName, lastName: d.lastName, email: d.email, phone: d.phone,
-        streetAddress: d.streetAddress, city: d.city, state: d.state, zipCode: d.zipCode,
-        unsecuredDebtBalance: d.debtAmount, monthlyDebtPayment: d.monthlyPayment,
-        loanRequestAmount: d.loanAmount, estimatedFico: d.creditScore, loanPurpose: d.loanPurpose,
-        source: 'chatbot', lastStep: 'phone verification',
-      }),
-    }).catch(() => {});
+  // Schedule an abandoned-lead capture once the visitor's phone passes
+  // validation. Held 30s so a lead who finishes the OTP step doesn't trigger a
+  // false alert; sends early if they leave the page. Cancelled on completion.
+  function scheduleAbandonedLead(d: ChatData) {
+    scheduleAbandoned({
+      firstName: d.firstName, lastName: d.lastName, email: d.email, phone: d.phone,
+      streetAddress: d.streetAddress, city: d.city, state: d.state, zipCode: d.zipCode,
+      unsecuredDebtBalance: d.debtAmount, monthlyDebtPayment: d.monthlyPayment,
+      loanRequestAmount: d.loanAmount, estimatedFico: d.creditScore, loanPurpose: d.loanPurpose,
+      source: 'chatbot', lastStep: 'phone verification',
+    });
   }
 
   // Auto-open 1.5 seconds after the page loads
@@ -255,7 +251,7 @@ export default function ChatWidget({
 
         const newData = { ...data, phone: text };
         setData(newData);
-        capturePartialLead(newData);
+        scheduleAbandonedLead(newData);
         setSending(true);
         await new Promise(r => setTimeout(r, 600));
         appendBot('verifyCode', newData);
@@ -294,6 +290,7 @@ export default function ChatWidget({
           return;
         }
 
+        cancelAbandoned(); // completed — suppress the pending abandoned-lead alert
         setSending(true);
         await new Promise(r => setTimeout(r, 600));
         appendBot('done', data);
