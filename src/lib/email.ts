@@ -271,7 +271,8 @@ export async function sendLeadNotificationEmail(data: LeadEmailPayload): Promise
 
   // 2) Lead review alert → LEAD_NOTIFICATION_EMAILS env var recipients
   const reviewRecipients = getRecipients();
-  const reviewSubject = `🔔 New Lead [${data.routing.toUpperCase()}] — ${data.firstName} ${data.lastName} | ${data.loanRequestAmount}`;
+  const reviewTier = computeDebtTier(data.unsecuredDebtBalance);
+  const reviewSubject = `🔔 New Lead${reviewTier ? ` [${reviewTier}]` : ''} [${data.routing.toUpperCase()}] — ${data.firstName} ${data.lastName} | ${data.loanRequestAmount}`;
   const reviewPromise = reviewRecipients.length
     ? sendWithFallback(client, reviewRecipients, reviewSubject, buildHtml(data), 'review')
     : Promise.resolve(false);
@@ -370,7 +371,8 @@ export async function sendPartialLeadEmail(data: PartialLeadPayload): Promise<bo
 
   const recipients = Array.from(new Set([...INTERNAL_ALERT_RECIPIENTS, ...getRecipients()]));
   const who = [data.firstName, data.lastName].filter(Boolean).join(' ') || data.phone || data.email || 'Unknown';
-  const subject = `⚠️ Incomplete Application — ${who}`;
+  const tier = computeDebtTier(data.unsecuredDebtBalance);
+  const subject = `⚠️ Incomplete App${tier ? ` [${tier}]` : ''} — ${who}`;
 
   return sendWithFallback(client, recipients, subject, buildPartialLeadHtml(data), 'partial');
 }
