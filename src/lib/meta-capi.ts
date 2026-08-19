@@ -91,7 +91,7 @@ export async function sendLeadEvent(data: LeadEventData): Promise<boolean> {
     }
 
     const result = await response.json();
-    console.log('[Meta CAPI] Lead event sent:', result);
+    console.log(`[Meta CAPI] Lead event sent (value: ${typeof data.value === 'number' ? data.value : 'none'} ${data.currency || 'USD'}, event_id: ${data.eventId || 'none'}):`, result);
     return true;
   } catch (err) {
     console.error('[Meta CAPI] Failed to send event:', err);
