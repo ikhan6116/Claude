@@ -1,4 +1,21 @@
 import { Resend } from 'resend';
+import { parseLoanAmount } from '@/lib/leadValue';
+
+/**
+ * Tier the lead by total unsecured debt (lower bound of the selected band):
+ * 5k-10k=T6, 10k-25k=T5, 25k-50k=T4, 50k-75k=T3, 75k-100k=T2, 100k+=T1.
+ * Returns '' for amounts below $5k or unparseable input.
+ */
+function computeDebtTier(unsecuredDebt?: string): string {
+  const amount = parseLoanAmount(unsecuredDebt);
+  if (amount >= 100000) return 'T1';
+  if (amount >= 75000)  return 'T2';
+  if (amount >= 50000)  return 'T3';
+  if (amount >= 25000)  return 'T4';
+  if (amount >= 10000)  return 'T5';
+  if (amount >= 5000)   return 'T6';
+  return '';
+}
 
 let _resend: Resend | null = null;
 function getResendClient(): Resend | null {
@@ -245,7 +262,8 @@ export async function sendLeadNotificationEmail(data: LeadEmailPayload): Promise
   }
 
   // 1) Internal lead alert → contact@brightpathfinance.com + team@brightpath-fin.com
-  const internalSubject = `New Loan Application — ${data.firstName} ${data.lastName} (${data.phone})`;
+  const tier = computeDebtTier(data.unsecuredDebtBalance);
+  const internalSubject = `New Loan App${tier ? ` [${tier}]` : ''} — ${data.firstName} ${data.lastName} (${data.phone})`;
   const internalPromise = sendWithFallback(
     client, INTERNAL_ALERT_RECIPIENTS, internalSubject,
     buildInternalAlertHtml(data), 'internal',
