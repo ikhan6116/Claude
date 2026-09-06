@@ -20,7 +20,7 @@ export default async function handler(_req: NextApiRequest, res: NextApiResponse
   } else {
     try {
       const resend = new Resend(key);
-      const to = ['contact@brightpathfinance.com', 'team@brightpath-fin.com'];
+      const to = ['team@brightpath-fin.com'];
       const { data, error } = await resend.emails.send({
         from: 'BrightPath Finance <team@brightpath-fin.com>',
         to,

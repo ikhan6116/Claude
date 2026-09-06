@@ -156,7 +156,7 @@ function row(label: string, value: string): string {
   </tr>`;
 }
 
-const INTERNAL_ALERT_RECIPIENTS = ['contact@brightpathfinance.com', 'team@brightpath-fin.com'];
+const INTERNAL_ALERT_RECIPIENTS = ['team@brightpath-fin.com'];
 
 function buildInternalAlertHtml(data: LeadEmailPayload): string {
   const submittedDate = new Date(data.submittedAt).toLocaleString('en-US', {
@@ -261,7 +261,7 @@ export async function sendLeadNotificationEmail(data: LeadEmailPayload): Promise
     return false;
   }
 
-  // 1) Internal lead alert → contact@brightpathfinance.com + team@brightpath-fin.com
+  // 1) Internal lead alert → team@brightpath-fin.com
   const tier = computeDebtTier(data.unsecuredDebtBalance);
   const internalSubject = `New Loan App${tier ? ` [${tier}]` : ''} — ${data.firstName} ${data.lastName} (${data.phone})`;
   const internalPromise = sendWithFallback(
