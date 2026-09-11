@@ -230,6 +230,19 @@ export default function LoanApplicationForm({ source = 'landing-page' }: { sourc
             }
           </p>
         </div>
+
+        <div className="space-y-3">
+          <a href="tel:877-867-2002"
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-white font-semibold text-sm transition-transform hover:scale-[1.01]"
+            style={{ background: 'linear-gradient(135deg,#2b7cff,#30a2ff)', boxShadow: '0 4px 14px rgba(43,124,255,0.35)' }}>
+            📞 Call (877) 867-2002
+          </a>
+          <a href="https://calendly.com/team-brightpath-fin/30min" target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-sm transition-colors"
+            style={{ border: '1.5px solid #d9d9d9', color: '#0d1b2a', background: 'white' }}>
+            📅 Review my offers now
+          </a>
+        </div>
       </div>
     </div>
   );

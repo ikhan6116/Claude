@@ -449,6 +449,25 @@ export default function ChatWidget({
               </button>
             </div>
           )}
+
+          {/* Done — call + schedule CTAs */}
+          {step === 'done' && (
+            <div className="px-3 py-3 bg-white flex-shrink-0 space-y-2.5" style={{ borderTop: '1px solid #e9ecef' }}>
+              <p className="text-center text-sm font-semibold" style={{ color: '#16a34a' }}>
+                🎉 Got it — we received your request!
+              </p>
+              <a href="tel:877-867-2002"
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold text-sm"
+                style={{ background: 'linear-gradient(135deg,#2b7cff,#30a2ff)', boxShadow: '0 4px 14px rgba(43,124,255,0.35)' }}>
+                📞 Call (877) 867-2002
+              </a>
+              <a href="https://calendly.com/team-brightpath-fin/30min" target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm"
+                style={{ border: '1.5px solid #d9d9d9', color: '#0d1b2a', background: 'white' }}>
+                📅 Review my offers now
+              </a>
+            </div>
+          )}
         </div>
       )}
     </>
